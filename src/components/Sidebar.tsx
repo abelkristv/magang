@@ -2,7 +2,7 @@
 import { css } from '@emotion/react';
 import homeIcon from "../assets/icons/home.png"
 import searchIcon from "../assets/icons/search.png"
-import plusIcon from "../assets/icons/plus.webp"
+import plusIcon from "../assets/icons/plus.png"
 
 function Sidebar({ setActiveComponent }) {
 

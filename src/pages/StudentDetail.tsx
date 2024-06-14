@@ -39,13 +39,14 @@ function StudentDetail() {
         display: flex;
         width: 100%;
         justify-content: center;
+        padding: 20px;
         align-items: center;
         background: rgb(118,232,255);
         background: linear-gradient(324deg, rgba(118,232,255,1) 0%, rgba(73,224,255,1) 22%, rgba(0,59,255,1) 100%);
     `;
 
     const cardStyle = css`
-        width: 50%;
+        width: 25%;
         background: rgb(255,255,255, 0.8);
         border-radius: 15px;
         padding: 40px;
@@ -53,10 +54,11 @@ function StudentDetail() {
         flex-direction: column;
         align-items: center;
         text-align: start;
+        height: 90vh;
     `;
 
     const recordsContainerStyle = css`
-        width: 45%;
+        width: 75%;
         background: rgb(255,255,255, 0.8);
         border-radius: 15px;
         padding: 20px;
@@ -64,7 +66,9 @@ function StudentDetail() {
         flex-direction: column;
         margin-left: 20px;
         overflow-y: scroll;
-        max-height: 500px;
+        // max-height: 500px;
+        height: 90vh;
+        overflow: scroll;
     `;
 
     const recordCardStyle = css`
