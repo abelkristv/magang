@@ -1,18 +1,19 @@
 /** @jsxImportSource @emotion/react */
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import PrimaryButton from '../components/Button';
 import { useAuth } from '../helper/AuthProvider';
+import User from '../model/User';
 
-function Login() {
+const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const { setCurrentUser } = useAuth();
+    const authContext = useAuth();
 
     const mainStyle = css`
         width: 100%;
@@ -61,16 +62,20 @@ function Login() {
         display: flex;
         flex-direction: column;
         gap: 50px;
-    `
+    `;
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            setCurrentUser(userCredential.user);
-            navigate('/dashboard');
+            if (authContext) {
+                authContext.setCurrentUser({ email: userCredential.user.email! } as User);
+                navigate('/dashboard');
+            } else {
+                setError("Failed to login, unable to set user context");
+            }
         } catch (error) {
-            setError(error.message);
+            setError("Failed to login, make sure you enter the correct email / password");
         }
     };
 
@@ -87,7 +92,7 @@ function Login() {
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder='Email'
+                            placeholder="Email"
                             css={inputStyle}
                             required
                         />
@@ -99,16 +104,16 @@ function Login() {
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder='Password'
+                            placeholder="Password"
                             css={inputStyle}
                             required
                         />
                     </div>
-                    <PrimaryButton content={"SUBMIT"} type="submit" />
+                    <PrimaryButton content={"SUBMIT"} />
                 </form>
             </div>
         </main>
     );
-}
+};
 
 export default Login;

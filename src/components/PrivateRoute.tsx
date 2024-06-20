@@ -1,10 +1,14 @@
 // src/components/PrivateRoute.js
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 
-function PrivateRoute({ children }) {
+interface PrivateRouteProps {
+    children: ReactNode;
+}
+
+function PrivateRoute({ children }: PrivateRouteProps) {
     const [loading, setLoading] = useState(true);
     const [authenticated, setAuthenticated] = useState(false);
     const navigate = useNavigate();

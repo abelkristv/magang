@@ -9,7 +9,12 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
-function Sidebar({ setActiveComponent, activeComponent }) {
+export interface SidebarProps {
+    setActiveComponent: (component: string) => void;
+    activeComponent: string;
+}
+
+function Sidebar({ setActiveComponent, activeComponent }: SidebarProps) {
     const sidebarStyle = css`
         height: 100%;
         background-color: rgb(255, 255, 255);
@@ -19,7 +24,7 @@ function Sidebar({ setActiveComponent, activeComponent }) {
         justify-content: space-between; // Ensure the clock stays at the bottom
     `;
 
-    const dashboardButtonStyle = (isActive) => css`
+    const dashboardButtonStyle = (isActive: boolean) => css`
         cursor: pointer;
         ${isActive ?  "background-color: RGB(162,191,254)" : "background-color: transparent;" };
         display: flex;

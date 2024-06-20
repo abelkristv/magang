@@ -2,8 +2,13 @@
 import { css } from '@emotion/react';
 import searchIcon from "../assets/icons/search.png"
 
+export interface SearchBarProps {
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+    onSearch: () => void;
+}
 
-function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
+function SearchBar({ searchQuery, setSearchQuery, onSearch }: SearchBarProps) {
     const searchBarStyle = css`
         width: 100%;
         display: flex;

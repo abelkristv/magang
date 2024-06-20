@@ -2,6 +2,12 @@
 import { css, keyframes } from '@emotion/react';
 import checkMark from '../assets/icons/checkmark.png'
 
+export interface ModalProps {
+    message: string;
+    onClose: () => void;
+}
+
+
 const appear = keyframes`
     from {
         opacity: 0;
@@ -13,7 +19,7 @@ const appear = keyframes`
     }
 `;
 
-function Modal({ message, onClose }) {
+function Modal({ message, onClose }: ModalProps) {
     const modalOverlayStyle = css`
         position: fixed;
         top: 0;

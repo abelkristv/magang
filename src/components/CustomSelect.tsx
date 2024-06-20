@@ -1,12 +1,20 @@
 /** @jsxImportSource @emotion/react */
 import { useState } from 'react';
 import { css } from '@emotion/react';
+import Student from '../model/Student';
 
-function CustomSelect({ options, value, onChange }) {
+export interface CustomSelectProps {
+    options: Student[];
+    value: Student | null;
+    onChange: (option: Student) => void;
+}
+
+
+function CustomSelect({ options, value, onChange }: CustomSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleDropdown = () => setIsOpen(!isOpen);
-    const handleOptionClick = (option) => {
+    const handleOptionClick = (option: Student) => {
         onChange(option);
         setIsOpen(false);
     };

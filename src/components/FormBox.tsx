@@ -1,16 +1,17 @@
 /** @jsxImportSource @emotion/react */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactEventHandler } from 'react';
 import { css } from '@emotion/react';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure the path is correct
-import PrimaryButton from '../components/Button';
-import CustomSelect from '../components/CustomSelect'; // Ensure the path is correct
+import PrimaryButton from './Button';
+import CustomSelect from './CustomSelect'; // Ensure the path is correct
 import { useAuth } from '../helper/AuthProvider';
-import Modal from '../components/Modal'; // Ensure the path is correct
+import Modal from './Modal'; // Ensure the path is correct
+import Student from '../model/Student';
 
 function FormBox() {
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [students, setStudents] = useState<Student[]>([]);
+    const [selectedStudent, setSelectedStudent] = useState<Student>({} as Student);
     const [report, setReport] = useState('');
     const [message, setMessage] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,30 +20,32 @@ function FormBox() {
         const fetchStudents = async () => {
             const querySnapshot = await getDocs(collection(db, "student"));
             const studentsData = querySnapshot.docs.map(doc => doc.data());
-            setStudents(studentsData);
+            setStudents(studentsData.map(data => {
+                return {name: data.name, id: data.id, nim: data.nim, semester: data.semester, tempat_magang: data.tempat_magang, image_url: data.image_url} as Student
+            }));
         };
         fetchStudents();
     }, []);
 
-    const handleReportChange = (e) => {
+    const handleReportChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setReport(e.target.value);
     };
 
-    const { currentUser } = useAuth();
+    const { currentUser } = useAuth() ?? {};
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {
             await addDoc(collection(db, "studentReport"), {
                 studentName: selectedStudent.name,
                 report: report,
-                writer: currentUser.email,
+                writer: currentUser?.email,
                 timestamp: new Date() // Add a timestamp to the report
             });
 
             setMessage("Report submitted successfully!");
-            setSelectedStudent(null);
+            setSelectedStudent({} as Student);
             setReport('');
             setIsModalOpen(true);
         } catch (error) {
@@ -102,7 +105,7 @@ function FormBox() {
                     Report
                     <textarea value={report} onChange={handleReportChange} css={textareaStyle}></textarea>
                 </label>
-                <PrimaryButton content={"Submit"} type="submit" />
+                <PrimaryButton content={"Submit"} />
             </form>
             {/* {message && <p>{message}</p>} */}
             {isModalOpen && <Modal message={message} onClose={closeModal} />}

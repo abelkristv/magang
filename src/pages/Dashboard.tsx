@@ -4,17 +4,12 @@ import { css } from '@emotion/react';
 import Sidebar from '../components/Sidebar';
 import DashboardBox from '../components/DashboardBox';
 import SearchBox from '../components/SearchBox';
-import FormBox from '../components/AddNewReportFormBox';
+import FormBox from '../components/FormBox';
 import { useAuth } from '../helper/AuthProvider';
 
 function Dashboard() {
     const [activeComponent, setActiveComponent] = useState('dashboard');
     const [isSidebarVisible, setIsSidebarVisible] = useState(true); 
-    const {currentUser} = useAuth()
-    console.log(currentUser.email)
-    const toggleSidebar = () => {
-        setIsSidebarVisible(!isSidebarVisible);
-    };
 
     const mainStyle = css`
         width: 100%;
@@ -43,7 +38,7 @@ function Dashboard() {
         <>
             <main css={mainStyle}>
             {isSidebarVisible && (
-                    <Sidebar setActiveComponent={setActiveComponent} activeComponent={activeComponent} toggleSidebar={toggleSidebar} />
+                    <Sidebar setActiveComponent={setActiveComponent} activeComponent={activeComponent} />
                 )}
                 {activeComponent === 'dashboard' && <DashboardBox onSearch={() => setActiveComponent('search')} />}
                 {activeComponent === 'search' && <SearchBox />}

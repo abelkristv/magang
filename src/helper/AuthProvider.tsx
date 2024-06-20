@@ -1,20 +1,37 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import User from '../model/User';
 
-const AuthContext = createContext();
+// Define the shape of the context value
+interface AuthContextType {
+    currentUser: User;
+    setCurrentUser: React.Dispatch<React.SetStateAction<User>>;
+    logout: () => void;
+}
+
+// Create the context with a default value of null
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function useAuth() {
     return useContext(AuthContext);
 }
 
-export function AuthProvider({ children }) {
-    const [currentUser, setCurrentUser] = useState(null);
+interface AuthProviderProps {
+    children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+    const [currentUser, setCurrentUser] = useState<User>({} as User);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
+            if (user) {
+                setCurrentUser({ email: user.email! } as User);
+            } else {
+                setCurrentUser({} as User);
+            }
             setLoading(false);
         });
 
@@ -25,7 +42,7 @@ export function AuthProvider({ children }) {
         signOut(auth);
     };
 
-    const value = {
+    const value: AuthContextType = {
         currentUser,
         setCurrentUser,
         logout,

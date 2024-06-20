@@ -5,19 +5,25 @@ import { useParams } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure the path is correct
 import PrimaryButton from '../components/Button';
+import Student from '../model/Student';
+import StudentRecord from '../model/StudentRecord';
 
 function StudentDetail() {
     const { id } = useParams();
-    const [student, setStudent] = useState(null);
-    const [studentRecords, setStudentRecords] = useState([]);
+    const [student, setStudent] = useState<Student>({} as Student);
+    const [studentRecords, setStudentRecords] = useState<StudentRecord[]>([]);
 
     useEffect(() => {
         const fetchStudent = async () => {
+            if (!id) {
+                console.error("No student ID provided");
+                return;
+            }
             const docRef = doc(db, "student", id);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                const studentData = { id: docSnap.id, ...docSnap.data() };
+                const studentData = { id: docSnap.id, ...docSnap.data() } as Student;
                 setStudent(studentData);
                 fetchStudentRecords(studentData.name); // Fetch student records
             } else {
@@ -25,10 +31,18 @@ function StudentDetail() {
             }
         };
 
-        const fetchStudentRecords = async (studentName) => {
+        const fetchStudentRecords = async (studentName: string) => {
             const q = query(collection(db, 'studentReport'), where('studentName', '==', studentName));
             const querySnapshot = await getDocs(q);
-            const recordsData = querySnapshot.docs.map(doc => doc.data());
+            const recordsData = querySnapshot.docs.map(doc => 
+                ({
+                    id : doc.id,
+                    title: doc.data().title,
+                    timestamp: doc.data().timestamp,
+                    report: doc.data().report,
+                    writer: doc.data().writer
+                }) as StudentRecord
+            );
             setStudentRecords(recordsData);
         };
 

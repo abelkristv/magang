@@ -1,26 +1,39 @@
 /** @jsxImportSource @emotion/react */
 import { useState, useEffect } from 'react';
-import { css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure the path is correct
 import PrimaryButton from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import { useNavigate } from 'react-router-dom';
+import Student from '../model/Student';
 
 interface DashboardBoxProps {
-    onSearch: (query: string) => void;
+    onSearch: () => void;
 }
 
 function DashboardBox({ onSearch }: DashboardBoxProps) {
-    const [students, setStudents] = useState([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchStudents = async () => {
+            setLoading(true);
             const querySnapshot = await getDocs(collection(db, "student"));
-            const studentsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const studentsData = querySnapshot.docs.map(doc => {
+                return {
+                    id: doc.id, 
+                    name: doc.data().name, 
+                    nim: doc.data().nim,
+                    tempat_magang: doc.data().tempat_magang,
+                    semester: doc.data().semester,
+                    image_url: doc.data().image_url
+                } as Student
+            });
             setStudents(studentsData);
+            setLoading(false);
         };
         fetchStudents();
     }, []);
@@ -46,8 +59,6 @@ function DashboardBox({ onSearch }: DashboardBoxProps) {
         border-radius: 15px;
         flex-direction: column;
         align-items: center;
-        // margin-right: 50px;
-        // margin-left: 50px;
         display: flex;
         padding-top: 40px;
         overflow: scroll;
@@ -59,7 +70,6 @@ function DashboardBox({ onSearch }: DashboardBoxProps) {
         align-items: start;
         padding: 50px;
         flex-direction: column;
-        // border: 1px solid black;
     `;
 
     const recentlyAddedInformationStyle = css`
@@ -77,7 +87,6 @@ function DashboardBox({ onSearch }: DashboardBoxProps) {
         justify-content: start;
         text-align: start;
         border-radius: 15px;
-        // box-shadow: 0px 0px 5px black;
     `;
 
     const recentlyAddedInformationCardsStyle = css`
@@ -100,7 +109,44 @@ function DashboardBox({ onSearch }: DashboardBoxProps) {
         margin-bottom: 40px;
     `;
 
-    const handleSeeMoreClick = (id) => {
+    const placeholderAnimation = keyframes`
+        0% {
+            background-position: -200px 0;
+        }
+        100% {
+            background-position: calc(200px + 100%) 0;
+        }
+    `;
+
+    const placeholderCardStyle = css`
+        display: flex;
+        flex-direction: column;
+        background-color: #f2f2f2;
+        padding: 40px;
+        justify-content: start;
+        text-align: start;
+        border-radius: 15px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: ${placeholderAnimation} 1.5s infinite;
+    `;
+
+    const placeholderImageStyle = css`
+        width: 200px;
+        height: 200px;
+        border-radius: 100%;
+        background: #e0e0e0;
+    `;
+
+    const placeholderLineStyle = css`
+        height: 20px;
+        width: 100%;
+        background: #e0e0e0;
+        margin: 10px 0;
+        border-radius: 5px;
+    `;
+
+    const handleSeeMoreClick = (id: string) => {
         navigate(`/student/${id}`);
     };
 
@@ -112,18 +158,29 @@ function DashboardBox({ onSearch }: DashboardBoxProps) {
                     <h1>Recently Added Information</h1>
                 </div>
                 <div css={recentlyAddedInformationCardsStyle}>
-                    {filteredStudents.map((student) => (
-                        <div css={cardStyle} key={student.id}>
-                            <img src={student.image_url} alt="" css={photoStyle} />
-                            <div css={contentInformationStyle}>
-                                <h1>{student.name}</h1>
-                                <p>NIM : {student.nim}</p>
-                                <p>Semester: {student.semester}</p>
-                                <p>Internship Place: {student.tempat_magang}</p>
+                    {loading ? (
+                        Array.from({ length: 3 }).map((_, index) => (
+                            <div css={placeholderCardStyle} key={index}>
+                                <div css={placeholderImageStyle}></div>
+                                <div css={placeholderLineStyle}></div>
+                                <div css={placeholderLineStyle}></div>
+                                <div css={placeholderLineStyle}></div>
                             </div>
-                            <PrimaryButton content={"See More"} onClick={() => handleSeeMoreClick(student.id)} />
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        filteredStudents.map((student) => (
+                            <div css={cardStyle} key={student.id}>
+                                <img src={student.image_url} alt="" css={photoStyle} />
+                                <div css={contentInformationStyle}>
+                                    <h1>{student.name}</h1>
+                                    <p>NIM : {student.nim}</p>
+                                    <p>Semester: {student.semester}</p>
+                                    <p>Internship Place: {student.tempat_magang}</p>
+                                </div>
+                                <PrimaryButton content={"See More"} onClick={() => handleSeeMoreClick(student.id)} />
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>

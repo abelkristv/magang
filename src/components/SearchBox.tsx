@@ -6,10 +6,11 @@ import { db } from '../firebase'; // Ensure the path is correct
 import SearchBar from './SearchBar';
 import PrimaryButton from './Button';
 import photoExp from '../assets/photos.webp';
+import Student from '../model/Student';
 
 function SearchBox() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [students, setStudents] = useState([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filterTempatMagang, setFilterTempatMagang] = useState('');
 
@@ -32,11 +33,20 @@ function SearchBox() {
         }
 
         const queries = [nameQuery, nimQuery, tempatMagangQuery].filter(Boolean);
-        const querySnapshots = await Promise.all(queries.map(q => getDocs(q)));
-        const results = querySnapshots.flatMap(qs => qs.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const querySnapshots = await Promise.all(queries.map(q => getDocs(q!)));
+        const results = querySnapshots.flatMap(qs => qs.docs.map(doc => 
+            ({ 
+                id: doc.id, 
+                name: doc.data().name,
+                nim: doc.data().nim,
+                image_url: doc.data().image_url,
+                semester: doc.data().semeseter,
+                tempat_magang: doc.data().tempat_magang
+            }) as Student
+        ));
         
         const uniqueResults = Array.from(new Set(results.map(a => a.id)))
-            .map(id => results.find(a => a.id === id));
+            .map(id => results.find(a => a.id === id)) as Student[];
 
         setStudents(uniqueResults);
     };
