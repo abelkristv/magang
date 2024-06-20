@@ -4,14 +4,16 @@ import { css } from '@emotion/react';
 type PrimaryButtonProps = {
     content: string,
     onClick?: () => void,
+    bg_color?: string,
+    color?: string
 }
 
-function PrimaryButton({ content, onClick }: PrimaryButtonProps) {
+function PrimaryButton({ content, onClick, bg_color, color }: PrimaryButtonProps) {
 
     const buttonStyle = css`
-        background-color: #149dff;
+        background-color: ${bg_color? bg_color : "#149dff"};
         border: none;
-        color: white;
+        color: ${color? color : "white"};
         font-weight: bold;
         font-size: 30px;
         border-radius: 5px;

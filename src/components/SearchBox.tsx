@@ -13,44 +13,46 @@ function SearchBox() {
     const [students, setStudents] = useState<Student[]>([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filterTempatMagang, setFilterTempatMagang] = useState('');
+    const [filterSemester, setFilterSemester] = useState('');
+    const [activeFilter, setActiveFilter] = useState<'tempatMagang' | 'semester' | null>(null);
+    const [nestedFilterValue, setNestedFilterValue] = useState('');
 
     const handleSearch = async () => {
-        if (!searchQuery && !filterTempatMagang) return;
-
-        let nameQuery;
+        if (!searchQuery && !filterTempatMagang && !filterSemester) return;
+    
+        const studentCollection = collection(db, 'student');
+        let q = query(studentCollection);
+    
         if (searchQuery) {
-            nameQuery = query(collection(db, 'student'), where('name', '>=', searchQuery), where('name', '<=', searchQuery + '\uf8ff'));
+            q = query(q, 
+                where('name', '>=', searchQuery), 
+                where('name', '<=', searchQuery + '\uf8ff')
+            );
         }
-
-        let nimQuery;
-        if (searchQuery) {
-            nimQuery = query(collection(db, 'student'), where('nim', '>=', searchQuery), where('nim', '<=', searchQuery + '\uf8ff'));
-        }
-
-        let tempatMagangQuery;
+    
         if (filterTempatMagang) {
-            tempatMagangQuery = query(collection(db, 'student'), where('tempat_magang', '==', filterTempatMagang));
+            q = query(q, where('tempat_magang', '==', filterTempatMagang));
         }
-
-        const queries = [nameQuery, nimQuery, tempatMagangQuery].filter(Boolean);
-        const querySnapshots = await Promise.all(queries.map(q => getDocs(q!)));
-        const results = querySnapshots.flatMap(qs => qs.docs.map(doc => 
+    
+        if (filterSemester) {
+            q = query(q, where('semester', '==', filterSemester));
+        }
+    
+        const querySnapshot = await getDocs(q);
+        const results = querySnapshot.docs.map(doc => 
             ({ 
                 id: doc.id, 
                 name: doc.data().name,
                 nim: doc.data().nim,
                 image_url: doc.data().image_url,
-                semester: doc.data().semeseter,
+                semester: doc.data().semester,
                 tempat_magang: doc.data().tempat_magang
             }) as Student
-        ));
+        );
+    
+        setStudents(results);
         
-        const uniqueResults = Array.from(new Set(results.map(a => a.id)))
-            .map(id => results.find(a => a.id === id)) as Student[];
-
-        setStudents(uniqueResults);
-    };
-
+    };    
     const boxStyle = css`
         width: 100%;
         height: 100%;
@@ -156,14 +158,10 @@ function SearchBox() {
         padding: 20px;
         z-index: 10;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-        p {
-            
-        }
     `;
 
     const filterItemStyle = css`
-        display:flex;
+        display: flex;
         justify-content: space-between;
         padding: 10px;
         &:hover {
@@ -171,24 +169,106 @@ function SearchBox() {
             border-radius: 10px;
             cursor: pointer;
         }
-    `
+        position: relative;
+    `;
+
+    const nestedFilterBoxStyle = css`
+        position: absolute;
+        top: 0;
+        left: 310px; // Adjust this value as needed to position the box correctly
+        width: 300px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        text-align: start;
+        padding: 20px;
+        z-index: 10;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    `;
+
+    const inputStyle = css`
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    `;
+
+    const handleFilterClick = (filterType: 'tempatMagang' | 'semester') => {
+        setActiveFilter(filterType);
+        setIsFilterOpen(true);
+    };
+
+    const handleApplyFilter = () => {
+        setIsFilterOpen(false);
+        setActiveFilter(null);
+        setNestedFilterValue('');
+        handleSearch();
+    };
+
+    const closeFilters = () => {
+        setIsFilterOpen(false);
+        setActiveFilter(null);
+        setNestedFilterValue('');
+    };
 
     return (
-        <div css={boxStyle}>
+        <div css={boxStyle} onClick={closeFilters}>
             <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} onSearch={handleSearch} />
-            <div css={filterContainerStyle}>
+            <div css={filterContainerStyle} onClick={(e) => e.stopPropagation()}>
                 <div css={filterContent} onClick={() => setIsFilterOpen(!isFilterOpen)}>
                     <p>Filter By</p>
                 </div>
                 {isFilterOpen && (
                     <div css={filterBoxStyle}>
-                        <div css={filterItemStyle}>
+                        <div
+                            css={filterItemStyle}
+                            onClick={() => handleFilterClick('tempatMagang')}
+                        >
                             <p>Tempat Magang</p>
                             <p>{">"}</p>
+                            {activeFilter === 'tempatMagang' && (
+                                <div css={nestedFilterBoxStyle}>
+                                    <input
+                                        type="text"
+                                        value={filterTempatMagang}
+                                        onChange={(e) => setFilterTempatMagang(e.target.value)}
+                                        css={inputStyle}
+                                        placeholder="Enter Tempat Magang"
+                                    />
+                                    <PrimaryButton
+                                        color='black'
+                                        bg_color='#C1E1C1'
+                                        content={"Apply"}
+                                        onClick={handleApplyFilter}
+                                    />
+                                </div>
+                            )}
                         </div>
-                        <div css={filterItemStyle}>
+                        <div
+                            css={filterItemStyle}
+                            onClick={() => handleFilterClick('semester')}
+                        >
                             <p>Semester</p>
                             <p>{">"}</p>
+                            {activeFilter === 'semester' && (
+                                <div css={nestedFilterBoxStyle}>
+                                    <input
+                                        type="text"
+                                        value={filterSemester}
+                                        onChange={(e) => setFilterSemester(e.target.value)}
+                                        css={inputStyle}
+                                        placeholder="Enter Semester"
+                                    />
+                                    <PrimaryButton
+                                        color='black'
+                                        bg_color='#C1E1C1'
+                                        content={"Apply"}
+                                        onClick={handleApplyFilter}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
