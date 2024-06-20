@@ -1,5 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
+import searchIcon from "../assets/icons/search.png"
+
 
 function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
     const searchBarStyle = css`
@@ -18,10 +20,10 @@ function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
 
     const buttonStyle = css`
         margin-left: 10px;
-        padding: 10px 20px;
+        padding: 10px;
         border: none;
-        border-radius: 5px;
-        background-color: #007BFF;
+        border-radius: 10px;
+        background-color: RGB(162,191,254);
         color: white;
         cursor: pointer;
     `;
@@ -35,7 +37,7 @@ function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
                 css={inputStyle}
                 placeholder="Search by name"
             />
-            <button onClick={onSearch} css={buttonStyle}>Search</button>
+            <button onClick={onSearch} css={buttonStyle}><img src={searchIcon}  width={"30px"} height={"30px"} alt="" /></button>
         </div>
     );
 }

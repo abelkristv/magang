@@ -7,19 +7,22 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 import StudentDetail from './pages/StudentDetail';
+import { AuthProvider } from './helper/AuthProvider';
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
-    <Router>
+    <AuthProvider>
+      <Router>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/dashboard" element={<PrivateRoute> <Dashboard /></PrivateRoute>} />
           <Route path="/student/:id" element={<PrivateRoute><StudentDetail /></PrivateRoute>} />
           {/* <Route path="/about" element={<About />} /> */}
         </Routes>
-    </Router>
+     </Router>
+    </AuthProvider>
   );
 }
 

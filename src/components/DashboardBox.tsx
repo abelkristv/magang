@@ -7,7 +7,11 @@ import PrimaryButton from '../components/Button';
 import SearchBar from '../components/SearchBar';
 import { useNavigate } from 'react-router-dom';
 
-function DashboardBox({ onSearch }) {
+interface DashboardBoxProps {
+    onSearch: (query: string) => void;
+}
+
+function DashboardBox({ onSearch }: DashboardBoxProps) {
     const [students, setStudents] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
@@ -36,13 +40,14 @@ function DashboardBox({ onSearch }) {
     `;
 
     const centerCardStyle = css`
-        width: 95%;
-        height: 90%;
-        background: rgb(255,255,255, 0.8);
+        width: 100%;
+        height: 100%;
+        background: rgb(255,255,255);
         border-radius: 15px;
         flex-direction: column;
         align-items: center;
-        margin-right: 50px;
+        // margin-right: 50px;
+        // margin-left: 50px;
         display: flex;
         padding-top: 40px;
         overflow: scroll;
@@ -54,6 +59,7 @@ function DashboardBox({ onSearch }) {
         align-items: start;
         padding: 50px;
         flex-direction: column;
+        // border: 1px solid black;
     `;
 
     const recentlyAddedInformationStyle = css`
@@ -66,11 +72,12 @@ function DashboardBox({ onSearch }) {
     const cardStyle = css`
         display: flex;
         flex-direction: column;
-        background-color: white;
+        background-color: #f2f2f2;
         padding: 40px;
         justify-content: start;
         text-align: start;
         border-radius: 15px;
+        // box-shadow: 0px 0px 5px black;
     `;
 
     const recentlyAddedInformationCardsStyle = css`
@@ -110,8 +117,9 @@ function DashboardBox({ onSearch }) {
                             <img src={student.image_url} alt="" css={photoStyle} />
                             <div css={contentInformationStyle}>
                                 <h1>{student.name}</h1>
+                                <p>NIM : {student.nim}</p>
                                 <p>Semester: {student.semester}</p>
-                                <p>Internship Place: {student.tempat_maganga}</p>
+                                <p>Internship Place: {student.tempat_magang}</p>
                             </div>
                             <PrimaryButton content={"See More"} onClick={() => handleSeeMoreClick(student.id)} />
                         </div>

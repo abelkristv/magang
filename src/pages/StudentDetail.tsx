@@ -38,18 +38,21 @@ function StudentDetail() {
     const detailStyle = css`
         display: flex;
         width: 100%;
+        height: 100%;
         justify-content: center;
-        padding: 20px;
+        // padding: 20px;
         align-items: center;
-        background: rgb(118,232,255);
-        background: linear-gradient(324deg, rgba(118,232,255,1) 0%, rgba(73,224,255,1) 22%, rgba(0,59,255,1) 100%);
+        background-color: white;
     `;
 
     const cardStyle = css`
+        text-align: start;
         width: 25%;
         background: rgb(255,255,255, 0.8);
         border-radius: 15px;
         padding: 40px;
+        gap: 20px;
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -72,8 +75,9 @@ function StudentDetail() {
     `;
 
     const recordCardStyle = css`
-        background: white;
+        background: #f2f2f2;
         padding: 20px;
+        box-sizing: border-box;
         border-radius: 10px;
         margin-bottom: 10px;
     `;
@@ -100,16 +104,26 @@ function StudentDetail() {
         background: linear-gradient(324deg, rgba(118,232,255,1) 0%, rgba(73,224,255,1) 22%, rgba(0,59,255,1) 100%);
     `;
 
+    const studentDescStyle = css`
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        // width: 100%;
+        gap: 20px;
+    `
+
     return (
         <main css={mainStyle}>
             <div css={detailStyle}>
                 <div css={cardStyle}>
                     <img src={student.image_url} alt="" css={photoStyle} />
                     <h1>{student.name}</h1>
-                    <p>Semester: {student.semester}</p>
-                    <p>Internship Place: {student.tempat_maganga}</p>
-                    <p>Email: {student.email}</p>
-                    <p>Phone: {student.phone}</p>
+                    <div css={studentDescStyle}>
+                        <p>Semester: {student.semester}</p>
+                        <p>Internship Place: {student.tempat_magang}</p>
+                        <p>Email: {student.email}</p>
+                        <p>Phone: {student.phone}</p>
+                    </div>
                     <PrimaryButton content={"Back to Dashboard"} onClick={() => window.history.back()} />
                 </div>
                 <div css={recordsContainerStyle}>
@@ -119,6 +133,7 @@ function StudentDetail() {
                             <h3>{record.title}</h3>
                             <p>{record.report}</p>
                             <p><small>{new Date(record.timestamp?.toDate()).toLocaleDateString()}</small></p>
+                            <p>{record.writer ? `Written by : ` +  record.writer : " " }</p>
                         </div>
                     ))}
                 </div>

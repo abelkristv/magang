@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import PrimaryButton from '../components/Button';
+import { useAuth } from '../helper/AuthProvider';
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const { setCurrentUser } = useAuth();
 
     const mainStyle = css`
         width: 100%;
@@ -23,7 +25,7 @@ function Login() {
     `;
 
     const centerCardStyle = css`
-        background-color: rgb(255, 255, 255, 0.8);
+        background-color: rgb(255, 255, 255);
         padding: 20px;
         border-radius: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -52,7 +54,7 @@ function Login() {
         height: 40px;
         border-radius: 10px;
         border: none;
-        padding: 5px;
+        background-color: #f0f0f0;
     `;
 
     const formStyle = css`
@@ -64,7 +66,8 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            setCurrentUser(userCredential.user);
             navigate('/dashboard');
         } catch (error) {
             setError(error.message);
