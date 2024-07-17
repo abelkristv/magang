@@ -4,7 +4,10 @@ interface StudentRecord {
     title: string,
     report: string,
     timestamp: Timestamp,
-    writer: string
+    writer: string,
+    rating: number,
+    sentiment: string,
+    hasRead: boolean
 }
 
 export default StudentRecord;

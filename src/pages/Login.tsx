@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
-import PrimaryButton from '../components/Button';
+import PrimaryButton from '../components/elementary/Button';
 import { useAuth } from '../helper/AuthProvider';
 import User from '../model/User';
 
@@ -55,6 +55,8 @@ const Login = () => {
         height: 40px;
         border-radius: 10px;
         border: none;
+        padding: 10px;
+        box-sizing: border-box;
         background-color: #f0f0f0;
     `;
 
@@ -109,7 +111,7 @@ const Login = () => {
                             required
                         />
                     </div>
-                    <PrimaryButton content={"SUBMIT"} />
+                    <PrimaryButton content={"SUBMIT"} height={60} />
                 </form>
             </div>
         </main>

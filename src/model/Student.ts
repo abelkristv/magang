@@ -1,5 +1,5 @@
 interface Student {
-    id: string;
+    iden: string;
     name: string;
     nim: string;
     semester: string;
@@ -7,6 +7,7 @@ interface Student {
     email: string,
     phone: string
     image_url: string;
+    status: string;
 }
 
 export default Student;
