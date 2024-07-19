@@ -7,20 +7,30 @@ export interface CustomSelectProps {
     options: Student[];
     value: Student | null;
     onChange: (option: Student) => void;
+    filterByCompanyName?: string; // Add the filterByCompanyName prop
+    role?: string;
 }
 
-function CustomSelect({ options, value, onChange }: CustomSelectProps) {
+function CustomSelect({ options, value, onChange, filterByCompanyName, role }: CustomSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredOptions, setFilteredOptions] = useState<Student[]>(options);
 
+    console.log(filterByCompanyName)
+
     useEffect(() => {
-        setFilteredOptions(
-            options.filter(option =>
-                option.name.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-        );
-    }, [searchTerm, options]);
+        if (role == "Company") {
+            setFilteredOptions(
+                options.filter(option =>
+                    option.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                    (!filterByCompanyName || option.tempat_magang === filterByCompanyName)
+                )
+            );
+        }     
+        else {
+            setFilteredOptions(options)
+        } 
+    }, [searchTerm, options, filterByCompanyName]);
 
     const toggleDropdown = () => setIsOpen(!isOpen);
     const handleOptionClick = (option: Student) => {

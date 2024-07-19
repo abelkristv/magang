@@ -128,6 +128,10 @@ function Navbar() {
         navigate(`/company/studentList/`);
     };
 
+    const handleDocumentation = () => {
+        navigate('/activity-documentation')
+    }
+
     console.log("Role : ", userAuth?.currentUser.role)
 
     return (
@@ -142,10 +146,13 @@ function Navbar() {
                         <div css={boxComponentStyle} onClick={handleProfile}>
                             <p css={buttonBoxStyle}>Profile</p>
                         </div>
+                        <div css={boxComponentStyle} onClick={handleStudentList}>
+                            <p css={buttonBoxStyle}>Student List</p>
+                        </div>
                         {
-                            userData?.role === "Company" &&
-                            <div css={boxComponentStyle} onClick={handleStudentList}>
-                                <p css={buttonBoxStyle}>Student List</p>
+                            userData?.role === "Enrichment" &&
+                            <div css={boxComponentStyle} onClick={handleDocumentation}>
+                                <p css={buttonBoxStyle}>Documentation</p>
                             </div>
                         }
                         <div css={boxComponentStyle} onClick={handleLogout}>

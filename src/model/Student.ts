@@ -8,6 +8,8 @@ interface Student {
     phone: string
     image_url: string;
     status: string;
+    faculty_supervisor: string;
+    site_supervisor: string;
 }
 
 export default Student;

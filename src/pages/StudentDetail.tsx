@@ -19,6 +19,15 @@ interface Comment {
     hasRead: boolean;
 }
 
+interface MeetingSchedule {
+    id: string;
+    studentReport_id: string;
+    date: string;
+    time: string;
+    subject: string;
+    description: string;
+}
+
 function StudentDetail() {
     const { id } = useParams();
     const [student, setStudent] = useState<Student | null>(null);
@@ -29,6 +38,16 @@ function StudentDetail() {
     const [comments, setComments] = useState<Comment[]>([]);
     const [filter, setFilter] = useState<'all' | 'positive' | 'negative' | 'neutral'>('all');
     const [user, setUser] = useState<User | null>(null);
+    const [meetingSchedules, setMeetingSchedules] = useState<MeetingSchedule[]>([]);
+    const [allUsers, setAllUsers] = useState<User[]>([]); // State to store all users
+    const [filterByWriter, setFilterByWriter] = useState<'all' | 'Company' | 'Enrichment'>('all');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [meetingDate, setMeetingDate] = useState('');
+    const [meetingTime, setMeetingTime] = useState('');
+    const [meetingSubject, setMeetingSubject] = useState('');
+    const [meetingDescription, setMeetingDescription] = useState('');
+    const [facultySupervisor, setFacultySupervisor] = useState<User | null>(null);
+    const [siteSupervisor, setSiteSupervisor] = useState<User | null>(null);
 
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -47,7 +66,15 @@ function StudentDetail() {
             setLoading(false); // Set loading to false after data is fetched
         };
 
+        const fetchAllUsers = async () => {
+            const usersQuery = query(collection(db, 'user'));
+            const usersDocSnap = await getDocs(usersQuery);
+            const usersData = usersDocSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+            setAllUsers(usersData);
+        };
+
         fetchUser();
+        fetchAllUsers();
     }, [currentUser]);
 
     useEffect(() => {
@@ -63,6 +90,8 @@ function StudentDetail() {
                 const studentData = { id: docSnap.id, ...docSnap.data() } as Student;
                 setStudent(studentData);
                 await fetchStudentRecords(studentData.name); // Fetch student records
+                await fetchFacultySupervisor(studentData.faculty_supervisor); // Fetch faculty supervisor
+                await fetchSiteSupervisor(studentData.site_supervisor); // Fetch site supervisor
             } else {
                 console.log("No such document!");
             }
@@ -81,7 +110,9 @@ function StudentDetail() {
                     writer: doc.data().writer,
                     rating: doc.data().rating,
                     sentiment: doc.data().sentiment,
-                    hasRead: doc.data().hasRead
+                    hasRead: doc.data().hasRead,
+                    faculty_supervisor: doc.data().faculty_supervisor,
+                    site_supervisor: doc.data().site_supervisor
                 }) as StudentRecord
             );
             setStudentRecords(recordsData);
@@ -102,37 +133,77 @@ function StudentDetail() {
             setComments(commentsData);
         };
 
+        const fetchMeetingSchedules = async () => {
+            const q = query(collection(db, 'meetingSchedule'));
+            const querySnapshot = await getDocs(q);
+            const schedulesData = querySnapshot.docs.map(doc => 
+                ({
+                    id: doc.id,
+                    studentReport_id: doc.data().studentReport_id,
+                    date: doc.data().date,
+                    time: doc.data().time,
+                    subject: doc.data().subject,
+                    description: doc.data().description
+                }) as MeetingSchedule
+            );
+            console.log(schedulesData)
+            setMeetingSchedules(schedulesData);
+        };
+
+        const fetchFacultySupervisor = async (facultySupervisorName: string) => {
+            const q = query(collection(db, 'user'), where('name', '==', facultySupervisorName));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const supervisorData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as User;
+                setFacultySupervisor(supervisorData);
+            }
+        };
+
+        const fetchSiteSupervisor = async (siteSupervisorName: string) => {
+            const q = query(collection(db, 'user'), where('name', '==', siteSupervisorName));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const supervisorData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as User;
+                setSiteSupervisor(supervisorData);
+            }
+        };
+
         fetchStudent();
         fetchComments();
+        fetchMeetingSchedules();
     }, [id]);
 
     const handleRecordClick = async (recordId: string) => {
-        const recordDocRef = doc(db, 'studentReport', recordId);
-
-        setStudentRecords(prevRecords =>
-            prevRecords.map(record =>
-                record.id === recordId ? { ...record, hasRead: true } : record
-            )
-        );
-
-        if (user?.role === "Enrichment" || user?.role === "Company") {
-            setOpenCommentForm(openCommentForm === recordId ? null : recordId);
-        }
-
-        await updateDoc(recordDocRef, { hasRead: true });
-
-        // Update all comments related to the record to mark them as read
-        if (user?.role === "Company") {
-            const commentsToUpdate = comments.filter(comment => comment.reportID === recordId && !comment.hasRead);
-            commentsToUpdate.forEach(async (comment) => {
-                const commentDocRef = doc(db, 'studentReportComment', comment.id);
-                await updateDoc(commentDocRef, { hasRead: true });
-            });
-            setComments(prevComments =>
-                prevComments.map(comment =>
-                    comment.reportID === recordId ? { ...comment, hasRead: true } : comment
+        if (openCommentForm === recordId) {
+            setOpenCommentForm(null); // Close the comment form if the same record is clicked again
+        } else {
+            const recordDocRef = doc(db, 'studentReport', recordId);
+    
+            setStudentRecords(prevRecords =>
+                prevRecords.map(record =>
+                    record.id === recordId ? { ...record, hasRead: true } : record
                 )
             );
+    
+            if (user?.role === "Enrichment" || user?.role === "Company") {
+                setOpenCommentForm(recordId);
+            }
+    
+            await updateDoc(recordDocRef, { hasRead: true });
+    
+            // Update all comments related to the record to mark them as read
+            if (user?.role === "Company") {
+                const commentsToUpdate = comments.filter(comment => comment.reportID === recordId && !comment.hasRead);
+                commentsToUpdate.forEach(async (comment) => {
+                    const commentDocRef = doc(db, 'studentReportComment', comment.id);
+                    await updateDoc(commentDocRef, { hasRead: true });
+                });
+                setComments(prevComments =>
+                    prevComments.map(comment =>
+                        comment.reportID === recordId ? { ...comment, hasRead: true } : comment
+                    )
+                );
+            }
         }
     };
 
@@ -168,8 +239,28 @@ function StudentDetail() {
         }
     };
 
+    const handleMeetingSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log(openCommentForm)
+        try {
+            const meetingData = {
+                studentReport_id: openCommentForm, // Set to the current report ID
+                date: meetingDate,
+                time: meetingTime,
+                subject: meetingSubject,
+                description: meetingDescription,
+            };
+            await addDoc(collection(db, 'meetingSchedule'), meetingData);
+            setMeetingSchedules(prev => [...prev, { ...meetingData, id: 'temp' }]); // Optimistically update the state
+            console.log('Meeting scheduled successfully!');
+            closeModal();
+        } catch (error) {
+            console.error('Error scheduling meeting:', error);
+        }
+    };
+
     const hasCommented = (recordId: string) => {
-        return comments.some(comment => comment.reportID === recordId && comment.writer === currentUser?.email);
+        return comments.some(comment => comment.reportID === recordId);
     };
 
     const filteredRecords = studentRecords.filter(record => {
@@ -183,6 +274,45 @@ function StudentDetail() {
             return true;
         }
     });
+
+    const filteredRecordsByWriter = filteredRecords.filter(record => {
+        if (filterByWriter === 'Company') {
+            return allUsers.some(user => user.email === record.writer && user.role === 'Company');
+        } else if (filterByWriter === 'Enrichment') {
+            return allUsers.some(user => user.email === record.writer && user.role === 'Enrichment');
+        } else {
+            return true;
+        }
+    });
+
+    const handleFilterByWriter = (role: 'Company' | 'Enrichment') => {
+        setFilterByWriter(role);
+    };
+
+    const findUserByEmail = async (email: string): Promise<string | null> => {
+        const userQuery = query(collection(db, 'user'), where('email', '==', email));
+        const userDocSnap = await getDocs(userQuery);
+        if (!userDocSnap.empty) {
+            return userDocSnap.docs[0].id;
+        }
+        return null;
+    };
+
+    const navigateToUserProfile = async (email: string) => {
+        const userId = await findUserByEmail(email);
+        if (userId) {
+            navigate(`/profile/${userId}`);
+        }
+    };
+
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setMeetingDate('');
+        setMeetingTime('');
+        setMeetingSubject('');
+        setMeetingDescription('');
+    };
 
     const detailStyle = css`
         display: flex;
@@ -237,7 +367,7 @@ function StudentDetail() {
         border-bottom: 1px solid #dbdbdb;
         padding: 20px;
         box-sizing: border-box;
-        border-radius: 10px;
+        // border-radius: 10px;
         margin-bottom: 10px;
         &:hover {
             cursor: pointer;
@@ -247,7 +377,7 @@ function StudentDetail() {
     const filterButtonContainerStyle = css`
         display: flex;
         justify-content: start;
-        gap: 20px;
+        gap: 10px;
         padding: 20px;
         font-size: 20px;
         margin-top: 20px;
@@ -281,7 +411,7 @@ function StudentDetail() {
         width: 200px;
         height: 200px;
         object-fit: cover;
-        margin-bottom: 20px;
+        // margin-bottom: 20px;
     `;
 
     const mainStyle = css`
@@ -438,6 +568,80 @@ function StudentDetail() {
         padding: 10px;
     `;
 
+    const meetingScheduleStyle = css`
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        background-color: #dbdbdb;
+    `
+
+    const filterButtonEnrichmentContainerStyle = css`
+        display: flex;
+        justify-content: start;
+        gap: 10px;
+        margin-left: 20px;
+        font-size: 20px;
+    `
+
+    const modalOverlay = css`
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+
+    const modalContent = css`
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+    `;
+
+    const formGroup = css`
+        margin-bottom: 20px;
+    `;
+
+    const inputStyle = css`
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        box-sizing: border-box;
+    `;
+
+    const buttonContainer = css`
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    `;
+
+    const supervisorCardStyle = css`
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background-color: #e8e8e8;
+        border-radius: 10px;
+        
+        p {
+            font-size: 17px;
+        }
+
+        img {
+            object-fit: cover;
+            border-radius: 10px 0px 0px 10px;
+            width: 83px;
+            height: 100px;
+        }
+    `
+
     return (
         <main css={mainStyle}>
             <div css={detailStyle}>
@@ -459,8 +663,8 @@ function StudentDetail() {
                 ) : (
                     <>
                         <div css={cardStyle}>
-                            <img src={student?.image_url} alt="" css={photoStyle} />
-                            <div style={{textAlign: "left", width: "100%"}}>
+                            <img src={student?.image_url} alt="" css={photoStyle} width={200} height={200} />
+                            <div style={{textAlign: "center", width: "100%", marginBottom: "10px"}}>
                                 <h1>{student?.name}</h1>
                                 <p>{student?.nim}</p>
                             </div>
@@ -468,7 +672,32 @@ function StudentDetail() {
                                 <p>🎓 Semester {student?.semester}</p>
                                 <p>💼 {student?.tempat_magang}</p>
                                 <p>📬 {student?.email}</p>
-                                {/* <p>Phone: {student?.phone}</p> */}
+                                {facultySupervisor && (
+                                    <div className="supervisorCardStyle" css={supervisorCardStyle}>
+                                        <img src={facultySupervisor.image_url} width={100} height={100} alt="" />
+                                        <div className="right-side">
+                                            <p><strong>{facultySupervisor.name}</strong></p>
+                                            <p>Faculty Supervisor</p>
+                                            <p><a href="#" onClick={async (e) => { 
+                                                    e.preventDefault();
+                                                    await navigateToUserProfile(facultySupervisor.email);
+                                                }}>{facultySupervisor.email ? facultySupervisor.email : " " }</a></p>
+                                        </div>
+                                    </div>
+                                )}
+                                {siteSupervisor && (
+                                    <div className="supervisorCardStyle" css={supervisorCardStyle}>
+                                        <img src={siteSupervisor.image_url} width={100} height={100} alt="" />
+                                        <div className="right-side">
+                                            <p><strong>{siteSupervisor.name}</strong></p>
+                                            <p>Site Supervisor</p>
+                                            <p><a href="#" onClick={async (e) => { 
+                                                    e.preventDefault();
+                                                    await navigateToUserProfile(siteSupervisor.email);
+                                                }}>{siteSupervisor.email ? siteSupervisor.email : " " }</a></p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div css={recordsContainerStyle}>
@@ -505,7 +734,11 @@ function StudentDetail() {
                                     Neutral
                                 </button>
                             </div>
-                            {filteredRecords.map((record) => {
+                            <div css={filterButtonEnrichmentContainerStyle}>
+                                <PrimaryButton content='Written by company' height={50} borderRadius='10px' onClick={() => handleFilterByWriter('Company')} />
+                                <PrimaryButton content='Written by enrichment team' height={50} borderRadius='10px' onClick={() => handleFilterByWriter('Enrichment')} />
+                            </div>
+                            {filteredRecordsByWriter.map((record) => {
                                 const hasUnreadComments = comments.some(comment => comment.reportID === record.id && !comment.hasRead);
                                 return (
                                     <div key={record.id} css={recordCardStyle} onClick={() => handleRecordClick(record.id)}>
@@ -518,9 +751,9 @@ function StudentDetail() {
                                                 <h3 style={{textAlign: "right", margin: "0px"}}>{(record.hasRead == false || hasUnreadComments) && user?.role == "Company" ? "New ❗" : ""}</h3>
                                                 <p style={{fontSize: "20px"}}>{record.report}</p>
                                                 <p><small>{new Date(record.timestamp?.toDate()).toLocaleDateString()}</small></p>
-                                                <p style={{fontSize: "15px"}}>Written by: <a href="#" onClick={(e) => { 
+                                                <p style={{fontSize: "15px"}}>Written by: <a href="#" onClick={async (e) => { 
                                                     e.preventDefault();
-                                                    navigate(`/profile/${userEmailsToIds[record.writer]}`) 
+                                                    await navigateToUserProfile(record.writer);
                                                 }}>{record.writer ? record.writer : " " }</a></p>
                                                 <StarRating value={record.rating} count={5} onChange={() => {}} hoverOn={false} />
                                             </div>
@@ -539,6 +772,19 @@ function StudentDetail() {
                                                         <button type="submit">Submit Comment</button>
                                                     </form>
                                                 )}
+                                                {meetingSchedules.filter(meeting => meeting.studentReport_id === record.id).map(meeting => (
+                                                    <div key={meeting.id} css={meetingScheduleStyle}>
+                                                        <p><strong>Meeting Scheduled at</strong></p>
+                                                        <p><strong>{meeting.date} at {meeting.time}</strong></p>
+                                                        <p>Subject : {meeting.subject}</p>
+                                                        <p>{meeting.description}</p>
+                                                    </div>
+                                                ))}
+                                                <div className="schedule-a-meeting-button" style={{display: "flex", justifyContent: "start", width: "100%", marginTop: "20px"}}>
+                                                {user?.role === 'Enrichment' && hasCommented(record.id) && (
+                                                    <PrimaryButton bg_color='#45A049' bg_color_hover='#5ca15f' content='Schedule a meeting' height={50} borderRadius='10px' onClick={openModal} />
+                                                )}
+                                                </div>
                                             </>
                                         )}
                                     </div>
@@ -548,6 +794,58 @@ function StudentDetail() {
                     </>
                 )}
             </div>
+            {isModalOpen && (
+                <div css={modalOverlay} onClick={closeModal}>
+                    <div css={modalContent} onClick={(e) => e.stopPropagation()}>
+                        <h2>Schedule a Meeting</h2>
+                        <form onSubmit={handleMeetingSubmit}>
+                            <div css={formGroup}>
+                                <label>Date</label>
+                                <input
+                                    type="date"
+                                    value={meetingDate}
+                                    onChange={(e) => setMeetingDate(e.target.value)}
+                                    css={inputStyle}
+                                    required
+                                />
+                            </div>
+                            <div css={formGroup}>
+                                <label>Time</label>
+                                <input
+                                    type="time"
+                                    value={meetingTime}
+                                    onChange={(e) => setMeetingTime(e.target.value)}
+                                    css={inputStyle}
+                                    required
+                                />
+                            </div>
+                            <div css={formGroup}>
+                                <label>Subject</label>
+                                <input
+                                    type="text"
+                                    value={meetingSubject}
+                                    onChange={(e) => setMeetingSubject(e.target.value)}
+                                    css={inputStyle}
+                                    required
+                                />
+                            </div>
+                            <div css={formGroup}>
+                                <label>Description</label>
+                                <textarea
+                                    value={meetingDescription}
+                                    onChange={(e) => setMeetingDescription(e.target.value)}
+                                    css={inputStyle}
+                                    required
+                                />
+                            </div>
+                            <div css={buttonContainer}>
+                                <PrimaryButton content='Cancel' height={50} borderRadius='10px' onClick={closeModal} />
+                                <PrimaryButton content='Submit' height={50} borderRadius='10px' type="submit" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

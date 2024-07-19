@@ -266,7 +266,7 @@ function DashboardBox() {
     };
 
     const mainLeftSide = css`
-        width: ${user?.role == "Company" ? "67.5%" : "100%"};
+        width: 67.5%;
     `;
 
     const mainRightSide = css`
@@ -398,13 +398,13 @@ function DashboardBox() {
                         </div>
                         <div css={searchResultsStyle}>
                             {filteredStudents.map((student) => (
-                                <StudentCard student={student} />
+                                <StudentCard student={student} orientation='Horizontal' />
                             ))}
                         </div>
                     </div>
                 )}
 
-                {!isSearching && !loading && user?.role != "Enrichment" && (
+                {!isSearching && !loading && (
                     <div css={mainRightSide}>
                         <div css={formBoxStyle}>
                             <form onSubmit={handleSubmit} css={formStyle}>
@@ -415,6 +415,8 @@ function DashboardBox() {
                                         options={students}
                                         value={selectedStudent}
                                         onChange={setSelectedStudent}
+                                        filterByCompanyName={user?.company_name}
+                                        role={user?.role}
                                     />
                                 </label>
                                 <label>
