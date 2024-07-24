@@ -7,6 +7,7 @@ import { collection, getDocs, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import PrimaryButton from '../components/elementary/Button';
 import { useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';  // Import the xlsx library
 
 const ActivityDocumentation = () => {
     const [documents, setDocuments] = useState([]);
@@ -103,9 +104,17 @@ const ActivityDocumentation = () => {
             setDocuments(prevDocs => [...prevDocs, updatedDoc]);
             setSelectedDocs(prevDocs => [...prevDocs, updatedDoc]);
             closeModal();
+            exportToExcel(updatedDoc); // Export the new document to Excel
         } catch (error) {
             console.error('Error adding document:', error);
         }
+    };
+
+    const exportToExcel = (data) => {
+        const worksheet = XLSX.utils.json_to_sheet([data]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Documentation');
+        XLSX.writeFile(workbook, `documentation_${data.date.toISOString().split('T')[0]}.xlsx`);
     };
 
     const mainStyle = css`

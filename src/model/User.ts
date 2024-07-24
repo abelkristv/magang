@@ -5,6 +5,7 @@ interface User {
     role: string;
     id: string;
     company_name: string;
+    phone_number: string;
 }
 
 export default User;

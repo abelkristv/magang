@@ -14,6 +14,8 @@
     "@emotion/babel-preset-css-prop": "^11.11.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
+    "@iconify/icons-bx": "^1.2.6",
+    "@iconify/react": "^5.0.1",
     "emailjs-com": "^3.2.0",
     "firebase": "^10.12.2",
     "nodemailer": "^6.9.14",
@@ -22,7 +24,8 @@
     "react-calendar": "^5.0.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.1",
-    "styled-components": "^6.1.11"
+    "styled-components": "^6.1.11",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

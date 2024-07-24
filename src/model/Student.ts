@@ -10,6 +10,7 @@ interface Student {
     status: string;
     faculty_supervisor: string;
     site_supervisor: string;
+    major: string;
 }
 
 export default Student;

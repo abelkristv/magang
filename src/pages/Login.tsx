@@ -7,6 +7,9 @@ import { auth } from '../firebase';
 import PrimaryButton from '../components/elementary/Button';
 import { useAuth } from '../helper/AuthProvider';
 import User from '../model/User';
+import personIcon from "../assets/icons/person.png"
+import passwordIcon from "../assets/icons/password.png"
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -27,7 +30,7 @@ const Login = () => {
 
     const centerCardStyle = css`
         background-color: rgb(255, 255, 255);
-        padding: 20px;
+        padding: 40px 80px 40px 80px;
         border-radius: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         display: flex;
@@ -53,17 +56,24 @@ const Login = () => {
     const inputStyle = css`
         width: 100%;
         height: 40px;
-        border-radius: 10px;
+        // border-radius: 10px;
         border: none;
         padding: 10px;
         box-sizing: border-box;
-        background-color: #f0f0f0;
+
+        &:focus {
+            border: none;
+            outline: none;
+        } 
+
+        
+        // background-color: #f0f0f0;
     `;
 
     const formStyle = css`
         display: flex;
         flex-direction: column;
-        gap: 50px;
+        gap: 45px;
     `;
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -81,6 +91,26 @@ const Login = () => {
         }
     };
 
+    const inputContainerStyle = css`
+        display: flex;
+        align-items: center;
+        width: 100%;
+        border-bottom: 1px solid #ACACAC;
+        &:hover {
+            border-bottom: 1px solid #26d0ff; 
+            svg {
+                color: #26d0ff !important;
+            }
+        }
+
+        gap: 20px;
+        
+        img {
+            width: 20px;
+            height: 20px;
+        }
+    `
+
     return (
         <main css={mainStyle}>
             <div css={centerCardStyle}>
@@ -89,7 +119,9 @@ const Login = () => {
                 <form onSubmit={handleSubmit} css={formStyle}>
                     <div css={sectionStyle}>
                         <label htmlFor="email">Email</label>
-                        <input
+                        <div className="inputContainer" css={inputContainerStyle}>
+                            <Icon icon={"iconamoon:profile"} fontSize={20} color='#888888'/>
+                            <input
                             type="email"
                             id="email"
                             value={email}
@@ -97,11 +129,15 @@ const Login = () => {
                             placeholder="Email"
                             css={inputStyle}
                             required
-                        />
+                            />
+                        </div>
+                        
                     </div>
                     <div css={sectionStyle}>
                         <label htmlFor="password">Password</label>
-                        <input
+                        <div className="sectionStyle" css={inputContainerStyle}>
+                            <Icon icon={"mdi:password-outline"} fontSize={20} />
+                            <input
                             type="password"
                             id="password"
                             value={password}
@@ -109,9 +145,11 @@ const Login = () => {
                             placeholder="Password"
                             css={inputStyle}
                             required
-                        />
+                            />
+                        </div>
+                        
                     </div>
-                    <PrimaryButton content={"SUBMIT"} height={60} />
+                    <PrimaryButton content={"LOGIN"} height={60} borderRadius='41px' bg_color='#000000' bg_color_hover='#262626' />
                 </form>
             </div>
         </main>
