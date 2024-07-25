@@ -6,8 +6,11 @@ import Student from "../model/Student";
 import { useAuth } from "../helper/AuthProvider";
 import User from "../model/User";
 
+interface DashboardBoxProps {
+    setActiveTab: (str: string) => void;
+}
 
-const DashboardBox = () => {
+const DashboardBox = ({setActiveTab}: DashboardBoxProps) => {
 
     const mainDashboardStyle = css`
         background-color: white;
@@ -159,13 +162,13 @@ const DashboardBox = () => {
                         <h1>Company</h1>
                         <p>For companies, you can see all of your students in the <u>student list page</u> and add <u>comments</u> according to their performance and behaviour.
                         Please be <u>appropriate</u> when using the feature.</p>
-                        <button className="buttonStyle" css={buttonStyle}>Go to Student List {">>"}</button>
+                        <button className="buttonStyle" css={buttonStyle} onClick={() => setActiveTab('Student List')}>Go to Student List {">>"}</button>
                     </div>
                     <div className="enrichmentBox" css={companyBox}>
                         <h1>Enrichment</h1>
                         <p>For the enrichment team, other than comments, you can schedule a <u>meeting</u> to it to respond.
                         You can also use the <u>documentation page</u> to <u>log past events</u> in the enrichment team.</p>
-                        <button className="buttonStyle" css={buttonStyle}>Go to Documentation {">>"}</button>
+                        <button className="buttonStyle" css={buttonStyle} onClick={() => setActiveTab('Documentation')}>Go to Documentation {">>"}</button>
                     </div>
                 </div>
             </div>

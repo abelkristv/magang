@@ -9,7 +9,7 @@ import { fetchUser } from "../controllers/UserController";
 import { fetchAllStudents } from "../controllers/StudentController";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import notFoundImage from "../assets/not_found.png"
+import notFoundImage from "../assets/not_found.png";
 
 const SearchBox = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -35,7 +35,11 @@ const SearchBox = () => {
         const fetchData = async () => {
             const user = await fetchUser(userAuth?.currentUser?.email!);
             console.log(user);
-            const students = await fetchAllStudents();
+            let students = await fetchAllStudents();
+
+            if (user.role === "Company") {
+                students = students.filter(student => student.tempat_magang === user.company_name);
+            }
 
             setUser(user);
             setStudents(students);
@@ -362,6 +366,7 @@ const SearchBox = () => {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
+        border-radius: 10px;
 
         th, td {
             padding: 10px;
@@ -473,13 +478,17 @@ const SearchBox = () => {
                                     <option key={index} value={periods}>{periods}</option>
                                 ))}
                             </select>
-                            <p>Company</p>
-                            <select onChange={handleCompanyChange}>
-                                <option value="">All</option>
-                                {companies.map((company, index) => (
-                                    <option key={index} value={company}>{company}</option>
-                                ))}
-                            </select>
+                            {user?.role == "Enrichment" && (
+                                <>
+                                    <p>Company</p>
+                                    <select onChange={handleCompanyChange}>
+                                        <option value="">All</option>
+                                        {companies.map((company, index) => (
+                                            <option key={index} value={company}>{company}</option>
+                                        ))}
+                                    </select>  
+                                </>
+                            )}
                             <p>Major</p>
                             <select onChange={handleMajorChange}>
                                 <option value="">All</option>

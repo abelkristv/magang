@@ -8,6 +8,7 @@ import StudentListBox from '../components/StudentListBox';
 import ProfileBox from '../components/ProfileBox';
 import DocumentationBox from '../components/DocumentationBox';
 import StudentDetailBox from '../components/StudentDetailBox'; // Import StudentDetailBox
+import AddNewDocumentationBox from '../components/AddNewDocumentationbox';
 
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState<string>("Dashboard");
@@ -22,13 +23,13 @@ const Dashboard = () => {
         background: linear-gradient(324deg, rgba(118,232,255,1) 0%, rgba(73,224,255,1) 22%, rgba(0,59,255,1) 100%);
     `;
 
-    console.log(activeTab)
-    console.log(selectedStudentId)
+    // console.log(activeTab)
+    // console.log(selectedStudentId)
 
     return (
         <main css={mainStyle}>
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} setSelectedStudentId={setSelectedStudentId} />
-            {activeTab == "Dashboard" && <DashboardBox />}
+            {activeTab == "Dashboard" && <DashboardBox setActiveTab={setActiveTab} />}
             {activeTab == "Search" && <SearchBox />}
             {activeTab == "Student List" && 
                 selectedStudentId ? (
@@ -38,7 +39,8 @@ const Dashboard = () => {
                 )
             }
             {activeTab == "Profile" && <ProfileBox />}
-            {activeTab == "Documentation" && <DocumentationBox />}
+            {activeTab == "Add New Documentation" && <AddNewDocumentationBox />}
+            {activeTab == "Documentation" && <DocumentationBox setGlobalActiveTab={setActiveTab} />}
         </main>
     );
 }

@@ -32,17 +32,21 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     const [isLoading, setIsLoading] = useState(true); // Loading state
     const userAuth = useAuth();
 
-    onSelectStudent(null)
+    onSelectStudent(null);
 
     useEffect(() => {
         const fetchData = async () => {
             const user = await fetchUser(userAuth?.currentUser?.email!);
-            console.log(user);
-            const students = await fetchAllStudents();
+            const allStudents = await fetchAllStudents();
+            
+            let filteredStudents = allStudents;
+            if (user.role === "Company") {
+                filteredStudents = allStudents.filter(student => student.tempat_magang === user.company_name);
+            }
 
             setUser(user);
-            setStudents(students);
-            setFilteredStudents(students);
+            setStudents(filteredStudents);
+            setFilteredStudents(filteredStudents);
             setIsLoading(false); // Data loading complete
         };
         fetchData();
@@ -53,7 +57,6 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             const majorsCollection = collection(db, "major");
             const majorSnapshot = await getDocs(majorsCollection);
             const majorList = majorSnapshot.docs.map(doc => doc.data().name);
-            console.log(majorList);
             setMajors(majorList);
         };
         fetchMajors();
@@ -64,7 +67,6 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             const companysCollection = collection(db, "tempat_magang");
             const companySnapshot = await getDocs(companysCollection);
             const companyList = companySnapshot.docs.map(doc => doc.data().name);
-            console.log(companyList);
             setCompanys(companyList);
         };
         fetchCompanys();
@@ -91,7 +93,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         }
 
         if (selectedPeriod) {
-            filtered = filtered.filter(student => student.period === selectedPeriod);
+            filtered = filtered.filter(student => selectedPeriod.includes(student.period));
         }
 
         if (selectedCompany) {
@@ -396,16 +398,22 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                             <select onChange={handlePeriodChange}>
                                 <option value="">All</option>
                                 {periods.map((period, index) => (
-                                    <option key={index} value={period}>{period}</option>
+                                    <option key={index} value={period}>{`${period}`}</option>
                                 ))}
                             </select>
-                            <p>Company</p>
-                            <select onChange={handleCompanyChange}>
-                                <option value="">All</option>
-                                {companys.map((company, index) => (
-                                    <option key={index} value={company}>{company}</option>
-                                ))}
-                            </select>
+                            {user?.role == "Enrichment" && (
+                                <>
+                                    <p>Company</p>
+                                    <select onChange={handleCompanyChange}>
+                                        <option value="">All</option>
+                                        {companys.map((company, index) => (
+                                            <option key={index} value={company}>{company}</option>
+                                        ))}
+                                    </select>
+                                </>
+                                
+                            )}
+                            
                             <p>Major</p>
                             <select onChange={handleMajorChange}>
                                 <option value="">All</option>

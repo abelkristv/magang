@@ -11,6 +11,7 @@ interface Student {
     faculty_supervisor: string;
     site_supervisor: string;
     major: string;
+    period: string;
 }
 
 export default Student;

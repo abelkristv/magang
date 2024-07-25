@@ -16,7 +16,8 @@ const fetchStudents = async (companyName: string): Promise<Student[]> => {
             email: data.email,
             phone: data.phone,
             image_url: data.image_url,
-            status: data.status
+            status: data.status,
+            period: data.period
         } as Student;
     });
 };
@@ -38,7 +39,8 @@ const fetchAllStudents = async (): Promise<Student[]> => {
             status: data.status,
             site_supervisor: data.site_supervisor,
             faculty_supervisor: data.faculty_supervisor,
-            major: data.major
+            major: data.major,
+            period: data.period
         } as Student;
     });
     return studentsData
