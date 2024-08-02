@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import { css } from '@emotion/react';
 import Sidebar from '../components/Sidebar';
-import DashboardBox from '../components/DashboardBox';
-import SearchBox from '../components/SearchBox';
-import StudentListBox from '../components/StudentListBox';
+import DashboardBox from '../components/Dashboard/DashboardBox';
+import SearchBox from '../components/Search/SearchBox';
+import StudentListBox from '../components/StudentList/StudentListBox';
 import ProfileBox from '../components/ProfileBox';
 import DocumentationBox from '../components/DocumentationBox';
 import StudentDetailBox from '../components/StudentDetailBox'; // Import StudentDetailBox

@@ -1,49 +1,40 @@
 import { collection, getDocs, query, where } from "firebase/firestore";
 import Student from "../model/Student";
 import { db } from "../firebase";
+import { Option } from "fp-ts/lib/Option";
+import { option } from "fp-ts";
 
-const fetchStudents = async (companyName: string): Promise<Student[]> => {
+const fetchStudents = async (companyName: string): Promise<Option<Student[]>> => {
     const querySnapshot = await getDocs(query(collection(db, "student"), where('tempat_magang', '==', companyName)));
-    return querySnapshot.docs.map(doc => {
+    if (querySnapshot.empty) {
+        return option.none
+    }
+    const studentsData =  querySnapshot.docs.map(doc => {
         const data = doc.data();
         const id = doc.id;
         return {
             iden: id,
-            name: data.name,
-            nim: data.nim,
-            tempat_magang: data.tempat_magang,
-            semester: data.semester,
-            email: data.email,
-            phone: data.phone,
-            image_url: data.image_url,
-            status: data.status,
-            period: data.period
+            ...doc.data()
         } as Student;
     });
+
+    return option.some(studentsData)
 };
 
-const fetchAllStudents = async (): Promise<Student[]> => {
+const fetchAllStudents = async (): Promise<Option<Student[]>> => {
     const querySnapshot = await getDocs(collection(db, "student"));
+    if (querySnapshot.empty) {
+        return option.none
+    }
     const studentsData = querySnapshot.docs.map(doc => {
         const data = doc.data();
         const idt = doc.id;
         return {
             iden: idt,
-            name: data.name,
-            nim: data.nim,
-            tempat_magang: data.tempat_magang,
-            semester: data.semester,
-            email: data.email,
-            phone: data.phone,
-            image_url: data.image_url,
-            status: data.status,
-            site_supervisor: data.site_supervisor,
-            faculty_supervisor: data.faculty_supervisor,
-            major: data.major,
-            period: data.period
+            ...doc.data()
         } as Student;
     });
-    return studentsData
+    return option.some(studentsData)
 }
 
 export {fetchStudents, fetchAllStudents}

@@ -1,14 +1,15 @@
 /** @jsxImportSource @emotion/react */
 import { useEffect, useState } from "react";
-import Student from "../model/Student";
-import User from "../model/User";
-import { useAuth } from "../helper/AuthProvider";
-import { fetchUser } from "../controllers/UserController";
-import { fetchAllStudents } from "../controllers/StudentController";
+import Student from "../../model/Student";
+import User from "../../model/User";
+import { useAuth } from "../../helper/AuthProvider";
+import { fetchUser } from "../../controllers/UserController";
+import { fetchAllStudents } from "../../controllers/StudentController";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { css } from "@emotion/react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../../firebase";
+import { fetchAllCompanies } from "../../controllers/CompanyController";
 
 interface StudentListBoxProps {
     onSelectStudent: (studentId: string | null) => void;
@@ -23,7 +24,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     const [isGridView, setIsGridView] = useState(true);
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-    const [companys, setCompanys] = useState([]);
+    const [companies, setCompanies] = useState<Company[]>([]);
     const [majors, setMajors] = useState([]);
     const [periods, setPeriods] = useState([]);
     const [selectedPeriod, setSelectedPeriod] = useState("");
@@ -36,18 +37,36 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const user = await fetchUser(userAuth?.currentUser?.email!);
-            const allStudents = await fetchAllStudents();
+            const user: User = await fetchUser(userAuth?.currentUser?.email!)
+                                    .then((user) => user._tag == "Some" ? user.value : {id: "null"} as User);
+
+            if (user.id == "null") {
+                console.log("User not found")
+            }
+
+            const allStudents: Student[] = await fetchAllStudents()
+                                                    .then((students) => students._tag == "Some" ? students.value : [{iden: "null"}] as Student[])
+                                                    .then(
+                                                        (students) => user.role === "Company" ? 
+                                                            students.filter(student => student.tempat_magang === user.company_name) :
+                                                            students)
             
-            let filteredStudents = allStudents;
-            if (user.role === "Company") {
-                filteredStudents = allStudents.filter(student => student.tempat_magang === user.company_name);
+            if (allStudents[0].iden == "null") {
+                console.log("Students not found")
+            }
+
+            const companies: Company[] = await fetchAllCompanies()
+                                                    .then((companies) => companies._tag == "Some" ? companies.value : [{id: "null"}] as Company[])
+            
+            if (companies[0].id == "null") {
+                console.log("Companies not found")
             }
 
             setUser(user);
-            setStudents(filteredStudents);
-            setFilteredStudents(filteredStudents);
-            setIsLoading(false); // Data loading complete
+            setStudents(allStudents);
+            setCompanies(companies)
+            setFilteredStudents(allStudents);
+            setIsLoading(false); 
         };
         fetchData();
     }, []);
@@ -63,13 +82,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     }, []);
 
     useEffect(() => {
-        const fetchCompanys = async () => {
-            const companysCollection = collection(db, "tempat_magang");
-            const companySnapshot = await getDocs(companysCollection);
-            const companyList = companySnapshot.docs.map(doc => doc.data().name);
-            setCompanys(companyList);
-        };
-        fetchCompanys();
+
     }, []);
 
     useEffect(() => {
@@ -156,7 +169,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         background-color: white;
         width: 100%;
         height: 100%;
-        padding: 20px 40px 20px 40px;
+        padding: 40px 43px 40px 43px;
         box-sizing: border-box;
     `;
 
@@ -183,36 +196,6 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             border: 1px solid #49A8FF;
             width: 50%;
         }
-    `;
-
-    const buttonStyle = css`
-        background-color: #49A8FF;
-        border: none;
-        border-radius: 0px 20px 20px 0px;
-        padding: 10px 10px 10px 5px;
-        margin-right: 100px;
-
-        &:hover {
-            cursor: pointer;
-            background-color: #70bbff;
-        }
-    `;
-
-    const checkbox = css`
-        display: flex;
-        align-items: center;
-        font-size: 15px;
-        gap: 5px;
-
-        input{
-            width: 20px;
-            height: 20px;
-        }
-    `;
-
-    const viewChooserStyle = css`
-        display: flex;
-        gap: 10px;
     `;
 
     const studentRow = css`
@@ -406,8 +389,8 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                                     <p>Company</p>
                                     <select onChange={handleCompanyChange}>
                                         <option value="">All</option>
-                                        {companys.map((company, index) => (
-                                            <option key={index} value={company}>{company}</option>
+                                        {companies.map((company, index) => (
+                                            <option key={index} value={company.company_name}>{company.company_name}</option>
                                         ))}
                                     </select>
                                 </>

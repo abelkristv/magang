@@ -8,6 +8,8 @@ import { db } from "../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useAuth } from '../helper/AuthProvider';
 import { fetchUser } from '../controllers/UserController';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const DocumentationBox = ({ setGlobalActiveTab }) => {
     const [date, setDate] = useState(new Date());
@@ -19,6 +21,9 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     const [discussionDetails, setDiscussionDetails] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [exportStartDate, setExportStartDate] = useState('');
+    const [exportEndDate, setExportEndDate] = useState('');
+    const [exportType, setExportType] = useState('All');
     const userAuth = useAuth();
     const modalRef = useRef(null);
 
@@ -107,11 +112,86 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     const openExportModal = () => setIsExportModalOpen(true);
     const closeExportModal = () => setIsExportModalOpen(false);
 
+    const exportToExcel = async () => {
+        // Filter documentation based on export settings
+        const startDate = new Date(exportStartDate);
+        const endDate = new Date(exportEndDate);
+        const filteredDocs = documentations.filter(doc => {
+            const docDate = new Date(doc.timestamp.seconds * 1000);
+            return docDate >= startDate && docDate <= endDate && (exportType === 'All' || doc.type === exportType);
+        });
+    
+        const meetingCount = filteredDocs.filter(doc => doc.type === 'Meeting').length;
+        const discussionCount = filteredDocs.filter(doc => doc.type === 'Discussion').length;
+        const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
+    
+        const summaryData = [
+            ['Enrichment Activity Documentation Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Start Date', exportStartDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Meeting Count', meetingCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Discussion Count', discussionCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Evaluation Count', evaluationCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            [],
+        ];
+    
+        const headers = [
+            'Title',
+            'Nomor Undangan',
+            'Leader',
+            'Place',
+            'Date',
+            'Time',
+            'Type',
+            'Description',
+            'Discussion Details',
+            'Attendance List'
+        ];
+    
+        const data = await Promise.all(filteredDocs.map(async (doc) => {
+            const q = query(collection(db, "discussionDetails"), where("docID", "==", doc.id));
+            const querySnapshot = await getDocs(q);
+            const details = querySnapshot.docs.map(detail => detail.data());
+    
+            return [
+                doc.title,
+                doc.nomor_undangan,
+                doc.leader,
+                doc.place,
+                formatDate(doc.timestamp),
+                formatTime(doc.timestamp),
+                doc.type,
+                doc.description,
+                details.map(detail => detail.discussionTitle).join(', '),
+                doc.attendanceList.join(', '),
+            ];
+        }));
+    
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([...summaryData, headers, ...data]);
+    
+        XLSX.utils.book_append_sheet(wb, ws, "Documentation");
+    
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+        const s2ab = (s) => {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        };
+    
+        saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "documentation.xlsx");
+    
+        closeExportModal();
+    };
+    
+    
+
     const mainStyle = css`
         background-color: white;
         width: 100%;
         height: 100%;
-        padding: 20px 40px 20px 40px;
+        padding: 40px 43px 40px 43px;
         box-sizing: border-box;
     `;
 
@@ -337,19 +417,24 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     const modalContentStyle = css`
         background: white;
         border-radius: 10px;
-        width: 400px;
-        padding: 20px;
+        width: 600px;
         display: flex;
         flex-direction: column;
-        align-items: center;
 
-        h2 {
+        .headerp {
             margin-bottom: 20px;
+            margin-top: 0px;
+            background-color: #F0ECEC;
+            border-radius: 5px;
+            font-size: 20px;
+            padding: 10px;
         }
 
         button {
             padding: 10px;
             border: none;
+            margin: 10px;
+            width: 40%;
             border-radius: 5px;
             background-color: #49A8FF;
             color: white;
@@ -360,6 +445,59 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             }
         }
     `;
+
+    const exportModalContentStyle = css`
+        display: flex;
+        gap: 40px;
+        .leftSide {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 50%;
+        }
+        .rightSide {
+            width: 50%;
+        }
+
+        font-size: 20px;
+        text-align: left;
+        padding: 20px;
+    `
+
+    const periodGridStyle = css`
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    `
+
+    const modalHeaderStyle = css`
+        display: flex;
+        justify-content: space-between;
+        padding-right: 10px;
+        align-items: center;
+        background-color: #F0ECEC;
+
+        border-radius: 10px 10px 0px 0px;
+
+        .headerp {
+            margin-bottom: 0px;
+        }
+    `;
+
+    const closeButtonStyle = css`
+        background: none !important;
+        border: none;
+        width: auto !important;
+        height: auto !important;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: bold;
+        color: #888 !important;
+    `;
+
+    const exportButton = css`
+        margin-bottom: 10px;
+        padding: 10px;
+    `
 
     return (
         <main className="mainStyle" css={mainStyle}>
@@ -547,8 +685,35 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             {isExportModalOpen && (
                 <div css={modalStyle}>
                     <div css={modalContentStyle} ref={modalRef}>
-                        <h2>Export to Excel</h2>
-                        <button onClick={closeExportModal}>Close</button>
+                        <div className="modalHeader" css={modalHeaderStyle}>
+                            <p className="headerp">Export to Excel</p>
+                            <button css={closeButtonStyle} onClick={closeExportModal}>x</button>
+                        </div>
+                        <div className="exportModalContent" css={exportModalContentStyle}>
+                            <div className="leftSide">
+                                <p>Period</p>
+                                <div className="periodGrid" css={periodGridStyle}>
+                                    <p>Start</p>
+                                    <input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} />
+                                </div>
+                                <div className="periodGrid" css={periodGridStyle}>
+                                    <p>End</p>
+                                    <input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="rightSide">
+                                <p>Type</p>
+                                <select value={exportType} onChange={e => setExportType(e.target.value)}>
+                                    <option value="All">All</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Discussion">Discussion</option>
+                                    <option value="Evaluation">Evaluation</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "40px"}}>
+                            <button css={exportButton} onClick={exportToExcel}>Export</button>
+                        </div>
                     </div>
                 </div>
             )}

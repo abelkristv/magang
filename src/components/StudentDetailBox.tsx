@@ -8,6 +8,7 @@ import { db } from "../firebase";
 import Student from "../model/Student";
 import { fetchUser } from "../controllers/UserController";
 import * as XLSX from 'xlsx';
+import User from "../model/User";
 
 const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
     const [timeStart, setTimeStart] = useState('');
@@ -109,7 +110,10 @@ const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
     return (
         <div css={modalStyle}>
             <div ref={modalRef} css={modalContentStyle}>
-                <p className="headerp">Schedule a Meeting</p>
+                <div className="modalHeader" css={modalHeaderStyle}>
+                    <p className="headerp">Schedule a Meeting</p>
+                    <button css={closeButtonStyle} onClick={onClose}>x</button>
+                </div>
                 <form onSubmit={handleSubmit} css={formStyle}>
                     <div className="dateContainer" style={{display: "flex", flexDirection: "column", gap: "10px"}}>
                         <p>Date</p>
@@ -180,6 +184,179 @@ const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
     );
 };
 
+const ExportModal = ({ isOpen, onClose, onExport }) => {
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [error, setError] = useState('');
+    const modalRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    const validateDates = () => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 31;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (validateDates()) {
+            onExport({ startDate, endDate });
+            onClose();
+        } else {
+            setError('The end date must be within one month from the start date.');
+        }
+    };
+
+    if (!isOpen) return null;
+
+    const modalStyle = css`
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    `;
+
+    const modalContentStyle = css`
+        background: white;
+        border-radius: 10px;
+        width: 557px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        border-radius: 10px;
+
+        .headerp {
+            margin: 0px;
+            border-radius: 10px 10px 0px 0px;
+            background-color: #ebebeb;
+            padding: 10px;
+            font-size: 19px;
+            font-weight: medium;
+        }
+    `;
+
+    const inputStyle = css`
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    `;
+
+    const buttonStyle = css`
+        background-color: #49A8FF;
+        color: white;
+        padding: 10px;
+        width: 50%;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        &:hover {
+            background-color: #68b5fc;
+        }
+    `;
+
+    const formStyle = css`
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+
+        p {
+            text-align: start;
+        }
+    `
+
+    const modalHeaderStyle = css`
+        display: flex;
+        justify-content: space-between;
+        padding-right: 10px;
+        align-items: center;
+        background-color: #F0ECEC;
+
+        border-radius: 10px 10px 0px 0px;
+
+        .headerp {
+            margin-bottom: 0px;
+        }
+    `;
+
+    const closeButtonStyle = css`
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: bold;
+        color: #888;
+    `;
+
+    return (
+        <div css={modalStyle}>
+            <div ref={modalRef} css={modalContentStyle}>
+                <div className="modalHeader" css={modalHeaderStyle}>
+                    <p className="headerp">Export to Excel</p>
+                    <button css={closeButtonStyle} onClick={onClose}>x</button>
+                </div>
+                <form onSubmit={handleSubmit} css={formStyle}>
+                    <div className="content" style={{display: "flex", justifyContent: "space-between"}}>
+                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%"}}>
+                            <p>Start</p>
+                            <input 
+                                type="date" 
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                css={inputStyle}
+                                required
+                            />
+                        </div>
+                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%"}}>
+                            <p>End</p>
+                            <input 
+                                type="date" 
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                css={inputStyle}
+                                required
+                            />
+                        </div>
+                    </div>
+                    {error && <p style={{color: 'red'}}>{error}</p>}
+                    <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
+                        <button type="submit" css={buttonStyle}>
+                            Export
+                        </button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    );
+};
 
 interface StudentDetailBoxProps {
     studentId: string;
@@ -213,12 +390,18 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     const [filterEndDate, setFilterEndDate] = useState<string>("");
     const [filterRatingFrom, setFilterRatingFrom] = useState<string>("");
     const [filterRatingTo, setFilterRatingTo] = useState<string>("");
-    const [user, setUser] = useState()
+    const [user, setUser] = useState<User>()
+
+    // State for export modal
+    const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchData = async () => {
-            const user =  await fetchUser(userAuth?.currentUser?.email!)
-            console.log(user)
+            const user: User = await fetchUser(userAuth?.currentUser?.email!)
+                                        .then((user) => user._tag == "Some" ? user.value : {id: "null"} as User);
+            if (user.id == "null") {
+                console.log("User not found");
+            }
             
             setUser(user)
         }
@@ -387,26 +570,87 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         setExpandedReportId(reportId === expandedReportId ? null : reportId);
     };
 
-    const exportToExcel = () => {
-        const data = reports.map(report => ({
+    const exportToExcel = (startDate, endDate) => {
+        const filteredReports = reports.filter(report => {
+            const reportDate = new Date(report.data.timestamp.seconds * 1000);
+            return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
+        });
+    
+        const ratingCounts = filteredReports.reduce((acc, report) => {
+            acc[report.data.rating] = (acc[report.data.rating] || 0) + 1;
+            return acc;
+        }, {});
+    
+        const reportCount = filteredReports.length;
+        const totalRating = filteredReports.reduce((acc, report) => acc + parseInt(report.data.rating, 10), 0);
+        const meanRating = reportCount > 0 ? (totalRating / reportCount).toFixed(2) : 0;
+    
+        const summaryData = [
+            ['Student Performance and Behaviour Documentation'],
+            ['Start Date', startDate],
+            ['End Date', endDate],
+            ['Report Count', reportCount.toString()],
+            ['Mean Rating', meanRating.toString()],
+            ['Rating Count'],
+            ['Rating 5', ratingCounts[5] ? ratingCounts[5].toString() : "0"],
+            ['Rating 4', ratingCounts[4] ? ratingCounts[4].toString() : "0"],
+            ['Rating 3', ratingCounts[3] ? ratingCounts[3].toString() : "0"],
+            ['Rating 2', ratingCounts[2] ? ratingCounts[2].toString() : "0"],
+            ['Rating 1', ratingCounts[1] ? ratingCounts[1].toString() : "0"],
+            [],
+        ];
+    
+        const headers = [
+            'Writer',
+            'Rating',
+            'Report',
+            'Timestamp',
+        ];
+    
+        const data = filteredReports.map(report => ({
             Writer: report.data.writer,
-            Rating: report.data.rating,
+            Rating: report.data.rating.toString(), // Convert number to string
             Report: report.data.report,
             Timestamp: new Date(report.data.timestamp.seconds * 1000).toLocaleString(),
         }));
-
-        const worksheet = XLSX.utils.json_to_sheet(data);
+        
+    
+        const worksheet = XLSX.utils.json_to_sheet([]);
+        XLSX.utils.sheet_add_aoa(worksheet, summaryData);
+        XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: summaryData.length });
+        XLSX.utils.sheet_add_json(worksheet, data, { origin: summaryData.length + 1, skipHeader: true });
+    
+        // Set left alignment for all cells
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cell_address = { c: C, r: R };
+                const cell_ref = XLSX.utils.encode_cell(cell_address);
+                if (!worksheet[cell_ref]) continue;
+                if (!worksheet[cell_ref].s) worksheet[cell_ref].s = {};
+                worksheet[cell_ref].s.alignment = { horizontal: 'left' };
+            }
+        }
+    
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
-
+    
         XLSX.writeFile(workbook, "StudentReports.xlsx");
+    };
+
+    const handleExportModalClose = () => {
+        setIsExportModalOpen(false);
+    };
+
+    const handleExportModalSubmit = ({ startDate, endDate }) => {
+        exportToExcel(startDate, endDate);
     };
 
     const mainStyle = css`
         background-color: white;
         width: 100%;
         height: 100%;
-        padding: 20px 40px 20px 40px;
+        padding: 40px 43px 40px 43px;
         box-sizing: border-box;
     `;
 
@@ -420,20 +664,20 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     `;
 
     const contentSide = css`
-        margin-top: 50px;
+        margin-top: 30px;
     `;
 
     const userCardStyle = css`
         display: flex;
-        gap: 30px;
+        gap: 20px;
         box-shadow: 0px 0px 5px 1px #dbdbdb;
         border-radius: 10px;
         width: 100%;
         min-width: 900px;
 
         img {
-            width: 220px;
-            height: 260px;
+            width: 160px;
+            height: 210px;
             object-fit: cover;
             border-radius: 10px 0px 0px 10px;
         }
@@ -449,7 +693,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
 
     const infoContainerStyle = css`
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 0.65fr 1fr;
         width: 100%;
         color: black;
     `;
@@ -484,19 +728,32 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     const greaterInformationContainerStyle = css`
         display: flex;
         justify-content: space-between;
+        font-size: 17px;
 
         .left-side {
             width: 50%;
         }
 
         .right-side {
-            width: 45%;
+            width: 46%;
         }
     `;
 
     const filterStyle = css`
         display: flex;
         gap: 10px;
+        align-items: center;
+
+        p {
+            font-size: 15px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+        }
     `;
 
     const ratingShowcaseStyle = css`
@@ -657,7 +914,10 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     `;
 
     const radioButtonsStyle = css`
+        margin-top: 10px;
+        align-items: center;
         display: flex;
+        justify-content: space-between;
         gap: 10px;
 
         label {
@@ -774,9 +1034,9 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     return (
         <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
-                <p>Student Detail</p>
+                <p style={{fontWeight: "300"}}>Student Detail</p>
                 <div className="filter" css={filterStyle}>
-                    <p>Filter : </p>
+                    <p>Period: </p>
                     <select name="" id="">
                         <option value="">Odd Semester 23.10</option>
                     </select>
@@ -788,28 +1048,28 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                         <>
                             <img src={student.image_url} alt={student.name} />
                             <div className="userDesc" css={userDescStyle}>
-                                <h1>{student.name}</h1>
-                                <p style={{ color: "#51587E" }}>{student.nim}</p>
+                                <p style={{fontSize: "20px", fontWeight: "500"}}>{student.name}</p>
+                                <p style={{ color: "#51587E", fontWeight: "500", fontSize: "17px" }}>{student.nim}</p>
                                 <div className="greaterInformationContainer" css={greaterInformationContainerStyle}>
                                     <div className="left-side">
                                         <div className="information" css={informationStyle}>
                                             <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "10px" }}>
-                                                    <Icon icon={"mdi:college-outline"} fontSize={20} />
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                    <Icon icon={"mdi:college-outline"} fontSize={22} />
                                                     <p>Major</p>
                                                 </div>
                                                 <p>{student.major}</p>
                                             </div>
                                             <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "10px" }}>
-                                                    <Icon icon={"ph:building-bold"} fontSize={20} />
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                    <Icon icon={"ph:building-bold"} fontSize={22} />
                                                     <p>Organization Name</p>
                                                 </div>
                                                 <p>{student.tempat_magang}</p>
                                             </div>
                                             <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "10px" }}>
-                                                    <Icon icon={"ic:outline-email"} fontSize={20} />
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                    <Icon icon={"ic:outline-email"} fontSize={22} />
                                                     <p>Email Address</p>
                                                 </div>
                                                 <p>{student.email}</p>
@@ -819,15 +1079,15 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                                     <div className="right-side">
                                         <div className="information" css={informationStyle}>
                                             <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "10px" }}>
-                                                    <Icon icon={"material-symbols:supervisor-account"} fontSize={20} />
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                    <Icon icon={"material-symbols:supervisor-account"} fontSize={22} />
                                                     <p>Faculty Supervisor</p>
                                                 </div>
                                                 <p>{student.faculty_supervisor}</p>
                                             </div>
                                             <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "10px" }}>
-                                                    <Icon icon={"ic:outline-people"} fontSize={20} />
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                    <Icon icon={"ic:outline-people"} fontSize={22} />
                                                     <p>Site Supervisor</p>
                                                 </div>
                                                 <p>{student.site_supervisor}</p>
@@ -946,6 +1206,9 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                         )}
                     </div>
                     <div className="right-side">
+                        <div className="excelButtonContainer" style={{display: "flex", justifyContent: 'start', marginBottom: "20px"}}>
+                            <button onClick={() => setIsExportModalOpen(true)} css={buttonStyle} style={{marginTop: "0px"}}>Export to Excel</button>
+                        </div>
                         <div className="add-a-record-box" css={addRecordBoxStyle}>
                             <p className="headerp">Add a record</p>
                             <div className="recordForm" css={recordFormStyle}>
@@ -953,6 +1216,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                                 <textarea name="" id="" rows={10} value={description} onChange={handleDescriptionChange}></textarea>
                                 <p>Rating</p>
                                 <div className="radioButtons" css={radioButtonsStyle}>
+                                    <p style={{color: "#51587E"}}>Horrible</p>
                                     {[1, 2, 3, 4, 5].map(rating => (
                                         <label key={rating}>
                                             <input
@@ -965,11 +1229,11 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                                             {rating}
                                         </label>
                                     ))}
+                                    <p style={{color: "#51587E"}}>Excellent</p>
                                 </div>
                                 <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>
                             </div>
                         </div>
-                        <button onClick={exportToExcel} style={{width: "100%", marginTop: "40px", padding: "10px", borderRadius: "10px", border: "none", cursor: "pointer"}}>Export to Excel</button>
                     </div>
                 </div>
 
@@ -979,6 +1243,11 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                 onClose={handleModalClose}
                 onSubmit={handleModalSubmit}
                 studentReportId={selectedReportId}
+            />
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onClose={handleExportModalClose}
+                onExport={handleExportModalSubmit}
             />
         </main>
     );

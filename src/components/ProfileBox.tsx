@@ -13,12 +13,17 @@ const ProfileBox = () => {
     const [user, setUser] = useState<User>();
     const [companyAddress, setCompanyAddress] = useState<string>();
     const [records, setRecords] = useState([]);
+    const [documentations, setDocumentations] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editableUser, setEditableUser] = useState<User>();
 
     useEffect(() => {
         const fetchData = async () => {
-            const user = await fetchUser(userAuth?.currentUser?.email!);
+            const user: User = await fetchUser(userAuth?.currentUser?.email!)
+                                        .then((user) => user._tag == "Some" ? user.value : {id: "null"} as User);
+            if (user.id == "null") {
+                console.log("User not found");
+            }
             setUser(user);
             setEditableUser(user);
 
@@ -45,12 +50,23 @@ const ProfileBox = () => {
                     const studentQuery = query(collection(db, "student"), where("name", "==", record.studentName));
                     const studentSnapshot = await getDocs(studentQuery);
                     const studentData = studentSnapshot.docs[0]?.data();
+                    const meetingQuery = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", doc.id));
+                    const meetingSnapshot = await getDocs(meetingQuery);
+                    const meetingData = meetingSnapshot.docs.map(meetingDoc => meetingDoc.data());
+
                     return {
                         ...record,
-                        imageUrl: studentData?.image_url || null
+                        imageUrl: studentData?.image_url || null,
+                        meetings: meetingData
                     };
                 }));
                 setRecords(fetchedRecords);
+
+                const documentationRef = collection(db, "documentation");
+                const docQuery = query(documentationRef, where("writer", "==", user.email));
+                const docSnapshot = await getDocs(docQuery);
+                const fetchedDocs = docSnapshot.docs.map(doc => doc.data());
+                setDocumentations(fetchedDocs);
             }
         };
 
@@ -79,7 +95,7 @@ const ProfileBox = () => {
         background-color: white;
         width: 100%;
         height: 100%;
-        padding: 20px 40px 20px 40px;
+        padding: 40px 43px 40px 43px;
         box-sizing: border-box;
     `;
 
@@ -91,7 +107,7 @@ const ProfileBox = () => {
     `;
 
     const contentSide = css`
-        margin-top: 50px;
+        margin-top: 40px;
     `;
 
     const userCardStyle = css`
@@ -103,7 +119,7 @@ const ProfileBox = () => {
         min-width: 900px;
 
         img {
-            min-width: 220px;
+            min-width: 170px;
             min-height: 100%;
             object-fit: cover;
             border-radius: 10px 0px 0px 10px;
@@ -115,7 +131,7 @@ const ProfileBox = () => {
         flex-direction: column;
         width: 100%;
         text-align: left;
-        padding: 20px;
+        padding: 10px;
     `;
 
     const infoContainerStyle = css`
@@ -125,7 +141,6 @@ const ProfileBox = () => {
         color: black;
 
         input {
-            // border: none;
             width: 100%;
             font-size: 20px;
             margin: 0px;
@@ -141,7 +156,7 @@ const ProfileBox = () => {
         color: #51587E;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 50px;
 
         .column {
             display: flex;
@@ -174,8 +189,8 @@ const ProfileBox = () => {
         justify-content: space-between;
         width: 100%;
         margin-top: 40px;
-        .leftSide {
-            width: 50%;
+        .bottomContainer {
+            width: 100%;
             .heading {
                 display: flex;
                 justify-content: space-between;
@@ -186,9 +201,6 @@ const ProfileBox = () => {
                 display: flex;
                 gap: 10px;
             }
-        }
-        .rightSide {
-            width: 45%;
         }
     `;
 
@@ -206,16 +218,16 @@ const ProfileBox = () => {
             display: flex;
             flex-direction: row;
             box-shadow: 0px 0px 5px 1px #ACACAC;
-            border-radius: 10px;
+            border-radius: 5px;
             background-color: white;
             align-items: center;
-            min-height: 200px;
+            min-height: 148px;
 
             img {
-                width: 150px;
+                width: 114px;
                 min-height: 100%;
                 object-fit: cover;
-                border-radius: 10px 0px 0px 10px;
+                border-radius: 5px 0px 0px 5px;
                 margin-right: 15px;
             }
         }
@@ -223,9 +235,27 @@ const ProfileBox = () => {
 
     const formatDate = (timestamp) => {
         const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-        const options = { year: 'numeric', month: 'short', day: '2-digit' };
+        const options = { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' };
         return date.toLocaleDateString('en-US', options);
     };
+
+    const recordCard = css`
+    `
+
+    const cardStyle = css`
+        .leftSide {
+            width: 50%;
+        }
+        .rightSide {
+            width: 50%;
+        }
+    `
+
+    const editInputStyle = css`
+        border: none;
+        border-bottom: 1px solid gray;
+        padding: 0px;
+    `
 
     return (
         <main className="mainStyle" css={mainStyle}>
@@ -235,15 +265,15 @@ const ProfileBox = () => {
                     <div className="userCard" css={userCardStyle}>
                         <img src={user?.image_url} alt="" />
                         <div className="userDesc" css={userDescStyle}>
-                            <div className="nameHeader" style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                                <h1>{editableUser?.name}</h1>
+                            <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <p style={{fontWeight: "500", fontSize: "25px"}}>{editableUser?.name}</p>
                                 {isEditing ? (
                                     <button onClick={handleSubmit}>Submit</button>
                                 ) : (
                                     <Icon icon={"mingcute:edit-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
                                 )}
                             </div>
-                            <p style={{ color: "#51587E" }}>{editableUser?.company_name}</p>
+                            <p style={{ color: "#51587E" }}>{editableUser?.role}</p>
                             <div className="information" css={informationStyle}>
                                 <div className="column">
                                     <div className="infoContainer" css={infoContainerStyle}>
@@ -252,7 +282,7 @@ const ProfileBox = () => {
                                             <p>Email address</p>
                                         </div>
                                         {isEditing ? (
-                                            <input type="text" name="email" value={editableUser?.email} onChange={handleChange} />
+                                            <input type="text" name="email" value={editableUser?.email} onChange={handleChange} css={editInputStyle} />
                                         ) : (
                                             <p>{editableUser?.email}</p>
                                         )}
@@ -263,7 +293,7 @@ const ProfileBox = () => {
                                             <p>Phone number</p>
                                         </div>
                                         {isEditing ? (
-                                            <input type="text" name="phone_number" value={editableUser?.phone_number} onChange={handleChange} />
+                                            <input type="text" name="phone_number" value={editableUser?.phone_number} onChange={handleChange} css={editInputStyle} />
                                         ) : (
                                             <p>{editableUser?.phone_number}</p>
                                         )}
@@ -290,7 +320,7 @@ const ProfileBox = () => {
                     </div>
                 </div>
                 <div className="bottomContent" css={bottomContentStyle}>
-                    <div className="leftSide">
+                    <div className="bottomContainer">
                         <div className="heading">
                             <p>Recently Added Records</p>
                             <div className="filterPeriod">
@@ -307,21 +337,62 @@ const ProfileBox = () => {
                                 records.map((record, index) => (
                                     <div key={index} className="recordCard">
                                         {record.imageUrl && <img src={record.imageUrl} alt={record.studentName} />}
-                                        <div style={{width: "100%", padding: "10px", boxSizing: "border-box", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between"}}>
-                                            <div className="topSide" style={{overflow: "scroll"}}>
-                                                <p><strong>{record.studentName}</strong></p>
-                                                <p>{record.report}</p>
+                                        <div style={{ 
+                                            width: "100%", 
+                                            padding: "10px", 
+                                            boxSizing: "border-box", 
+                                            height: "100%", 
+                                            display: "flex", 
+                                            flexDirection: "row",
+                                            gap: "40px",
+                                            justifyContent: "space-between" }}>
+                                            <div css={cardStyle} className="leftSide" style={{ overflow: "scroll", width: "50%", paddingTop: "20px" }}>
+                                                <div className="name-header" style={{display: "flex", justifyContent: "space-between"}}>
+                                                    <p style={{fontSize: "16px"}}><strong>{record.studentName}</strong></p>
+                                                    <p style=
+                                                        {{ textAlign: "right", 
+                                                           color: "#ACACAC", 
+                                                           fontWeight: "normal", 
+                                                           fontStyle: "italic", 
+                                                           fontSize: "15px" }}>{formatDate(record.timestamp)}</p>
+                                                </div>
+                                                <p style={{fontSize: "15px"}}>{record.report}</p>
                                             </div>
-                                            <div className="bottomSide">
-                                                <p style={{ textAlign: "right", color: "#ACACAC", fontWeight: "normal" }}>{formatDate(record.timestamp)}</p>
+                                            <div className="rightSide" style={{ width: "50%", padding: "10px", boxSizing: "border-box" }}>
+                                                {record.meetings && record.meetings.length > 0 ? (
+                                                    record.meetings.map((meeting, i) => (
+                                                        <div key={i} style={{ 
+                                                            marginBottom: "10px",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            gap: "20px",
+                                                            paddingLeft: "20px",
+                                                            borderLeft: "1px solid #ACACAC"
+                                                        }} css={recordCard}>
+                                                            <div className="leftSide">
+                                                                <Icon icon={"uis:schedule"} fontSize={50} />
+                                                            </div>
+                                                            <div className="rightSide" style={{display: "flex", flexDirection: "column", gap: "10px"}}>
+                                                                <p style={{fontSize: "16px"}}><strong>Meeting Scheduled</strong></p>
+                                                                <p style={{fontSize: "15.5px"}}>To solve this issue, we decided to hold a meeting with the student for consultation</p>
+                                                                <p style={{fontSize: "13px"}}>{meeting.place}</p>
+                                                            </div>
+                                                            
+                                                            
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p>No Meetings Scheduled</p>
+                                                )}
                                             </div>
+                                        </div>
+                                        <div className="bottomSide">
                                         </div>
                                     </div>
                                 ))
                             )}
                         </div>
                     </div>
-                    <div className="rightSide"></div>
                 </div>
             </div>
         </main>
