@@ -15,16 +15,23 @@ interface SearchInputProps {
 const searchRow = css`
     display: flex;
     position: relative;
-    width: 800px;
+    width: 808px;
+    height: 47px;
 
     input {
         padding: 15px;
         border-radius: 50px 0px 0px 50px;
         border: 1px solid #000000;
         width: 100%;
+        font-size: 18px;
 
         &:focus {
             outline: none;
+        }
+        
+        &::placeholder {
+            color: #ACACAC;
+            font-weight: 500;
         }
     }
 `;
@@ -32,10 +39,9 @@ const searchRow = css`
 const buttonStyle = css`
     background-color: #000000;
     border: none;
-    border-radius: 0px 20px 20px 0px;
+    border-radius: 0px 25px 25px 0px;
     padding: 10px 10px 10px 5px;
-    width: 50px;
-    // margin-right: 74px;
+    width: 55px;
 
     &:hover {
         cursor: pointer;
@@ -63,7 +69,7 @@ const SearchInput = ({
                 onBlur={onSearchBlur}
             />
             <button className="buttonStyle" css={buttonStyle} onClick={onSearch}>
-                <Icon icon={"tabler:search"} color="white" fontSize={20} />
+                <Icon icon={"tabler:search"} color="white" fontSize={27} />
             </button>
         </div>
     );

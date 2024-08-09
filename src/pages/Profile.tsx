@@ -2,7 +2,7 @@
 import { css } from "@emotion/react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { collection, doc, getDoc, getDocs, query, where, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, updateDoc, Timestamp } from "firebase/firestore";
 import { getAuth, updateEmail, updatePassword } from "firebase/auth";
 import { db } from "../firebase";
 import PrimaryButton from "../components/elementary/Button";
@@ -49,7 +49,18 @@ const Profile = () => {
 
         const fetchStudentRecords = async (email) => {
             try {
-                const q = query(collection(db, "studentReport"), where("writer", "==", email));
+                const today = new Date();
+                const todayStart = Timestamp.fromDate(new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0));
+                console.log("Today start: ", todayStart)
+                console.log("Today End : ", todayEnd)
+                const todayEnd = Timestamp.fromDate(new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59));
+
+                const q = query(
+                    collection(db, "studentReport"),
+                    where("writer", "==", email),
+                    where("timestamp", ">=", todayStart),
+                    where("timestamp", "<=", todayEnd)
+                );
                 const querySnapshot = await getDocs(q);
                 const recordsData = querySnapshot.docs.map((doc) => ({
                     id: doc.id,

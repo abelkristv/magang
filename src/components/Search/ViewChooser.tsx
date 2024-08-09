@@ -9,13 +9,13 @@ interface ViewChooserProps {
 
 const viewChooserStyle = css`
     display: flex;
-    gap: 10px;
+    gap: 30px;
 `;
 
 const checkbox = css`
     display: flex;
     align-items: center;
-    font-size: 15px;
+    font-size: 17px;
     gap: 5px;
 
     input {

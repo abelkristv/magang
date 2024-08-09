@@ -17,11 +17,14 @@ import StudentCard from "./StudentCard";
 import StudentTable from "./StudentTable";
 import SearchHistory from "./SearchHistory";
 import { SearchState, FilterOptions } from "./Interfaces";
-import { Option } from "fp-ts/lib/Option";
 import { fetchAllCompanies } from "../../controllers/CompanyController";
 import { fetchAllMajors } from "../../controllers/MajorController";
 
-const SearchBox = () => {
+interface SearchBoxProps {
+    onSelectStudent: (studentId: string | null) => void;
+}
+
+const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
     const [students, setStudents] = useState<Student[]>([]);
     const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
     const [user, setUser] = useState<User | null>(null);
@@ -45,67 +48,23 @@ const SearchBox = () => {
         selectedPeriod: "",
         selectedCompany: "",
         selectedMajor: "",
-        periods: periods,
-        companies: companies,
-        majors: majors,
+        periods: [],
+        companies: [],
+        majors: [],
         userRole: null,
     });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const user: User = await fetchUser(userAuth?.currentUser?.email!)
-                                        .then((user) => user._tag == "Some" ? user.value : {id: "null"} as User);
-            if (user.id == "null") {
-                console.log("User not found");
-            }
+    const [tempFilterOptions, setTempFilterOptions] = useState<FilterOptions>({
+        selectedPeriod: "",
+        selectedCompany: "",
+        selectedMajor: "",
+        periods: [],
+        companies: [],
+        majors: [],
+        userRole: null,
+    });
 
-            const students: Student[] = await fetchAllStudents()
-                                                .then((student) => student._tag == "Some" ? student.value : [{iden: "null"}] as Student[])
-                                                .then((students) => 
-                                                    user.role == "Company" ?
-                                                        students.filter(student => student.tempat_magang == user.company_name) :
-                                                        students);
-
-            if (students[0].iden == "null") {
-                console.log("Students not found");
-            }
-
-            const companies: Company[] = await fetchAllCompanies()
-                                                .then((companies) => companies._tag == "Some" ? companies.value : [{id: "null"}] as Company[])
-            
-            if (companies[0].id == "null") {
-                console.log("Company not found");
-            }
-
-            const majors: Major[] = await fetchAllMajors()
-                                            .then((majors) => majors._tag == "Some" ? majors.value : [{id: "null"}] as Major[])
-            
-            if (majors[0].id == "null") {
-                console.log("Majors not found");
-            }
-
-            setUser(user);
-            setStudents(students);
-            setFilteredStudents(students);
-            setCompanies(companies);
-            setMajors(majors)
-            fetchTotalComments(students);
-            setFilterOptions(prev => ({
-                ...prev,
-                userRole: user.role,
-                companies: companies,
-                majors: majors,
-                periods: periods
-            }));
-        };
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        if (searchState.searchQuery.trim() === "") {
-            setFilteredStudents([]);
-        }
-    }, [searchState.searchQuery, students]);
+    onSelectStudent(null);
 
     useEffect(() => {
         const fetchPeriods = async () => {
@@ -117,9 +76,75 @@ const SearchBox = () => {
                 ...prev,
                 periods: periodList,
             }));
+            setTempFilterOptions(prev => ({
+                ...prev,
+                periods: periodList,
+            }));
         };
+
+        const fetchData = async () => {
+            const user: User = await fetchUser(userAuth?.currentUser?.email!)
+                .then((user) => user._tag === "Some" ? user.value : { id: "null" } as User);
+            if (user.id === "null") {
+                console.log("User not found");
+            }
+
+            const students: Student[] = await fetchAllStudents()
+                .then((student) => student._tag === "Some" ? student.value : [{ iden: "null" }] as Student[])
+                .then((students) =>
+                    user.role === "Company" ?
+                        students.filter(student => student.tempat_magang === user.company_name) :
+                        students);
+
+            if (students[0].iden === "null") {
+                console.log("Students not found");
+            }
+
+            const companies: Company[] = await fetchAllCompanies()
+                .then((companies) => companies._tag === "Some" ? companies.value : [{ id: "null" }] as Company[]);
+
+            if (companies[0].id === "null") {
+                console.log("Company not found");
+            }
+
+            const majors: Major[] = await fetchAllMajors()
+                .then((majors) => majors._tag === "Some" ? majors.value : [{ id: "null" }] as Major[]);
+
+            if (majors[0].id === "null") {
+                console.log("Majors not found");
+            }
+
+            setUser(user);
+            setStudents(students);
+            setFilteredStudents(students);
+            setCompanies(companies);
+            setMajors(majors);
+            fetchTotalComments(students);
+
+            setFilterOptions(prev => ({
+                ...prev,
+                userRole: user.role,
+                companies: companies,
+                majors: majors,
+            }));
+
+            setTempFilterOptions(prev => ({
+                ...prev,
+                userRole: user.role,
+                companies: companies,
+                majors: majors,
+            }));
+        };
+
         fetchPeriods();
-    }, []);
+        fetchData();
+    }, [userAuth]);
+
+    useEffect(() => {
+        if (searchState.searchQuery.trim() === "") {
+            setFilteredStudents([]);
+        }
+    }, [searchState.searchQuery, students]);
 
     const fetchTotalComments = async (students: Student[]) => {
         const newTotalComments: { [key: string]: number } = {};
@@ -127,7 +152,6 @@ const SearchBox = () => {
             const commentsCollection = collection(db, "studentReportComment");
             const commentsQuery = query(commentsCollection, where("studentName", "==", student.name));
             const commentsSnapshot = await getDocs(commentsQuery);
-            // console.log(commentsSnapshot);
             newTotalComments[student.name] = commentsSnapshot.size;
         }
         setTotalComments(newTotalComments);
@@ -137,6 +161,7 @@ const SearchBox = () => {
         setSearchState(prevState => ({
             ...prevState,
             searchQuery: event.target.value,
+            isSearchHistoryOpen: event.target.value.trim() !== "",
         }));
     };
 
@@ -210,28 +235,31 @@ const SearchBox = () => {
         handleSearch();
     };
 
-    const handlePeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setFilterOptions(prevState => ({
+    const handleTempPeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setTempFilterOptions(prevState => ({
             ...prevState,
             selectedPeriod: event.target.value,
         }));
-        handleSearch();
     };
 
-    const handleCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setFilterOptions(prevState => ({
+    const handleTempCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setTempFilterOptions(prevState => ({
             ...prevState,
             selectedCompany: event.target.value,
         }));
-        handleSearch();
     };
 
-    const handleMajorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setFilterOptions(prevState => ({
+    const handleTempMajorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setTempFilterOptions(prevState => ({
             ...prevState,
             selectedMajor: event.target.value,
         }));
+    };
+
+    const handleApplyFilters = () => {
+        setFilterOptions(tempFilterOptions);
         handleSearch();
+        toggleDropdown();
     };
 
     const handleSearchFocus = () => {
@@ -254,24 +282,23 @@ const SearchBox = () => {
         setSearchState(prevState => ({
             ...prevState,
             searchQuery: query,
-        }));
-        handleSearch();
-        setSearchState(prevState => ({
-            ...prevState,
             isSearchHistoryOpen: false,
         }));
+        handleSearch();
     };
 
     const searchContainerStyle = css`
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 65px;
+        margin-top: 30px;
+        position: relative;
     `;
 
     const resultsStyle = css`
         margin-top: 40px;
-        font-size: 25px;
-        font-weight: bold;
+        font-size: 20px;
+        font-weight: 500;
         text-align: start;
     `;
 
@@ -298,17 +325,29 @@ const SearchBox = () => {
         }
     `;
 
+    const searchHistoryWrapperStyle = css`
+        position: relative;
+        width: 808px;
+    `;
+
     return (
         <MainBox navText="Search">
             <div css={searchContainerStyle}>
-                <SearchInput
-                    searchQuery={searchState.searchQuery}
-                    onSearchChange={handleSearchChange}
-                    onSearch={handleSearch}
-                    onKeyDown={handleKeyDown}
-                    onSearchFocus={handleSearchFocus}
-                    onSearchBlur={handleSearchBlur}
-                />
+                <div css={searchHistoryWrapperStyle}>
+                    <SearchInput
+                        searchQuery={searchState.searchQuery}
+                        onSearchChange={handleSearchChange}
+                        onSearch={handleSearch}
+                        onKeyDown={handleKeyDown}
+                        onSearchFocus={handleSearchFocus}
+                        onSearchBlur={handleSearchBlur}
+                    />
+                    <SearchHistory
+                        searchHistory={searchHistory}
+                        isSearchHistoryOpen={searchState.isSearchHistoryOpen}
+                        handleSearchHistoryClick={handleSearchHistoryClick}
+                    />
+                </div>
                 <ViewChooser
                     isGridView={searchState.isGridView}
                     onViewChange={handleViewChange}
@@ -316,17 +355,19 @@ const SearchBox = () => {
                 <FilterDropdown
                     isDropdownOpen={searchState.isDropdownOpen}
                     toggleDropdown={toggleDropdown}
-                    {...filterOptions}
-                    handlePeriodChange={handlePeriodChange}
-                    handleCompanyChange={handleCompanyChange}
-                    handleMajorChange={handleMajorChange}
+                    tempSelectedPeriod={tempFilterOptions.selectedPeriod}
+                    tempSelectedCompany={tempFilterOptions.selectedCompany}
+                    tempSelectedMajor={tempFilterOptions.selectedMajor}
+                    periods={filterOptions.periods}
+                    companies={filterOptions.companies}
+                    majors={filterOptions.majors}
+                    userRole={filterOptions.userRole}
+                    handleTempPeriodChange={handleTempPeriodChange}
+                    handleTempCompanyChange={handleTempCompanyChange}
+                    handleTempMajorChange={handleTempMajorChange}
+                    handleApplyFilters={handleApplyFilters}
                 />
             </div>
-            <SearchHistory
-                searchHistory={searchHistory}
-                isSearchHistoryOpen={searchState.isSearchHistoryOpen}
-                handleSearchHistoryClick={handleSearchHistoryClick}
-            />
             <div css={resultsStyle}>
                 Search Results: {filteredStudents.length}
             </div>
@@ -334,7 +375,7 @@ const SearchBox = () => {
                 searchState.isGridView ? (
                     <div className="studentRow" css={studentRow}>
                         {filteredStudents.map(student => (
-                            <StudentCard key={student.id} student={student} totalComments={totalComments[student.name] || 0} />
+                            <StudentCard key={student.id} student={student} onClick={() => onSelectStudent(student.iden)} totalComments={totalComments[student.name] || 0} />
                         ))}
                     </div>
                 ) : (

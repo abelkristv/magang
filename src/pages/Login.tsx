@@ -36,13 +36,16 @@ const Login = () => {
         display: flex;
         flex-direction: column;
         justify-content: start;
-        width: 20%;
+        width: 570px;
+        height: 494px;
+        box-sizing: border-box;
         gap: 20px;
     `;
 
     const loginHeaderStyle = css`
         font-size: 40px;
         margin: 0px;
+        font-weight: 600;
     `;
 
     const sectionStyle = css`
@@ -51,6 +54,14 @@ const Login = () => {
         align-items: start;
         gap: 5px;
         width: 100%;
+
+        .label {
+            font-size: 18px;
+        }
+
+        input {
+            font-size: 17px;
+        }
     `;
 
     const inputStyle = css`
@@ -120,7 +131,7 @@ const Login = () => {
                     <div css={sectionStyle}>
                         <label htmlFor="email">Email</label>
                         <div className="inputContainer" css={inputContainerStyle}>
-                            <Icon icon={"iconamoon:profile"} fontSize={20} color='#888888'/>
+                            <Icon icon={"iconamoon:profile"} fontSize={17} color='#888888'/>
                             <input
                             type="email"
                             id="email"
@@ -136,7 +147,7 @@ const Login = () => {
                     <div css={sectionStyle}>
                         <label htmlFor="password">Password</label>
                         <div className="sectionStyle" css={inputContainerStyle}>
-                            <Icon icon={"mdi:password-outline"} fontSize={20} />
+                            <Icon icon={"mdi:password-outline"} fontSize={17} color='#888888' />
                             <input
                             type="password"
                             id="password"
@@ -149,7 +160,9 @@ const Login = () => {
                         </div>
                         
                     </div>
-                    <PrimaryButton content={"LOGIN"} height={60} borderRadius='41px' bg_color='#000000' bg_color_hover='#262626' />
+                    <div className="buttonContainer" style={{display: 'flex', justifyContent: "center"}}>
+                        <PrimaryButton content={"LOGIN"} height={60} marginTop='30px' borderRadius='41px' bg_color='#000000' bg_color_hover='#262626' width={369} />
+                    </div>
                 </form>
             </div>
         </main>

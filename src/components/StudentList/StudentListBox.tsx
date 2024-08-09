@@ -31,6 +31,12 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     const [selectedCompany, setSelectedCompany] = useState("");
     const [selectedMajor, setSelectedMajor] = useState("");
     const [isLoading, setIsLoading] = useState(true); // Loading state
+
+    // State to hold temporary filter values before applying
+    const [tempSelectedPeriod, setTempSelectedPeriod] = useState("");
+    const [tempSelectedCompany, setTempSelectedCompany] = useState("");
+    const [tempSelectedMajor, setTempSelectedMajor] = useState("");
+
     const userAuth = useAuth();
 
     onSelectStudent(null);
@@ -38,26 +44,26 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     useEffect(() => {
         const fetchData = async () => {
             const user: User = await fetchUser(userAuth?.currentUser?.email!)
-                                    .then((user) => user._tag == "Some" ? user.value : {id: "null"} as User);
+                .then((user) => user._tag == "Some" ? user.value : { id: "null" } as User);
 
             if (user.id == "null") {
                 console.log("User not found")
             }
 
             const allStudents: Student[] = await fetchAllStudents()
-                                                    .then((students) => students._tag == "Some" ? students.value : [{iden: "null"}] as Student[])
-                                                    .then(
-                                                        (students) => user.role === "Company" ? 
-                                                            students.filter(student => student.tempat_magang === user.company_name) :
-                                                            students)
-            
+                .then((students) => students._tag == "Some" ? students.value : [{ iden: "null" }] as Student[])
+                .then(
+                    (students) => user.role === "Company" ?
+                        students.filter(student => student.tempat_magang === user.company_name) :
+                        students)
+
             if (allStudents[0].iden == "null") {
                 console.log("Students not found")
             }
 
             const companies: Company[] = await fetchAllCompanies()
-                                                    .then((companies) => companies._tag == "Some" ? companies.value : [{id: "null"}] as Company[])
-            
+                .then((companies) => companies._tag == "Some" ? companies.value : [{ id: "null" }] as Company[])
+
             if (companies[0].id == "null") {
                 console.log("Companies not found")
             }
@@ -66,7 +72,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             setStudents(allStudents);
             setCompanies(companies)
             setFilteredStudents(allStudents);
-            setIsLoading(false); 
+            setIsLoading(false);
         };
         fetchData();
     }, []);
@@ -79,10 +85,6 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             setMajors(majorList);
         };
         fetchMajors();
-    }, []);
-
-    useEffect(() => {
-
     }, []);
 
     useEffect(() => {
@@ -154,15 +156,22 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     };
 
     const handlePeriodChange = (event) => {
-        setSelectedPeriod(event.target.value);
+        setTempSelectedPeriod(event.target.value);
     };
 
     const handleCompanyChange = (event) => {
-        setSelectedCompany(event.target.value);
+        setTempSelectedCompany(event.target.value);
     };
 
     const handleMajorChange = (event) => {
-        setSelectedMajor(event.target.value);
+        setTempSelectedMajor(event.target.value);
+    };
+
+    const handleApplyFilters = () => {
+        setSelectedPeriod(tempSelectedPeriod);
+        setSelectedCompany(tempSelectedCompany);
+        setSelectedMajor(tempSelectedMajor);
+        toggleDropdown();
     };
 
     const mainStyle = css`
@@ -181,7 +190,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     `;
 
     const contentSide = css`
-        margin-top: 50px;
+        margin-top: 30px;
         width: 100%;
     `;
 
@@ -201,8 +210,8 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     const studentRow = css`
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: 20px;
-        margin-top: 20px;
+        gap: 40px;
+        margin-top: 40px;
     `;
 
     const cardStyle = css`
@@ -211,7 +220,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         border-radius: 8px;
         padding: 20px;
         box-sizing: border-box;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.25);
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -237,6 +246,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         text-align: start;
         width: 100%;
         height: 100%;
+        margin-top: -15px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -312,7 +322,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         top: 120%;
         left: -10%;
         text-align: start;
-        padding: 15px;
+        padding: 10px 15px 15px 15px;
         border: 1px solid #ddd;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -334,6 +344,25 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             background-color: white;
             font-size: 15px;
             cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 30%;
+            font-size: 17px;
+            padding: 11px;
+            box-sizing: border-box;
+            font-weight: 600;
+            background-color: #000000;
+            color: white;
+            border: none;
+            border-radius: 10px;
+
+            &:hover {
+                cursor: pointer;
+                background-color: #363636;
+            }
         }
     `;
 
@@ -355,8 +384,8 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     `;
 
     const totalStyle = css`
-        font-size: 25px;
-        font-weight: bold;
+        font-size: 20px;
+        font-weight: 500;
         text-align: start;
     `;
 
@@ -371,7 +400,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                         Total: {filteredStudents.length}
                     </div>
                     <div className="filterView" css={filterViewStyle}>
-                        <p>Filter View: </p>
+                        <p>Filter By: </p>
                         <div className="dropdown" css={dropdownStyle} onClick={toggleDropdown}>
                             <p>All Students</p>
                             <Icon icon={"weui:arrow-filled"} rotate={45} />
@@ -384,7 +413,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                                     <option key={index} value={period}>{`${period}`}</option>
                                 ))}
                             </select>
-                            {user?.role == "Enrichment" && (
+                            {user?.role === "Enrichment" && (
                                 <>
                                     <p>Company</p>
                                     <select onChange={handleCompanyChange}>
@@ -394,9 +423,8 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                                         ))}
                                     </select>
                                 </>
-                                
                             )}
-                            
+
                             <p>Major</p>
                             <select onChange={handleMajorChange}>
                                 <option value="">All</option>
@@ -404,6 +432,9 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                                     <option key={index} value={major}>{major}</option>
                                 ))}
                             </select>
+                            <div className="buttonContainer" style={{display: "flex", justifyContent: "end"}}>
+                                <button onClick={handleApplyFilters}>Apply</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -427,9 +458,9 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                                     <img src={student.image_url} alt={student.name} />
                                     <div className="student-description" css={cardStudentDescription}>
                                         <div className="text">
-                                            <p>{student.name}</p>
-                                            <p>{student.nim}</p>
-                                            <p>{student.major}</p>
+                                            <p style={{ fontSize: "18px" }}>{student.name}</p>
+                                            <p style={{ color: "#49A8FF", fontSize: "16px" }}>{student.nim}</p>
+                                            <p style={{ fontSize: "13px" }}>{student.major}</p>
                                         </div>
                                     </div>
                                 </div>

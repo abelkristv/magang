@@ -1,362 +1,16 @@
 /** @jsxImportSource @emotion/react */
 import React, { useEffect, useRef, useState } from "react";
 import { css } from "@emotion/react";
-import { useAuth } from "../helper/AuthProvider";
+import { useAuth } from "../../helper/AuthProvider";
 import { Icon } from "@iconify/react";
 import { collection, doc, getDoc, getDocs, query, where, addDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import Student from "../model/Student";
-import { fetchUser } from "../controllers/UserController";
+import { db } from "../../firebase";
+import Student from "../../model/Student";
+import { fetchUser } from "../../controllers/UserController";
 import * as XLSX from 'xlsx';
-import User from "../model/User";
-
-const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
-    const [timeStart, setTimeStart] = useState('');
-    const [timeEnd, setTimeEnd] = useState('');
-    const [description, setDescription] = useState('');
-    const [place, setPlace] = useState('');
-    const [date, setDate] = useState('');
-    const modalRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (modalRef.current && !modalRef.current.contains(event.target)) {
-                onClose();
-            }
-        };
-
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit({ timeStart, timeEnd, description, place, date, studentReportId });
-        onClose();
-    };
-
-    const modalStyle = css`
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    `;
-
-    const modalContentStyle = css`
-        background: white;
-        border-radius: 10px;
-        width: 557px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        border-radius: 10px;
-
-        .headerp {
-            margin: 0px;
-            border-radius: 10px 10px 0px 0px;
-            background-color: #ebebeb;
-            padding: 10px;
-            font-size: 19px;
-            font-weight: medium;
-        }
-    `;
-
-    const inputStyle = css`
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    `;
-
-    const buttonStyle = css`
-        background-color: #49A8FF;
-        color: white;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        &:hover {
-            background-color: #68b5fc;
-        }
-    `;
-
-    const formStyle = css`
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px;
-
-        p {
-            text-align: start;
-        }
-    `
-
-    return (
-        <div css={modalStyle}>
-            <div ref={modalRef} css={modalContentStyle}>
-                <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp">Schedule a Meeting</p>
-                    <button css={closeButtonStyle} onClick={onClose}>x</button>
-                </div>
-                <form onSubmit={handleSubmit} css={formStyle}>
-                    <div className="dateContainer" style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-                        <p>Date</p>
-                        <input 
-                            type="date" 
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            css={inputStyle}
-                            required
-                        />
-                    </div>
-                    <div className="timeContainer">
-                        <p>Time</p>
-                        <div className="timeChooserContainer" style={{display: "flex", gap: "30px"}}>
-                            <div className="startTime" style={{display: "flex", gap: "20px", alignItems: "center"}}>
-                                <p>Start</p>
-                                <input
-                                    type="time"
-                                    placeholder="Start Time"
-                                    value={timeStart}
-                                    onChange={(e) => setTimeStart(e.target.value)}
-                                    css={inputStyle}
-                                    required
-                                />
-                            </div>
-                            <div className="endTime" style={{display: "flex", gap: "20px", alignItems: "center"}}>
-                                <p>End</p>
-                                <input
-                                    type="time"
-                                    placeholder="End Time"
-                                    value={timeEnd}
-                                    onChange={(e) => setTimeEnd(e.target.value)}
-                                    css={inputStyle}
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="descriptionContainer" style={{display: "flex", flexDirection: "column"}}>
-                        <p>Description</p>
-                        <textarea
-                            placeholder="Description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            css={inputStyle}
-                            rows="4"
-                            required
-                        />
-                    </div>
-                    <div className="placeContainer" style={{display: "flex", flexDirection: "column"}}>
-                        <p>Place / Zoom Link</p>
-                        <input
-                            type="text"
-                            placeholder="Place / Zoom Link"
-                            value={place}
-                            onChange={(e) => setPlace(e.target.value)}
-                            css={inputStyle}
-                            required
-                        />
-                    </div>
-                    
-                    <button type="submit" css={buttonStyle}>
-                        Schedule
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-};
-
-const ExportModal = ({ isOpen, onClose, onExport }) => {
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [error, setError] = useState('');
-    const modalRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (modalRef.current && !modalRef.current.contains(event.target)) {
-                onClose();
-            }
-        };
-
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen, onClose]);
-
-    const validateDates = () => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 31;
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (validateDates()) {
-            onExport({ startDate, endDate });
-            onClose();
-        } else {
-            setError('The end date must be within one month from the start date.');
-        }
-    };
-
-    if (!isOpen) return null;
-
-    const modalStyle = css`
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    `;
-
-    const modalContentStyle = css`
-        background: white;
-        border-radius: 10px;
-        width: 557px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        border-radius: 10px;
-
-        .headerp {
-            margin: 0px;
-            border-radius: 10px 10px 0px 0px;
-            background-color: #ebebeb;
-            padding: 10px;
-            font-size: 19px;
-            font-weight: medium;
-        }
-    `;
-
-    const inputStyle = css`
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    `;
-
-    const buttonStyle = css`
-        background-color: #49A8FF;
-        color: white;
-        padding: 10px;
-        width: 50%;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        &:hover {
-            background-color: #68b5fc;
-        }
-    `;
-
-    const formStyle = css`
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px;
-
-        p {
-            text-align: start;
-        }
-    `
-
-    const modalHeaderStyle = css`
-        display: flex;
-        justify-content: space-between;
-        padding-right: 10px;
-        align-items: center;
-        background-color: #F0ECEC;
-
-        border-radius: 10px 10px 0px 0px;
-
-        .headerp {
-            margin-bottom: 0px;
-        }
-    `;
-
-    const closeButtonStyle = css`
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 20px;
-        font-weight: bold;
-        color: #888;
-    `;
-
-    return (
-        <div css={modalStyle}>
-            <div ref={modalRef} css={modalContentStyle}>
-                <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp">Export to Excel</p>
-                    <button css={closeButtonStyle} onClick={onClose}>x</button>
-                </div>
-                <form onSubmit={handleSubmit} css={formStyle}>
-                    <div className="content" style={{display: "flex", justifyContent: "space-between"}}>
-                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%"}}>
-                            <p>Start</p>
-                            <input 
-                                type="date" 
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                css={inputStyle}
-                                required
-                            />
-                        </div>
-                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%"}}>
-                            <p>End</p>
-                            <input 
-                                type="date" 
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                css={inputStyle}
-                                required
-                            />
-                        </div>
-                    </div>
-                    {error && <p style={{color: 'red'}}>{error}</p>}
-                    <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
-                        <button type="submit" css={buttonStyle}>
-                            Export
-                        </button>
-                    </div>
-                    
-                </form>
-            </div>
-        </div>
-    );
-};
+import User from "../../model/User";
+import Modal from "./Modal";
+import ExportModal from "./ExportModal";
 
 interface StudentDetailBoxProps {
     studentId: string;
@@ -382,6 +36,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
     const [meetingSchedules, setMeetingSchedules] = useState<{ [key: string]: any }>({});
     const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
+    const [userEmailsToNames, setUserEmailsToNames] = useState<{ [key: string]: string }>({});
 
     const [isFetching, setIsFetching] = useState<boolean>(true);
 
@@ -474,9 +129,25 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
             setAverageRating(totalRating / filteredReports.length);
 
             await checkMeetingSchedules(filteredReports.map(report => report.id));
+            await fetchUserNames(filteredReports);
 
             setIsFetching(false);
         }
+    };
+
+    const fetchUserNames = async (reports) => {
+        const uniqueEmails = [...new Set(reports.map(report => report.data.writer))];
+        const emailToNameMap = {};
+
+        for (const email of uniqueEmails) {
+            const userDoc = await getDocs(query(collection(db, "user"), where("email", "==", email)));
+            if (!userDoc.empty) {
+                const userData = userDoc.docs[0].data();
+                emailToNameMap[email] = userData.name;
+            }
+        }
+
+        setUserEmailsToNames(emailToNameMap);
     };
 
     const checkMeetingSchedules = async (reportIds) => {
@@ -652,6 +323,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         height: 100%;
         padding: 40px 43px 40px 43px;
         box-sizing: border-box;
+        overflow: scroll;
     `;
 
     const navSide = css`
@@ -778,8 +450,9 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         .bar {
             display: flex;
             align-items: center;
+            margin-top: -3px;
             .bar-label {
-                width: 50px;
+                width: 20px;
             }
             .bar-value {
                 height: 10px;
@@ -805,6 +478,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-top: 10px;
         h1 {
             margin: 0px;
         }
@@ -819,14 +493,14 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         }
 
         .barChart {
-            width: 82%;
+            width: 88%;
             margin: 0px;
         }
     `;
 
     const bottomContentContainerStyle = css`
         display: flex;
-        margin-top: 40px;
+        margin-top: 15px;
         gap: 50px;
         .left-side {
             width: 60%;
@@ -1104,8 +778,8 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                 
                 <div className="bottomContentContainer" css={bottomContentContainerStyle}>
                     <div className="left-side">
-                        <div className="recordsContainer" style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
-                            <h2 style={{textAlign: "left", marginBottom: "0px"}}>Records</h2>
+                        <div className="recordsContainer" style={{display: "flex", justifyContent: "space-between", marginBottom: "0px"}}>
+                            <h2 style={{textAlign: "left", marginBottom: "0px", fontWeight: "500", fontSize: "22px"}}>Records</h2>
                             <div className="filterContainer" style={{display: "flex", alignItems: "center", gap: "20px", position: "relative"}}>
                                 <p>Filter : </p>
                                 <div className="dropdown" css={dropdownStyle} onClick={handleDropdownClick}>
@@ -1126,7 +800,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="rating">
+                                    {/* <div className="rating">
                                         <p>Rating</p>
                                         <div className="timeOptionContainer" style={{display: "flex", gap: "20px"}}>
                                             <div className="startTimeContainer" style={{display: "flex", gap: "20px"}}>
@@ -1138,7 +812,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                                                 <input type="text" className="inputText" value={filterRatingTo} onChange={(e) => setFilterRatingTo(e.target.value)} /> 
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         </div>
@@ -1148,13 +822,14 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                             <>
                                 {reports.length > 0 && (
                                     <div className="ratingContainerStyle" css={ratingContainerStyle}>
-                                        <div className="averageRating" css={css`margin-top: 30px;`}>
-                                            <p>{averageRating ? averageRating.toFixed(2) : "N/A"}</p>
+                                        <div className="averageRating" css={css`margin-top: 30px; display: flex; flex-direction: column;`}>
+                                            <p style={{fontSize: "58px", marginTop: "-15px"}}>{averageRating ? averageRating.toFixed(1) : "N/A"}</p>
+                                            <p style={{fontSize: "13px", color: "#51587E", marginTop: "-19px"}}> <span style={{color: "#49A8FF"}}>{reports.length}</span> records</p>
                                         </div>
                                         <div className="barChart" css={barChartStyle}>
-                                            {Object.keys(ratingCounts).map(rating => (
+                                            {[5, 4, 3, 2, 1].map(rating => (
                                                 <div key={rating} className="bar">
-                                                    <div className="bar-label">{rating}</div>
+                                                    <div className="bar-label" style={{fontSize: "13px", textAlign: "center"}}>{rating}</div>
                                                     <div
                                                         className="bar-value" css={barValueStyle}
                                                         style={{ width: "100%", borderRadius: "10px", backgroundColor: "#F0ECEC" }}
@@ -1166,20 +841,20 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                                         </div>
                                     </div>
                                 )}
-                                <div className="reportContainer" style={{overflow: "scroll", height: "400px"}}>
+                                <div className="reportContainer" style={{overflow: "scroll", height: "400px", marginTop: "30px"}}>
                                     {reports.map((report) => (
                                         <div key={report.id} className="reportItem" css={reportItemStyle}>
                                             <div className="topSide">
                                                 <div className="topLeftSide">
-                                                    <p className="report-writer">{report.data.writer}</p>
+                                                    <p className="report-writer" style={{fontSize: '18px', fontWeight: "500"}}>{userEmailsToNames[report.data.writer] || report.data.writer}</p>
                                                     <p className="report-rating" style={{color: "#49A8FF"}}>{report.data.rating}</p>
                                                 </div>
                                                 <div className="topRightSide">
-                                                    <p className="report-hour">{new Date(report.data.timestamp.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</p>
-                                                    <p className="report-date">{new Date(report.data.timestamp.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</p>
+                                                    <i><p className="report-hour">{new Date(report.data.timestamp.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</p></i>
+                                                    <i><p className="report-date">{new Date(report.data.timestamp.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</p></i>
                                                 </div>
                                             </div>
-                                            <p className="report-content">{report.data.report}</p>
+                                            <p className="report-content" style={{minHeight: "87px"}}>{report.data.report}</p>
                                             {meetingSchedules[report.id] ? (
                                                 <>
                                                     <p css={showMeetingScheduleStyle} onClick={() => handleShowMeetingScheduleClick(report.id)}>

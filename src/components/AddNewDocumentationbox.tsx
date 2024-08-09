@@ -6,6 +6,7 @@ import { db } from "../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useAuth } from '../helper/AuthProvider';
 import { fetchUser } from '../controllers/UserController';
+import User from "../model/User";
 
 const AddNewDocumentationBox = () => {
     const [date, setDate] = useState(new Date());
@@ -39,14 +40,18 @@ const AddNewDocumentationBox = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
 
-    const [user, setUser] = useState()
+    const [user, setUser] = useState<User>()
 
     useEffect(() => {
         const fetchData = async () => {
             const user =  await fetchUser(userAuth?.currentUser?.email!)
-            console.log(user)
+            if (user._tag == "Some") {
+                setUser(user.value)
+            } else {
+                setUser({} as User)
+            }
             
-            setUser(user)
+            
         }
         fetchData()
     }, []);
@@ -193,22 +198,47 @@ const AddNewDocumentationBox = () => {
 
     const handleAddDocumentation = async () => {
         try {
+            // Parse the time field to create a Date object
+            const parsedTime = new Date(time);
+    
+            // Check if user object and email are defined
+            if (!user || !user.email) {
+                throw new Error("User is not defined or user email is missing");
+            }
+    
+            // Log values to debug
+            console.log("Title:", title);
+            console.log("Invitation Number:", invitationNumber);
+            console.log("Description:", description);
+            console.log("Leader:", leader);
+            console.log("Place:", location);
+            console.log("Time:", parsedTime);
+            console.log("Attendance List:", attendees);
+            console.log("Type:", type);
+            console.log("Writer:", user.email);
+
+            const nomor_undangan = invitationNumber
+    
             // Add the main documentation data
             const docRef = await addDoc(collection(db, "documentation"), {
                 title,
-                invitationNumber,
+                nomor_undangan,
                 description,
                 leader,
                 place: location,
-                time,
+                time: parsedTime,
                 attendanceList: attendees,
-                timestamp: new Date(),
+                timestamp: parsedTime, // Use the parsed time as the timestamp
                 type,
-                writer: user.email
+                writer: user.email // Ensure writer field is not undefined
             });
-
+    
+            // Log docRef to verify
+            console.log("Document reference ID:", docRef.id);
+    
             // Add the discussion details
             for (const detail of modalDiscussionDetails) {
+                console.log("Adding discussion detail:", detail);
                 await addDoc(collection(db, "discussionDetails"), {
                     docID: docRef.id,
                     discussionTitle: detail.discussionTitle,
@@ -217,8 +247,9 @@ const AddNewDocumentationBox = () => {
                     deadline: new Date(detail.deadline)
                 });
             }
-
+    
             alert("Documentation added successfully!");
+    
             // Clear the form after successful submission
             setTitle("");
             setInvitationNumber("");
@@ -238,6 +269,7 @@ const AddNewDocumentationBox = () => {
             alert("Failed to add documentation. Please try again.");
         }
     };
+    
 
     const mainStyle = css`
         background-color: white;

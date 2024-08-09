@@ -4,17 +4,20 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useEffect, useState, useRef } from 'react';
 import { collection, query, getDocs, where } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { useAuth } from '../helper/AuthProvider';
-import { fetchUser } from '../controllers/UserController';
+import { useAuth } from '../../helper/AuthProvider';
+import { fetchUser } from '../../controllers/UserController';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { fetchAllDocumentation } from "../../controllers/DocumentationController";
+import AttendanceTable from "./AttendanceTable";
+import DiscussionDetails from "./DiscussionDetails";
 
 const DocumentationBox = ({ setGlobalActiveTab }) => {
     const [date, setDate] = useState(new Date());
     const [selectedButton, setSelectedButton] = useState('All');
-    const [documentations, setDocumentations] = useState([]);
+    const [documentations, setDocumentations] = useState<Documentation[]>([]);
     const [filteredDocumentations, setFilteredDocumentations] = useState([]);
     const [selectedDocumentation, setSelectedDocumentation] = useState(null);
     const [activeTab, setActiveTab] = useState('discussion');
@@ -24,15 +27,23 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     const [exportStartDate, setExportStartDate] = useState('');
     const [exportEndDate, setExportEndDate] = useState('');
     const [exportType, setExportType] = useState('All');
+    const [docDates, setDocDates] = useState([]); // New state for dates with documentation
     const userAuth = useAuth();
     const modalRef = useRef(null);
 
+    const [sortField, setSortField] = useState(null);
+    const [sortOrder, setSortOrder] = useState('asc');
+
     useEffect(() => {
         const fetchData = async () => {
-            const q = query(collection(db, "documentation"));
-            const querySnapshot = await getDocs(q);
-            const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setDocumentations(docs);
+            const documentation = await fetchAllDocumentation();
+            if (documentation._tag == "Some") {
+                setDocumentations(documentation.value);
+                const docDates = documentation.value.map(doc => new Date(doc.timestamp.seconds * 1000).toDateString());
+                setDocDates(docDates);
+            } else {
+                setDocumentations([]);
+            }
         };
 
         fetchData();
@@ -41,7 +52,12 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     useEffect(() => {
         const fetchUserRole = async () => {
             const user = await fetchUser(userAuth?.currentUser?.email!);
-            setUserRole(user.role);
+            if (user._tag == "Some") {
+                setUserRole(user.value.role);
+            }
+            else {
+                setUserRole(undefined)
+            }
         };
 
         fetchUserRole();
@@ -86,6 +102,15 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         };
     }, [isExportModalOpen]);
 
+    // Automatically select the first documentation when filteredDocumentations changes
+    useEffect(() => {
+        if (filteredDocumentations.length > 0) {
+            setSelectedDocumentation(filteredDocumentations[0]);
+        } else {
+            setSelectedDocumentation(null);
+        }
+    }, [filteredDocumentations]);
+
     const handleButtonClick = (buttonName) => {
         setSelectedButton(buttonName);
     };
@@ -128,7 +153,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         const summaryData = [
             ['Enrichment Activity Documentation Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Start Date', exportStartDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Meeting Count', meetingCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Discussion Count', discussionCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Evaluation Count', evaluationCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -184,8 +209,33 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     
         closeExportModal();
     };
-    
-    
+
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortOrder('asc');
+        }
+    };
+
+    const getSortArrow = (field) => {
+        if (sortField === field) {
+            return sortOrder === 'asc' ? '▲' : '▼';
+        }
+        return '';
+    };
+
+    const sortedAttendanceList = selectedDocumentation?.attendanceList.sort((a, b) => {
+        if (sortField) {
+            if (sortOrder === 'asc') {
+                return a[sortField] > b[sortField] ? 1 : -1;
+            } else {
+                return a[sortField] < b[sortField] ? 1 : -1;
+            }
+        }
+        return 0;
+    });
 
     const mainStyle = css`
         background-color: white;
@@ -222,6 +272,14 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         border: none;
         font-family: Arial, Helvetica, sans-serif;
         line-height: 1.125em;
+
+        .react-calendar__navigation {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            box-sizing: unset;
+            border-top: 2px solid #dedede;
+            border-bottom: 2px solid #dedede;
+        }
 
         .react-calendar__tile {
             width: 50px;
@@ -291,26 +349,24 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         border: 1px solid #dbdbdb;
         border-radius: 5px;
         background-color: white;
+        position: relative;
+        margin-top: 40px;
+
+        .decoBox {
+            width: 34px;
+            height: 34px;
+            background-color: #F0ECEC;
+            border-radius: 100% 100% 0% 100%;
+            position: absolute;
+            top: -20px;
+            left: -20px;
+        }
 
         h2 {
             margin: 0px;
         }
         p {
             text-align: start;
-        }
-
-        .itemContainer {
-            margin-top: 10px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-
-            .leftSide {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                width: 20%;
-            }
         }
     `;
 
@@ -336,50 +392,6 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         border-top: none;
         border-radius: 0 0 5px 5px;
     `;
-
-    const discussionDetailStyle = css`
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        border-left: 2px solid #ACACAC;
-        padding-left: 20px;
-
-        .information {
-            display: flex;
-            .leftSide {
-                display: flex;
-                width: 30%;
-                align-items: center;
-                gap: 20px;
-            }
-        }
-    `;
-
-    const attendanceTableStyle = css`
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #dbdbdb;
-        }
-
-        th {
-            background-color: #f0f0f0;
-        }
-    `;
-
-    if (userRole === "Company") {
-        return (
-            <main className="mainStyle" css={mainStyle}>
-                <div className="navSide" css={navSide}>
-                    <p>Documentation</p>
-                </div>
-                <p>Sorry, you cant access this page</p>
-            </main>
-        );
-    }
 
     const buttonContainerStyle = css`
         width: 100%;
@@ -473,6 +485,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         display: flex;
         justify-content: space-between;
         padding-right: 10px;
+        height: 50px;
         align-items: center;
         background-color: #F0ECEC;
 
@@ -499,6 +512,30 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         padding: 10px;
     `
 
+    const informationStyle = css`
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    `
+
+    const tileContent = ({ date, view }) => {
+        if (view === 'month' && docDates.includes(date.toDateString())) {
+            return <div style={{ width: '6px', height: '6px', backgroundColor: '#00ff08', borderRadius: '50%', margin: '0 auto', marginTop: '5px' }} />;
+        }
+        return null;
+    };
+    
+    if (userRole == "Company") {
+        return (
+            <main className="mainStyle" css={mainStyle}>
+            <div className="navSide" css={navSide}>
+                <p>You Cant view this page</p>
+            </div>
+        </main>
+        )
+    }
+
     return (
         <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
@@ -511,45 +548,65 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                         <button onClick={openExportModal}>Export to Excel</button>
                     </div>
                     <div className="box" css={docDetailBoxStyle}>
+                        <div className="decoBox">
+
+                        </div>
                         {selectedDocumentation ? (
                             <>
                                 <h2>{selectedDocumentation.title}</h2>
                                 <p>{selectedDocumentation.nomor_undangan}</p>
-                                <div className="itemContainer">
-                                    <div className="leftSide">
-                                        <Icon icon={"fluent-mdl2:party-leader"} />
-                                        <p>Leader</p>
+                                <div className="informationContainer" style={{display: "flex", gap: "100px"}}>
+                                    <div className="informationLeftSide" css={informationStyle}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                                <Icon icon={"fluent-mdl2:party-leader"} fontSize={22} color="#51587E"/>
+                                                <p>Leader</p>
+                                            </div>
+                                            <p>{selectedDocumentation.leader}</p>
+                                        </div>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                                <Icon icon={"ion:archive"} fontSize={22} color="#51587E"/>
+                                                <p>Archiver</p>
+                                            </div>
+                                            <p>{selectedDocumentation.writer}</p>
+                                        </div>
+
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                                <Icon icon={"mdi:filter-outline"} fontSize={22} color="#51587E"/>
+                                                <p>Type</p>
+                                            </div>
+                                            <p>{selectedDocumentation.type}</p>
+                                        </div>
                                     </div>
-                                    <p>{selectedDocumentation.leader}</p>
-                                </div>
-                                <div className="itemContainer">
-                                    <div className="leftSide">
-                                        <Icon icon={"ic:outline-place"} />
-                                        <p>Place</p>
+                                    <div className="informationRightSide" css={informationStyle}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                                <Icon icon={"ic:outline-place"} fontSize={22} color="#51587E"/>
+                                                <p>Place</p>
+                                            </div>
+                                            <p>{selectedDocumentation.place}</p>
+                                        </div>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                                <Icon icon={"clarity:date-line"} fontSize={22} color="#51587E"/>
+                                                <p>Date</p>
+                                            </div>
+                                            <p>{formatDate(selectedDocumentation.timestamp)}</p>
+                                        </div>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                                <Icon icon={"mingcute:time-line"} fontSize={22} color="#51587E"/>
+                                                <p>Time</p>
+                                            </div>
+                                            <p>{formatTime(selectedDocumentation.timestamp)}</p>
+                                        </div>
                                     </div>
-                                    <p>{selectedDocumentation.place}</p>
                                 </div>
-                                <div className="itemContainer">
-                                    <div className="leftSide">
-                                        <Icon icon={"clarity:date-line"} />
-                                        <p>Date</p>
-                                    </div>
-                                    <p>{formatDate(selectedDocumentation.timestamp)}</p>
-                                </div>
-                                <div className="itemContainer">
-                                    <div className="leftSide">
-                                        <Icon icon={"mingcute:time-line"} />
-                                        <p>Time</p>
-                                    </div>
-                                    <p>{formatTime(selectedDocumentation.timestamp)}</p>
-                                </div>
-                                <div className="itemContainer">
-                                    <div className="leftSide">
-                                        <Icon icon={"mdi:filter-outline"} />
-                                        <p>Type</p>
-                                    </div>
-                                    <p>{selectedDocumentation.type}</p>
-                                </div>
+                                
+                                
+                                
                                 <p style={{marginTop: "20px"}}>{selectedDocumentation.description}</p>
                                 {/* Tabs for Discussion Details and Attendance List */}
                                 <div className="tabs" css={tabContainerStyle}>
@@ -568,63 +625,13 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                                 </div>
                                 <div className="tabContent" css={tabContentStyle}>
                                     {activeTab === 'discussion' ? (
-                                        <div>
-                                            {discussionDetails ? (
-                                                discussionDetails.map((detail, index) => (
-                                                    <div key={index} css={discussionDetailStyle}>
-                                                        <p>{detail.discussionTitle}</p>
-                                                        <div className="information">
-                                                            <div className="leftSide">
-                                                                <Icon icon={"fluent-mdl2:set-action"} />
-                                                                <p>Further Actions</p>
-                                                            </div>
-                                                            <p>{detail.furtherActions}</p>
-                                                        </div>
-                                                        <div className="information">
-                                                            <div className="leftSide">
-                                                                <Icon icon={"material-symbols:avg-time"} />
-                                                                <p>Deadline</p>
-                                                            </div>
-                                                            <p>{formatDate(detail.deadline)}</p>
-                                                        </div>
-                                                        <div className="information">
-                                                            <div className="leftSide">
-                                                                <Icon icon={"material-symbols:avg-time"} />
-                                                                <p>Person Responsible</p>
-                                                            </div>
-                                                            <p>{detail.personResponsible}</p>
-                                                        </div>                                                        
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <p>Loading discussion details...</p>
-                                            )}
-                                        </div>
+                                        <DiscussionDetails discussionDetails={discussionDetails} formatDate={formatDate} />
                                     ) : (
-                                        <div>
-                                            <table css={attendanceTableStyle}>
-                                                <thead>
-                                                    <tr>
-                                                        <th>No</th>
-                                                        <th>Name</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {selectedDocumentation.attendanceList ? (
-                                                        selectedDocumentation.attendanceList.map((attendee, index) => (
-                                                            <tr key={index}>
-                                                                <td>{index + 1}</td>
-                                                                <td>{attendee}</td>
-                                                            </tr>
-                                                        ))
-                                                    ) : (
-                                                        <tr>
-                                                            <td colSpan="2">No attendance list available.</td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                        <AttendanceTable
+                                            sortedAttendanceList={sortedAttendanceList}
+                                            handleSort={handleSort}
+                                            getSortArrow={getSortArrow}
+                                        />
                                     )}
                                 </div>
                             </>
@@ -634,7 +641,12 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                     </div>
                 </div>
                 <div className="rightSide">
-                    <Calendar onChange={setDate} value={date} css={calendarStyle} />
+                    <Calendar
+                        onChange={setDate}
+                        value={date}
+                        css={calendarStyle}
+                        tileContent={tileContent} // Add this prop
+                    />
                     <div className="buttonGrid" css={buttonGridStyle}>
                         <button
                             className={selectedButton === 'All' ? 'active' : ''}

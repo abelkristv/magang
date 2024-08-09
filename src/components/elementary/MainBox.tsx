@@ -25,7 +25,7 @@ const MainBox = ({navText,  children}: MainBoxProps) => {
     `
 
     const contentSide = css`
-        margin-top: 50px;
+        margin-top: 0px;
         width: 100%;
     `;
 

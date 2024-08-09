@@ -12,7 +12,7 @@ export const fetchAllMajors = async (): Promise<Option<Major[]>> => {
     const majors = majorSnapshot.docs.map(doc => {
         return {
             id: doc.id,
-            name: doc.data.name
+            name: doc.data().name
         } as Major
     }
     );

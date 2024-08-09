@@ -19,9 +19,10 @@ interface SideBarProps {
     activeTab: string;
     setActiveTab: (tab: string) => void;
     setSelectedStudentId: (studentId: string |  null) => void;
+    todayReportsCount: number; // Add this prop
 }
 
-const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId }: SideBarProps) => {
+const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayReportsCount }: SideBarProps) => {
     const sidebarStyle = css`
         display: flex;
         flex-direction: column;
@@ -29,7 +30,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId }: SideB
         height: 100%;
         padding: 20px;
         box-sizing: border-box;
-        width: ${width || '365px'};
+        min-width: ${'305px'};
         background-image: url(${sidebarBackground});
         background-size: cover;
         background-position: center;
@@ -101,9 +102,9 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId }: SideB
     `;
 
     const handleLogout = async () => {
-        try {setSelectedStudentId
+        try {
             await signOut(auth);
-            const navigate = useNavigate()
+            const navigate = useNavigate();
             navigate('/login');
         } catch (error) {
             console.error("Error logging out: ", error);
@@ -132,7 +133,10 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId }: SideB
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Search")}
-                        onClick={() => setActiveTab("Search")}
+                        onClick={() => {
+                            setSelectedStudentId(null);
+                            setActiveTab("Search");
+                        }}
                     >
                         <Icon icon={"material-symbols:search"} color={activeTab === "Search" ? "black" : "white"} fontSize={25} />
                         <a href="#">Search</a>
@@ -144,8 +148,8 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId }: SideB
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Student List")}
                         onClick={() => {
-                            setSelectedStudentId(null)
-                            setActiveTab("Student List")
+                            setSelectedStudentId(null);
+                            setActiveTab("Student List");
                         }}
                     >
                         <Icon icon={"pepicons-pop:people"} color={activeTab === "Student List" ? "black" : "white"} fontSize={25} />
@@ -168,6 +172,15 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId }: SideB
                 >
                     <Icon icon={"material-symbols:face"} color={activeTab === "Profile" ? "black" : "white"} fontSize={25} />
                     <a href="#">Profile</a>
+                    {todayReportsCount > 0 && ( // Display report count if greater than 0
+                        <div className="notificationContainer" style={{display: "flex", width: "100%", justifyContent: "end", position: "relative", alignItems: "center"}}>
+                            <Icon icon={"clarity:notification-solid"} fontSize={24} />
+                            <span style={{ color: 'red', borderRadius: '50%', position: "absolute", top: "-8px", right: "-7px"}}>
+                                {todayReportsCount}
+                            </span>
+                        </div>
+                        
+                    )}
                 </div>
             </div>
             <div className="bottom-side">

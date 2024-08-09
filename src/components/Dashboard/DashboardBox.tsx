@@ -11,7 +11,7 @@ interface DashboardBoxProps {
 const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
     const documentationBoxStyle = css`
         display: flex;
-        margin-top: 100px;
+        margin-top: 30px;
         justify-content: space-around;
     `;
 
@@ -41,11 +41,12 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
     `;
 
     const companyBox = css`
-        box-shadow: 0px 0px 10px 1px rgb(150, 150, 150);
+        box-shadow: 0px 0px 11.7px 1px rgba(0, 0, 0, 0.25);
         padding: 20px;
         box-sizing: border-box;
         border-radius: 5px;
         display: flex;
+        width: 646px;
         flex-direction: column;
         gap: 30px;
         align-items: center;
