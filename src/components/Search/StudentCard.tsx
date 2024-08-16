@@ -3,9 +3,10 @@ import { css } from "@emotion/react";
 import Student from "../../model/Student";
 
 interface StudentCardProps {
-    student: Student;
-    totalComments: number;
-    onClick: () => void;
+    student?: Student;
+    totalComments?: number;
+    onClick?: () => void;
+    isLoading?: boolean;
 }
 
 const cardStyle = css`
@@ -49,15 +50,47 @@ const buttonContainerStyle = css`
     width: 100%;
 `;
 
-const StudentCard = ({ student, totalComments, onClick }: StudentCardProps) => {
+const placeholderStyle = css`
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    height: 167px;
+    width: 129px;
+`;
+
+const placeholderTextStyle = css`
+    background-color: #e0e0e0;
+    height: 20px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+`;
+
+const StudentCard = ({ student, totalComments, onClick, isLoading }: StudentCardProps) => {
+    if (isLoading) {
+        return (
+            <div className="card" css={cardStyle}>
+                <div css={placeholderStyle}></div>
+                <div className="student-description" css={cardStudentDescription}>
+                    <div className="text">
+                        <div css={placeholderTextStyle} style={{ width: "60%" }}></div>
+                        <div css={placeholderTextStyle} style={{ width: "40%" }}></div>
+                        <div css={placeholderTextStyle} style={{ width: "50%" }}></div>
+                    </div>
+                    <div className="buttonContainer" css={buttonContainerStyle}>
+                        <div css={placeholderTextStyle} style={{ width: "50px", height: "36px", borderRadius: "5px" }}></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="card" css={cardStyle} onClick={onClick}>
-            <img src={student.image_url} alt={student.name} />
+            <img src={student?.image_url} alt={student?.name} />
             <div className="student-description" css={cardStudentDescription}>
                 <div className="text">
-                    <p style={{ fontWeight: "500", fontSize: "18px" }}>{student.name}</p>
-                    <p style={{color: "#49A8FF", fontSize: "18px"}}>{student.nim}</p>
-                    <p>{student.major}</p>
+                    <p style={{ fontWeight: "500", fontSize: "18px" }}>{student?.name}</p>
+                    <p style={{color: "#49A8FF", fontSize: "18px"}}>{student?.nim}</p>
+                    <p>{student?.major}</p>
                 </div>
                 <div className="buttonContainer" css={buttonContainerStyle}>
                     <p style={{fontSize: "13px"}}>Total Comments: </p>

@@ -9,6 +9,7 @@ const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
     const [description, setDescription] = useState('');
     const [place, setPlace] = useState('');
     const [date, setDate] = useState('');
+    const [meetingType, setMeetingType] = useState('online'); // New state for meeting type
     const modalRef = useRef(null);
 
     useEffect(() => {
@@ -33,7 +34,7 @@ const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit({ timeStart, timeEnd, description, place, date, studentReportId });
+        onSubmit({ timeStart, timeEnd, description, place, date, meetingType, studentReportId });
         onClose();
     };
 
@@ -167,6 +168,18 @@ const Modal = ({ isOpen, onClose, onSubmit, studentReportId }) => {
                                 />
                             </div>
                         </div>
+                    </div>
+                    <div className="typeContainer" style={{display: "flex", flexDirection: "column", alignItems: "start"}}>
+                        <p>Meeting Type</p>
+                        <select
+                            value={meetingType}
+                            onChange={(e) => setMeetingType(e.target.value)}
+                            css={inputStyle}
+                            required
+                        >
+                            <option value="online">Online</option>
+                            <option value="onsite">Onsite</option>
+                        </select>
                     </div>
                     <div className="descriptionContainer" style={{display: "flex", flexDirection: "column"}}>
                         <p>Description</p>

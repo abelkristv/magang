@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import User from "../model/User";
 import { fetchUser } from "../controllers/UserController";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { getFirestore, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import { getApp } from "firebase/app";
 
 const ProfileBox = ({ setTodayReportsCount }) => {
@@ -36,7 +36,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
             }
             setUser(user);
             setEditableUser(user);
-
+    
             if (user?.company_name) {
                 const app = getApp();
                 const db = getFirestore(app);
@@ -48,60 +48,68 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                     setCompanyAddress(companyData.company_address);
                 }
             }
-
+    
             if (user?.email) {
                 const app = getApp();
                 const db = getFirestore(app);
                 const studentReportRef = collection(db, "studentReport");
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                const startOfDay = Timestamp.fromDate(today);
-                const endOfDay = Timestamp.fromDate(new Date(today.getTime() + 24 * 60 * 60 * 1000));
-
+    
                 const reportQuery = query(
                     studentReportRef,
                     where("writer", "==", user.email),
-                    where("timestamp", ">=", startOfDay),
-                    where("timestamp", "<", endOfDay)
+                    where("type", "==", "Urgent") // Fetch only records with type="Urgent"
                 );
-
+    
                 const reportSnapshot = await getDocs(reportQuery);
                 console.log("Report snapshot size:", reportSnapshot.size);
+                
+                // Create a dictionary to store student data by student name
+                const studentDataDict = {};
+    
                 const fetchedRecords = await Promise.all(reportSnapshot.docs.map(async doc => {
                     const record = doc.data();
                     console.log("Record:", record);
-                    const studentQuery = query(collection(db, "student"), where("name", "==", record.studentName));
-                    const studentSnapshot = await getDocs(studentQuery);
-                    const studentData = studentSnapshot.docs[0]?.data();
+                    
+                    let studentData;
+                    if (studentDataDict[record.studentName]) {
+                        studentData = studentDataDict[record.studentName];
+                    } else {
+                        const studentQuery = query(collection(db, "student"), where("name", "==", record.studentName));
+                        const studentSnapshot = await getDocs(studentQuery);
+                        studentData = studentSnapshot.docs[0]?.data();
+                        studentDataDict[record.studentName] = studentData;  // Save the student data in the dictionary
+                    }
+    
                     const meetingQuery = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", doc.id));
                     const meetingSnapshot = await getDocs(meetingQuery);
                     const meetingData = meetingSnapshot.docs.map(meetingDoc => meetingDoc.data());
-
+    
                     return {
                         ...record,
+                        studentData,  // Attach student data to each record
                         imageUrl: studentData?.image_url || null,
                         major: studentData?.major || null,
                         meetings: meetingData
                     };
                 }));
+                
                 setAllRecords(fetchedRecords);
                 setFilteredRecords(fetchedRecords);
-
+    
                 const documentationRef = collection(db, "documentation");
                 const docQuery = query(documentationRef, where("writer", "==", user.email));
                 const docSnapshot = await getDocs(docQuery);
                 const fetchedDocs = docSnapshot.docs.map(doc => doc.data());
                 setDocumentations(fetchedDocs);
-
+    
                 setTodayReportsCount(reportSnapshot.size);
             }
             setIsLoading(false);
         };
-
+    
         fetchData();
     }, [setTodayReportsCount, userAuth?.currentUser?.email]);
+    
 
     useEffect(() => {
         const fetchMajors = async () => {
@@ -274,11 +282,11 @@ const ProfileBox = ({ setTodayReportsCount }) => {
     `;
 
     const recentlyAddedRecordsContainerStyle = css`
-        margin-top: 20px;
+        margin-top: 10px;
         display: flex;
         flex-direction: column;
         gap: 25px;
-        padding: 10px;
+        padding: 2px;
         box-sizing: border-box;
         overflow: scroll;
         height: 500px;
@@ -286,11 +294,11 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         .recordCard {
             display: flex;
             flex-direction: row;
-            box-shadow: 0px 0px 5px 1px #ACACAC;
+            box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
             border-radius: 5px;
             background-color: white;
             align-items: center;
-            min-height: 148px;
+            min-height: 170px;
 
             img {
                 width: 114px;
@@ -398,9 +406,15 @@ const ProfileBox = ({ setTodayReportsCount }) => {
 
     const formatDate = (timestamp) => {
         const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-        const options = { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-        return date.toLocaleDateString('en-US', options);
+        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+        const dateOptions = { year: 'numeric', month: 'short', day: '2-digit' };
+    
+        const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
+        const formattedDate = date.toLocaleDateString('en-US', dateOptions);
+    
+        return { time: formattedTime, date: formattedDate };
     };
+    
 
     const recordCard = css``;
 
@@ -411,6 +425,8 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         .rightSide {
             width: 50%;
         }
+
+        height: 100%;
     `;
 
     const editInputStyle = css`
@@ -420,6 +436,8 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         padding: 0px;
         font-size: 17px !important;
     `;
+
+
 
     return (
         <main className="mainStyle" css={mainStyle}>
@@ -437,7 +455,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                     <div className="bottomContent" css={bottomContentStyle}>
                         <div className="bottomContainer">
                             <div className="heading">
-                                <p>Recently Student Meeting by Enrichment Team</p>
+                                <p>Unsolved Urgent Student Records</p>
                             </div>
                             <div className="recentlyAddedRecordsContainer" css={recentlyAddedRecordsContainerStyle}>
                                 <div className="placeholder" css={placeholderStyle}>
@@ -518,7 +536,9 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                     <div className="bottomContent" css={bottomContentStyle}>
                         <div className="bottomContainer">
                             <div className="heading">
-                                <p>{editableUser?.role === "Enrichment" ? "Recently Student Meeting by Enrichment Team" : "Recent Student Records by Company"}</p>
+                                <div className="pContainer" style={{display: "flex", alignItems: "center"}}>
+                                    <p style={{fontWeight: "500"}}>Unresolved Urgent Student Records</p>
+                                </div>
                                 <div className="righSide" style={{display: "flex", gap: "10px", alignItems: "center", position: "relative"}}>
                                     <p style={{fontSize: '15px'}}>Filter By : </p>
                                     <div className="filterMajor" css={dropdownStyle} onClick={toggleDropdown}>
@@ -546,7 +566,12 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                                 {filteredRecords.length === 0 ? (
                                     <p>No Record Written Today</p>
                                 ) : (
-                                    filteredRecords.map((record, index) => (
+                                    filteredRecords.map((record, index) => {
+                                        const { time, date } = formatDate(record.timestamp);
+                                        const timestamp = new Date(record.timestamp.seconds * 1000);
+                                        const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                        const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                                        return (
                                         <div key={index} className="recordCard">
                                             {record.imageUrl && <img src={record.imageUrl} alt={record.studentName} />}
                                             <div style={{
@@ -556,73 +581,102 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                                                 height: "100%",
                                                 display: "flex",
                                                 flexDirection: "row",
+                                                paddingRight: "20px",
                                                 gap: "10px",
                                                 justifyContent: "space-between"
                                             }}>
                                                 <div css={cardStyle} className="leftSide" style={
-                                                    editableUser?.role == "Enrichment" ? { overflow: "scroll", width: "49%", paddingTop: "20px" } :
-                                                    { overflow: "scroll", width: "100%", paddingTop: "20px" }
+                                                    editableUser?.role == "Enrichment" ? { overflow: "scroll", width: "49%", paddingTop: "0px" } :
+                                                    { overflow: "scroll", width: "100%", paddingTop: "0px" }
                                                     }>
-                                                    <div className="name-header" style={{ display: "flex", justifyContent: "space-between" }}>
-                                                        <p style={{ fontSize: "16px" }}><strong>{record.studentName}</strong></p>
-                                                        <p style={{
-                                                            textAlign: "right",
-                                                            color: "#ACACAC",
-                                                            fontWeight: "normal",
-                                                            fontStyle: "italic",
-                                                            fontSize: "15px"
-                                                        }}>{formatDate(record.timestamp)}</p>
+                                                    <div className="name-header" style={{ display: "flex", justifyContent: "space-between", flexDirection: "column" }}>
+                                                        <p style={{ fontSize: "17.5px", fontWeight: "500" }}>{record.studentName}</p>
+                                                        <p style={{fontSize: "15px", color: "#51587E"}}>{record.studentData.nim}</p>
+                                                        <div className="studentInfoContainer" style={{
+                                                            display: "flex",
+                                                            flexDirection: "column",
+                                                            gap: "10px",
+                                                            marginTop: "10px"
+                                                        }}>
+                                                            <div className="studentInfoContent" style={{
+                                                                display: "grid",
+                                                                gridTemplateColumns: "0.05fr 0.3fr 0.3fr"
+                                                            }}>
+                                                                <Icon icon={"ph:building-bold"} fontSize={20} />
+                                                                <p style={{fontSize: "15px"}}>Organization Name</p>
+                                                                <p style={{fontSize: "15px"}}>{record.studentData.tempat_magang}</p>
+                                                            </div>
+                                                            <div className="studentInfoContent" style={{
+                                                                display: "grid",
+                                                                gridTemplateColumns: "0.05fr 0.3fr 0.3fr"
+                                                            }}>
+                                                                <Icon icon={"material-symbols:supervisor-account"} fontSize={20} />
+                                                                <p style={{fontSize: "15px"}}>Faculty Supervisor</p>
+                                                                <p style={{fontSize: "15px"}}>{record.studentData.faculty_supervisor}</p>
+                                                            </div>
+                                                            <div className="studentInfoContent" style={{
+                                                                display: "grid",
+                                                                gridTemplateColumns: "0.05fr 0.3fr 0.3fr"
+                                                            }}>
+                                                                <Icon icon={"ic:outline-people"} fontSize={20} />
+                                                                <p style={{fontSize: "15px"}}>Site Supervisor</p>
+                                                                <p style={{fontSize: "15px"}}>{record.studentData.site_supervisor}</p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <p style={{ fontSize: "15px" }}>{record.report}</p>
                                                 </div>
                                                 
-                                                {editableUser?.role === "Enrichment" && (
-                                                    <div className="rightSide" style={{ width: "50%", padding: "10px", boxSizing: "border-box" }}>
-                                                        {record.meetings && record.meetings.length > 0 ? (
-                                                            record.meetings.map((meeting, i) => (
-                                                                <div key={i} style={{
-                                                                    marginBottom: "10px",
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    gap: "20px",
-                                                                    paddingLeft: "20px",
-                                                                    borderLeft: "1px solid #ACACAC"
-                                                                }} css={recordCard}>
-                                                                    <div className="leftSide">
-                                                                        <Icon icon={"uis:schedule"} fontSize={50} color="#51587E" />
-                                                                    </div>
-                                                                    <div className="rightSide" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                                                                        <p style={{ fontSize: "16px" }}><strong>Meeting Scheduled</strong></p>
-                                                                        <p style={{ fontSize: "15.5px" }}>To solve this issue, we decided to hold a meeting with the student for consultation</p>
-                                                                        <p style={{ fontSize: "13px" }}>{meeting.place}</p>
-                                                                    </div>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div style={{
-                                                                marginBottom: "10px",
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                gap: "20px",
-                                                                paddingLeft: "20px",
-                                                                height: "100%",
-                                                                borderLeft: "1px solid #ACACAC"
-                                                            }} css={recordCard}>
-                                                                <div className="leftSide">
-                                                                    <Icon icon={"uis:schedule"} fontSize={50} color="#51587E" />
-                                                                </div>
-                                                                <div className="rightSide" style={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", height: "100%"}}>
-                                                                    <p style={{ fontSize: "16px" }}>No Meeting Scheduled</p>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                <div className="rightSide" style={{ width: "50%", padding: "10px", height: "100%", boxSizing: "border-box" }}>
+                                                    <div style={{
+                                                        marginBottom: "10px",
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        height: "100%",
+                                                        gap: "10px",
+                                                        paddingLeft: "20px",
+                                                        borderLeft: "1px solid #ACACAC"
+                                                    }} css={recordCard}>
+                                                        <div className="record-header" style={{
+                                                            display: "flex",
+                                                            gap: "20px",
+                                                        }}>
+                                                            <p style={{fontSize: "18px"}}>{record.writer}</p>
+                                                            <p
+                                                                style={{
+                                                                    backgroundColor: record.type === 'Report' ? '#A024FF' : record.type === 'Urgent' ? 'red' : 'orange',
+                                                                    color: 'white',
+                                                                    padding: '2px',
+                                                                    borderRadius: '10px',
+                                                                    fontSize: "15px",
+                                                                    width: '75px',
+                                                                    textAlign: 'center',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                {record.type}
+                                                            </p>
+                                                        </div>
+                                                        <div className="additional-header">
+                                                            <p style={{
+                                                                fontSize: "14px",
+                                                                fontStyle: "italic",
+                                                                color: "#51587E"
+                                                            }}>By {record.person} - {formattedTime}, {formattedDate}</p>
+                                                        </div>
+                                                        <div className="content">
+                                                            <p style={{
+                                                                color: "#5F6368",
+                                                                fontSize: "14px"
+                                                            }}>{record.report}</p>
+                                                        </div>
                                                     </div>
-                                                )}
+                                                    
+                                                </div>
                                             </div>
                                             <div className="bottomSide">
                                             </div>
                                         </div>
-                                    ))
+                                    )})
                                 )}
                             </div>
                         </div>

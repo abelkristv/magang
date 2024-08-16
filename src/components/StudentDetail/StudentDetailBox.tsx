@@ -1,9 +1,8 @@
 /** @jsxImportSource @emotion/react */
-import React, { useEffect, useRef, useState } from "react";
-import { css } from "@emotion/react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../helper/AuthProvider";
 import { Icon } from "@iconify/react";
-import { collection, doc, getDoc, getDocs, query, where, addDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, addDoc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore";
 import { db } from "../../firebase";
 import Student from "../../model/Student";
 import { fetchUser } from "../../controllers/UserController";
@@ -11,56 +10,77 @@ import * as XLSX from 'xlsx';
 import User from "../../model/User";
 import Modal from "./Modal";
 import ExportModal from "./ExportModal";
+import AddRecordBox from "./AddARecordBox";
 
 interface StudentDetailBoxProps {
     studentId: string;
+}
+
+import {
+    Main,
+    NavSide,
+    ContentSide,
+    UserCard,
+    UserDesc,
+    InfoContainer,
+    Information,
+    GreaterInformationContainer,
+    Filter,
+    BottomContentContainer,
+    Dropdown,
+    DropdownContent,
+    Button,
+    ReportItem,
+    ButtonWhite,
+    ShowMeetingSchedule,
+    ExpandedCard,
+    Placeholder,
+} from "./StudentDetailBox.styles";
+import { css } from "@emotion/react";
+
+function formatDate(dateString) {
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(year, month - 1, day);
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    return date.toLocaleDateString('en-GB', options).replace(/ /g, ' ');
 }
 
 const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     const userAuth = useAuth();
     const [student, setStudent] = useState<Student | null>(null);
     const [reports, setReports] = useState<any[]>([]);
-    const [ratingCounts, setRatingCounts] = useState<{ [key: number]: number }>({
-        5: 0,
-        4: 0,
-        3: 0,
-        2: 0,
-        1: 0,
-    });
-    const [averageRating, setAverageRating] = useState<number | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-    const [selectedRating, setSelectedRating] = useState<number | null>(null);
-    const [description, setDescription] = useState<string>("");
-
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
     const [meetingSchedules, setMeetingSchedules] = useState<{ [key: string]: any }>({});
     const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
     const [userEmailsToNames, setUserEmailsToNames] = useState<{ [key: string]: string }>({});
-
     const [isFetching, setIsFetching] = useState<boolean>(true);
-
-    // Filter state
     const [filterStartDate, setFilterStartDate] = useState<string>("");
     const [filterEndDate, setFilterEndDate] = useState<string>("");
-    const [filterRatingFrom, setFilterRatingFrom] = useState<string>("");
-    const [filterRatingTo, setFilterRatingTo] = useState<string>("");
-    const [user, setUser] = useState<User>()
-
-    // State for export modal
+    const [user, setUser] = useState<User>();
     const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+    const [deletingReportId, setDeletingReportId] = useState<string | null>(null);
+    const [editingReportId, setEditingReportId] = useState<string | null>(null);
+    const [editedContent, setEditedContent] = useState<string>("");
+    const [isUpdating, setIsUpdating] = useState<boolean>(false);
+    const [editedType, setEditedType] = useState<string>("");
+
+    // State variables for editing notes
+    const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
+    const [editedNotes, setEditedNotes] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
             const user: User = await fetchUser(userAuth?.currentUser?.email!)
-                                        .then((user) => user._tag == "Some" ? user.value : {id: "null"} as User);
+                .then((user) => user._tag == "Some" ? user.value : { id: "null" } as User);
             if (user.id == "null") {
                 console.log("User not found");
             }
-            
-            setUser(user)
-        }
-        fetchData()
+
+            setUser(user);
+        };
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -82,7 +102,9 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                         major: data.major,
                         faculty_supervisor: data.faculty_supervisor,
                         site_supervisor: data.site_supervisor,
+                        notes: data.notes
                     } as Student);
+                    setEditedNotes(data.notes || ""); // Initialize editedNotes
                 } else {
                     console.error("No such student!");
                 }
@@ -96,8 +118,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
     const fetchReports = async () => {
         if (student && student.name) {
             let reportsQuery = query(collection(db, "studentReport"), where("studentName", "==", student.name));
-            
-            // Apply date filters
+
             if (filterStartDate) {
                 reportsQuery = query(reportsQuery, where("timestamp", ">=", new Date(filterStartDate)));
             }
@@ -107,29 +128,10 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
 
             const reportSnapshot = await getDocs(reportsQuery);
             const reportList = reportSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
-            
-            // Apply rating filters
-            const filteredReports = reportList.filter(report => {
-                const rating = parseInt(report.data.rating, 10);
-                const ratingFrom = filterRatingFrom ? parseInt(filterRatingFrom, 10) : 1;
-                const ratingTo = filterRatingTo ? parseInt(filterRatingTo, 10) : 5;
-                return rating >= ratingFrom && rating <= ratingTo;
-            });
 
-            setReports(filteredReports);
-
-            const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-            let totalRating = 0;
-            filteredReports.forEach(report => {
-                const rating = parseInt(report.data.rating, 10);
-                counts[rating] = (counts[rating] || 0) + 1;
-                totalRating += rating;
-            });
-            setRatingCounts(counts);
-            setAverageRating(totalRating / filteredReports.length);
-
-            await checkMeetingSchedules(filteredReports.map(report => report.id));
-            await fetchUserNames(filteredReports);
+            setReports(reportList);
+            await checkMeetingSchedules(reportList.map(report => report.id));
+            await fetchUserNames(reportList);
 
             setIsFetching(false);
         }
@@ -156,7 +158,25 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
             const q = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", reportId));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                schedules[reportId] = querySnapshot.docs[0].data();
+                const meetingData = querySnapshot.docs[0].data();
+    
+                const reportDoc = await getDoc(doc(db, "studentReport", meetingData.studentReport_id));
+                if (reportDoc.exists()) {
+                    const writerEmail = reportDoc.data().writer;
+    
+                    const userQuery = query(collection(db, "user"), where("email", "==", writerEmail));
+                    const userSnapshot = await getDocs(userQuery);
+                    if (!userSnapshot.empty) {
+                        const userData = userSnapshot.docs[0].data();
+                        meetingData.writer = userData.name;
+                    } else {
+                        meetingData.writer = "Unknown User";
+                    }
+                } else {
+                    meetingData.writer = "Unknown";
+                }
+    
+                schedules[reportId] = meetingData;
             }
         }
         setMeetingSchedules(schedules);
@@ -164,48 +184,10 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
 
     useEffect(() => {
         fetchReports();
-    }, [student, filterStartDate, filterEndDate, filterRatingFrom, filterRatingTo]);
+    }, [student, filterStartDate, filterEndDate]);
 
     const handleDropdownClick = () => {
         setIsDropdownOpen(!isDropdownOpen);
-    };
-
-    const handleRatingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedRating(parseInt(event.target.value));
-    };
-
-    const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setDescription(event.target.value);
-    };
-
-    const handleAddRecord = async () => {
-        if (selectedRating === null || description.trim() === "") {
-            alert("Please provide a rating and a description.");
-            return;
-        }
-
-        const newRecord = {
-            hasRead: false,
-            rating: selectedRating,
-            report: description,
-            sentiment: selectedRating > 3 ? "positive" : "negative",
-            studentName: student!.name,
-            timestamp: new Date(),
-            writer: userAuth?.currentUser.email,
-        };
-
-        try {
-            await addDoc(collection(db, "studentReport"), newRecord);
-            alert("Record added successfully!");
-            // Optionally, you can clear the form fields after successful submission
-            setSelectedRating(null);
-            setDescription("");
-            // Fetch the updated reports
-            fetchReports();
-        } catch (error) {
-            console.error("Error adding document: ", error);
-            alert("Failed to add record. Please try again.");
-        }
     };
 
     const handleScheduleMeetingClick = (reportId) => {
@@ -224,9 +206,11 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
             studentReport_id: data.studentReportId,
             timeStart: data.timeStart,
             timeEnd: data.timeEnd,
-            place: data.place
+            place: data.place,
+            type: data.meetingType, // Add the meeting type here
+            createdAt: Timestamp.now(), // Add the creation timestamp here
         };
-
+    
         try {
             await addDoc(collection(db, "meetingSchedule"), newMeeting);
             alert("Meeting scheduled successfully!");
@@ -236,9 +220,74 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
             alert("Failed to schedule meeting. Please try again.");
         }
     };
-
+    
     const handleShowMeetingScheduleClick = (reportId) => {
         setExpandedReportId(reportId === expandedReportId ? null : reportId);
+    };
+
+    const handleDeleteReport = async (reportId: string) => {
+        try {
+            setDeletingReportId(reportId);
+
+            await deleteDoc(doc(db, "studentReport", reportId));
+            setReports(reports.filter(report => report.id !== reportId));
+
+            alert("Report deleted successfully!");
+        } catch (error) {
+            console.error("Error deleting report:", error);
+            alert("Failed to delete report. Please try again.");
+        } finally {
+            setDeletingReportId(null);
+        }
+    };
+
+    const handleEditReport = (reportId: string, currentContent: string, currentType: string) => {
+        setEditingReportId(reportId);
+        setEditedContent(currentContent);
+        setEditedType(currentType);
+    };
+
+    const handleCycleType = () => {
+        const types = ["Urgent", "Report", "Complaint"];
+        const currentIndex = types.indexOf(editedType);
+        const nextIndex = (currentIndex + 1) % types.length;
+        setEditedType(types[nextIndex]);
+    };
+
+    const handleSaveEditReport = async (reportId: string) => {
+        try {
+            setIsUpdating(true);
+
+            const updatedTimestamp = Timestamp.now();
+
+            await updateDoc(doc(db, "studentReport", reportId), {
+                report: editedContent,
+                type: editedType,
+                timestamp: updatedTimestamp,
+            });
+
+            setReports(reports.map(report => 
+                report.id === reportId
+                    ? {
+                        ...report,
+                        data: {
+                            ...report.data,
+                            report: editedContent,
+                            type: editedType,
+                            timestamp: updatedTimestamp,
+                        }
+                    }
+                    : report
+            ));
+
+            setEditingReportId(null);
+            alert("Report updated successfully!");
+        } catch (error) {
+            console.error("Error updating report: ", error);
+            alert("Failed to update report. Please try again.");
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     const exportToExcel = (startDate, endDate) => {
@@ -246,66 +295,36 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
             const reportDate = new Date(report.data.timestamp.seconds * 1000);
             return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
         });
-    
-        const ratingCounts = filteredReports.reduce((acc, report) => {
-            acc[report.data.rating] = (acc[report.data.rating] || 0) + 1;
-            return acc;
-        }, {});
-    
+
         const reportCount = filteredReports.length;
-        const totalRating = filteredReports.reduce((acc, report) => acc + parseInt(report.data.rating, 10), 0);
-        const meanRating = reportCount > 0 ? (totalRating / reportCount).toFixed(2) : 0;
-    
+
         const summaryData = [
             ['Student Performance and Behaviour Documentation'],
             ['Start Date', startDate],
             ['End Date', endDate],
             ['Report Count', reportCount.toString()],
-            ['Mean Rating', meanRating.toString()],
-            ['Rating Count'],
-            ['Rating 5', ratingCounts[5] ? ratingCounts[5].toString() : "0"],
-            ['Rating 4', ratingCounts[4] ? ratingCounts[4].toString() : "0"],
-            ['Rating 3', ratingCounts[3] ? ratingCounts[3].toString() : "0"],
-            ['Rating 2', ratingCounts[2] ? ratingCounts[2].toString() : "0"],
-            ['Rating 1', ratingCounts[1] ? ratingCounts[1].toString() : "0"],
-            [],
         ];
-    
+
         const headers = [
             'Writer',
-            'Rating',
             'Report',
             'Timestamp',
         ];
-    
+
         const data = filteredReports.map(report => ({
             Writer: report.data.writer,
-            Rating: report.data.rating.toString(), // Convert number to string
             Report: report.data.report,
             Timestamp: new Date(report.data.timestamp.seconds * 1000).toLocaleString(),
         }));
-        
-    
+
         const worksheet = XLSX.utils.json_to_sheet([]);
         XLSX.utils.sheet_add_aoa(worksheet, summaryData);
         XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: summaryData.length });
         XLSX.utils.sheet_add_json(worksheet, data, { origin: summaryData.length + 1, skipHeader: true });
-    
-        // Set left alignment for all cells
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
-        for (let R = range.s.r; R <= range.e.r; ++R) {
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const cell_address = { c: C, r: R };
-                const cell_ref = XLSX.utils.encode_cell(cell_address);
-                if (!worksheet[cell_ref]) continue;
-                if (!worksheet[cell_ref].s) worksheet[cell_ref].s = {};
-                worksheet[cell_ref].s.alignment = { horizontal: 'left' };
-            }
-        }
-    
+
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
-    
+
         XLSX.writeFile(workbook, "StudentReports.xlsx");
     };
 
@@ -317,602 +336,337 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         exportToExcel(startDate, endDate);
     };
 
-    const mainStyle = css`
-        background-color: white;
-        width: 100%;
-        height: 100%;
-        padding: 40px 43px 40px 43px;
-        box-sizing: border-box;
-        overflow: scroll;
-    `;
-
-    const navSide = css`
-        display: flex;
-        justify-content: space-between;
-        p {
-            text-align: start;
-            font-size: 20px;
-        }
-    `;
-
-    const contentSide = css`
-        margin-top: 30px;
-    `;
-
-    const userCardStyle = css`
-        display: flex;
-        gap: 20px;
-        box-shadow: 0px 0px 5px 1px #dbdbdb;
-        border-radius: 10px;
-        width: 100%;
-        min-width: 900px;
-
-        img {
-            width: 160px;
-            height: 210px;
-            object-fit: cover;
-            border-radius: 10px 0px 0px 10px;
-        }
-    `;
-
-    const userDescStyle = css`
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        text-align: left;
-        padding: 20px;
-    `;
-
-    const infoContainerStyle = css`
-        display: grid;
-        grid-template-columns: 0.65fr 1fr;
-        width: 100%;
-        color: black;
-    `;
-
-    const informationStyle = css`
-        margin-top: 20px;
-        color: #51587E;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    `;
-
-    const buttonSideStyle = css`
-        display: flex;
-        margin-top: 30px;
-        gap: 10px;
-        
-        button {
-            border: 1px solid #DCDCDC;
-            padding: 10px;
-            background-color: white;
-            border-radius: 10px;
-            font-size: 17px;
-            font-weight: medium;
-            cursor: pointer;
-            &:hover {
-                background-color: #dcdcdc;
-            }
-        }
-    `;
-
-    const greaterInformationContainerStyle = css`
-        display: flex;
-        justify-content: space-between;
-        font-size: 17px;
-
-        .left-side {
-            width: 50%;
-        }
-
-        .right-side {
-            width: 46%;
-        }
-    `;
-
-    const filterStyle = css`
-        display: flex;
-        gap: 10px;
-        align-items: center;
-
-        p {
-            font-size: 15px;
-        }
-
-        select {
-            padding: 10px;
-            font-size: 18px;
-            border: none;
-            border-radius: 5px;
-        }
-    `;
-
-    const ratingShowcaseStyle = css`
-        margin-top: 30px;
-        .rating {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .rating-value {
-            font-size: 16px;
-            color: #FFA000;
-        }
-    `;
-
-    const barChartStyle = css`
-        margin-top: 30px;
-        text-align: start;
-        display: flex;
-        flex-direction: column;
-        .bar {
-            display: flex;
-            align-items: center;
-            margin-top: -3px;
-            .bar-label {
-                width: 20px;
-            }
-            .bar-value {
-                height: 10px;
-                background-color: #FFA000;
-                margin-left: 10px;
-            }
-        }
-    `;
-
-    const getBarWidth = (count: number, total: number) => {
-        if (total === 0) return '0%';
-        const percentage = (count / total) * 100;
-        return `${percentage}%`;
+    const handleRecordAdded = () => {
+        fetchReports();
     };
 
-    const barValueStyle = css`
-        background-color: #49A8FF;
-        height: 100%;
-        border-radius: 10px;
-    `;
+    const handleEditNotesClick = async () => {
+        if (isEditingNotes) {
+            // Save the edited notes to Firestore
+            if (student) {
+                try {
+                    const studentDocRef = doc(db, "student", studentId);
+                    await updateDoc(studentDocRef, { notes: editedNotes });
+                    setStudent({ ...student, notes: editedNotes });
+                    alert("Notes updated successfully!");
+                } catch (error) {
+                    console.error("Error updating notes: ", error);
+                    alert("Failed to update notes. Please try again.");
+                }
+            }
+        }
+        setIsEditingNotes(!isEditingNotes);
+    };
 
-    const ratingContainerStyle = css`
-        display: flex;
+    const meetindDescriptionComponentStyle = css`
+        display: grid;
         align-items: center;
-        justify-content: space-between;
-        margin-top: 10px;
-        h1 {
-            margin: 0px;
-        }
-        .averageRating {
-            width: 10%;
-            font-size: 68px;
-            font-weight: regular;
-            text-align: start;
-            display: flex;
-            align-items: center;
-            margin: 0px;
-        }
-
-        .barChart {
-            width: 88%;
-            margin: 0px;
-        }
-    `;
-
-    const bottomContentContainerStyle = css`
-        display: flex;
-        margin-top: 15px;
-        gap: 50px;
-        .left-side {
-            width: 60%;
-        }
-
-        .right-side {
-            width: 40%;
-        }
-    `;
-
-    const dropdownStyle = css`
-        position: relative;
-        display: flex;
-        background-color: #EBEBEB;
-        padding: 10px;
-        width: 200px;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 10px;
-        cursor: pointer;
-    `;
-
-    const dropdownContentStyle = css`
-        display: ${isDropdownOpen ? 'flex' : 'none'};
-        flex-direction: column;
-        gap: 20px;
-        font-size: 18px;
-        background-color: #EBEBEB;
-        text-align: start;
-        position: absolute;
-        top: 120%;
-        left: -49%;
-        width: 400px;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 10;
-
-        .inputText {
-            width: 30px;
-        }
-
-        .time {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .rating {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-    `;
-
-    const addRecordBoxStyle = css`
-        width: 100%;
-        border: 1px solid #ebebeb;
-        height: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        p {
-            text-align: start;
-        }
-        .headerp {
-            background-color: #ebebeb;
-            margin: 0px;
-            font-size: 20px;
-            font-weight: 600;
-            padding: 5px;
-            text-align: center;
-        }
-    `;
-
-    const recordFormStyle = css`
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-
-        p {
-            font-weight: 500;
-        }
-    `;
-
-    const radioButtonsStyle = css`
-        margin-top: 10px;
-        align-items: center;
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-
-        label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-    `;
-
-    const buttonStyle = css`
-        border: none;
-        background-color: #49A8FF;
-        padding: 10px;
-        color: white;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 20px;
-        margin-top: 40px;
-
-        &:hover{
-            cursor: pointer;
-            background-color: #68b5fc;
-        }
-    `;
-
-    const reportItemStyle = css`
-        border-bottom: 1px solid #ebebeb;
-        padding: 10px 0;
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-        gap: 5px;
-
-        .report-writer {
-            font-weight: bold;
-        }
-
-        .report-rating {
-            color: #FFA000;
-        }
-
-        .topSide {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .topLeftSide {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topRightSide {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            justify-content: center;
-        }
-
-        .report-hour {
-            font-size: 14px;
-            color: #888;
-        }
-
-        .report-date {
-            font-size: 12px;
-            color: #888;
-        }
-    `;
-
-    const buttonWhiteStyle = css`
-        padding: 6px;
-        border: 4px solid #ebebeb;
-        border-radius: 10px;
-        font-weight: 600;
-        margin-top: 10px;
-        width: 200px;
-        color: black;
-        background-color: white;
-
-        &:hover {
-            background-color: #ebebeb;
-            cursor: pointer;
-        }
-    `
-
-    const showMeetingScheduleStyle = css`
-        cursor: pointer;
-        color: #49A8FF;
-        font-weight: bold;
-        &:hover {
-            text-decoration: underline;
-        }
-    `;
-
-    const expandedCardStyle = css`
-        padding: 10px 0px 0px 50px;
-        border-radius: 10px;
-        margin-top: 10px;
-    `;
-
-    const placeholderStyle = css`
-        width: 100%;
-        height: 200px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid #ebebeb;
-        border-radius: 10px;
-        background-color: #f9f9f9;
-        color: #888;
-        font-size: 18px;
+        font-size: 16px;
+        margin-top: 2px;
+        grid-template-columns: 0.1fr 0.3fr 1fr;
     `;
 
     return (
-        <main className="mainStyle" css={mainStyle}>
-            <div className="navSide" css={navSide}>
-                <p style={{fontWeight: "300"}}>Student Detail</p>
-                <div className="filter" css={filterStyle}>
+        <Main>
+            <NavSide>
+                <p style={{ fontWeight: "300" }}>Student Detail</p>
+                <Filter>
                     <p>Period: </p>
                     <select name="" id="">
                         <option value="">Odd Semester 23.10</option>
                     </select>
-                </div>
-            </div>
-            <div className="contentSide" css={contentSide}>
-                <div className="userCard" css={userCardStyle}>
+                </Filter>
+            </NavSide>
+            <ContentSide>
+                <UserCard>
                     {student ? (
                         <>
                             <img src={student.image_url} alt={student.name} />
-                            <div className="userDesc" css={userDescStyle}>
-                                <p style={{fontSize: "20px", fontWeight: "500"}}>{student.name}</p>
-                                <p style={{ color: "#51587E", fontWeight: "500", fontSize: "17px" }}>{student.nim}</p>
-                                <div className="greaterInformationContainer" css={greaterInformationContainerStyle}>
+                            <UserDesc>
+                                <div className="userHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                                    <div className="leftSide">
+                                        <p style={{ fontSize: "20px", fontWeight: "500" }}>{student.name}</p>
+                                        <p style={{ color: "#51587E", fontWeight: "500", fontSize: "17px" }}>{student.nim}</p>
+                                    </div>
+                                    <div className="rightSide">
+                                        <button onClick={handleEditNotesClick}>
+                                            {isEditingNotes ? "Submit" : "Edit"}
+                                        </button>
+                                    </div>
+                                </div>
+                                <GreaterInformationContainer>
                                     <div className="left-side">
-                                        <div className="information" css={informationStyle}>
-                                            <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                        <Information>
+                                            <InfoContainer>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
                                                     <Icon icon={"mdi:college-outline"} fontSize={22} />
                                                     <p>Major</p>
                                                 </div>
                                                 <p>{student.major}</p>
-                                            </div>
-                                            <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
                                                     <Icon icon={"ph:building-bold"} fontSize={22} />
                                                     <p>Organization Name</p>
                                                 </div>
                                                 <p>{student.tempat_magang}</p>
-                                            </div>
-                                            <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
                                                     <Icon icon={"ic:outline-email"} fontSize={22} />
                                                     <p>Email Address</p>
                                                 </div>
                                                 <p>{student.email}</p>
-                                            </div>
-                                        </div>
+                                            </InfoContainer>
+                                        </Information>
                                     </div>
                                     <div className="right-side">
-                                        <div className="information" css={informationStyle}>
-                                            <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                        <Information>
+                                            <InfoContainer>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
                                                     <Icon icon={"material-symbols:supervisor-account"} fontSize={22} />
                                                     <p>Faculty Supervisor</p>
                                                 </div>
                                                 <p>{student.faculty_supervisor}</p>
-                                            </div>
-                                            <div className="infoContainer" css={infoContainerStyle}>
-                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
                                                     <Icon icon={"ic:outline-people"} fontSize={22} />
                                                     <p>Site Supervisor</p>
                                                 </div>
                                                 <p>{student.site_supervisor}</p>
-                                            </div>
-                                        </div>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                    <Icon icon={"mdi:notes-outline"} fontSize={22} />
+                                                    <p>Notes</p>
+                                                </div>
+                                                {isEditingNotes ? (
+                                                    <textarea
+                                                        value={editedNotes}
+                                                        onChange={(e) => setEditedNotes(e.target.value)}
+                                                        style={{
+                                                            width: '100%',
+                                                            minHeight: '60px',
+                                                            padding: '10px',
+                                                            borderRadius: '5px',
+                                                            border: '1px solid #D9D9D9',
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <p>{student.notes}</p>
+                                                )}
+                                            </InfoContainer>
+                                        </Information>
                                     </div>
-                                </div>
-                            </div>
+                                </GreaterInformationContainer>
+                            </UserDesc>
                         </>
                     ) : (
-                        <div css={placeholderStyle}>Loading student details...</div>
+                        <Placeholder>Loading student details...</Placeholder>
                     )}
-                </div>
-                
-                <div className="bottomContentContainer" css={bottomContentContainerStyle}>
+                </UserCard>
+
+                <BottomContentContainer>
                     <div className="left-side">
-                        <div className="recordsContainer" style={{display: "flex", justifyContent: "space-between", marginBottom: "0px"}}>
-                            <h2 style={{textAlign: "left", marginBottom: "0px", fontWeight: "500", fontSize: "22px"}}>Records</h2>
-                            <div className="filterContainer" style={{display: "flex", alignItems: "center", gap: "20px", position: "relative"}}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0px" }}>
+                            <h2 style={{ textAlign: "left", marginBottom: "0px", fontWeight: "500", fontSize: "22px" }}>Records</h2>
+                            <div style={{ display: "flex", alignItems: "center", gap: "20px", position: "relative" }}>
                                 <p>Filter : </p>
-                                <div className="dropdown" css={dropdownStyle} onClick={handleDropdownClick}>
+                                <Dropdown onClick={handleDropdownClick}>
                                     <p>All Records</p>
                                     <Icon icon={"weui:arrow-filled"} rotate={45} />
-                                </div>
-                                <div className="dropdown-content" css={dropdownContentStyle}>
+                                </Dropdown>
+                                <DropdownContent isOpen={isDropdownOpen}>
                                     <div className="time">
                                         <p>Time</p>
-                                        <div className="timeOptionContainer" style={{display: "flex", justifyContent: "space-between"}}>
-                                            <div className="startTimeContainer" style={{display: "flex", gap: "20px"}}>
+                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                            <div style={{ display: "flex", gap: "20px" }}>
                                                 <p>Start</p>
-                                                <input type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} /> 
+                                                <input type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
                                             </div>
-                                            <div className="endTimeContainer" style={{display: "flex", gap: "20px"}}>
+                                            <div style={{ display: "flex", gap: "20px" }}>
                                                 <p>End</p>
-                                                <input type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} /> 
+                                                <input type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
                                             </div>
                                         </div>
                                     </div>
-                                    {/* <div className="rating">
-                                        <p>Rating</p>
-                                        <div className="timeOptionContainer" style={{display: "flex", gap: "20px"}}>
-                                            <div className="startTimeContainer" style={{display: "flex", gap: "20px"}}>
-                                                <p>From</p>
-                                                <input type="text" className="inputText" value={filterRatingFrom} onChange={(e) => setFilterRatingFrom(e.target.value)} /> 
-                                            </div>
-                                            <div className="endTimeContainer" style={{display: "flex", gap: "20px"}}>
-                                                <p>To</p>
-                                                <input type="text" className="inputText" value={filterRatingTo} onChange={(e) => setFilterRatingTo(e.target.value)} /> 
-                                            </div>
-                                        </div>
-                                    </div> */}
-                                </div>
+                                </DropdownContent>
                             </div>
                         </div>
                         {isFetching ? (
-                            <div css={placeholderStyle}>Loading records...</div>
+                            <Placeholder>Loading records...</Placeholder>
                         ) : (
-                            <>
-                                {reports.length > 0 && (
-                                    <div className="ratingContainerStyle" css={ratingContainerStyle}>
-                                        <div className="averageRating" css={css`margin-top: 30px; display: flex; flex-direction: column;`}>
-                                            <p style={{fontSize: "58px", marginTop: "-15px"}}>{averageRating ? averageRating.toFixed(1) : "N/A"}</p>
-                                            <p style={{fontSize: "13px", color: "#51587E", marginTop: "-19px"}}> <span style={{color: "#49A8FF"}}>{reports.length}</span> records</p>
-                                        </div>
-                                        <div className="barChart" css={barChartStyle}>
-                                            {[5, 4, 3, 2, 1].map(rating => (
-                                                <div key={rating} className="bar">
-                                                    <div className="bar-label" style={{fontSize: "13px", textAlign: "center"}}>{rating}</div>
-                                                    <div
-                                                        className="bar-value" css={barValueStyle}
-                                                        style={{ width: "100%", borderRadius: "10px", backgroundColor: "#F0ECEC" }}
-                                                    >
-                                                        <div className="barValueBg" css={barValueStyle} style={{ width: getBarWidth(ratingCounts[rating], reports.length) }}></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="reportContainer" style={{overflow: "scroll", height: "400px", marginTop: "30px"}}>
-                                    {reports.map((report) => (
-                                        <div key={report.id} className="reportItem" css={reportItemStyle}>
+                            <div style={{ overflow: "scroll", height: "400px", marginTop: "30px" }}>
+                                {reports.map((report) => {
+                                    const timestamp = new Date(report.data.timestamp.seconds * 1000);
+                                    const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                    const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+
+                                    return (
+                                        <ReportItem key={report.id}>
                                             <div className="topSide">
                                                 <div className="topLeftSide">
-                                                    <p className="report-writer" style={{fontSize: '18px', fontWeight: "500"}}>{userEmailsToNames[report.data.writer] || report.data.writer}</p>
-                                                    <p className="report-rating" style={{color: "#49A8FF"}}>{report.data.rating}</p>
+                                                    <p className="report-writer" style={{ fontSize: '18px', fontWeight: "500" }}>{userEmailsToNames[report.data.writer] || report.data.writer}</p>
+                                                    {editingReportId === report.id ? (
+                                                        <p
+                                                            onClick={handleCycleType}
+                                                            style={{
+                                                                backgroundColor: editedType === 'Report' ? '#A024FF' : editedType === 'Urgent' ? 'red' : 'orange',
+                                                                color: 'white',
+                                                                padding: '2px',
+                                                                borderRadius: '10px',
+                                                                width: '75px',
+                                                                textAlign: 'center',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {editedType}
+                                                        </p>
+                                                    ) : (
+                                                        <p
+                                                            style={{
+                                                                backgroundColor: report.data.type === 'Report' ? '#A024FF' : report.data.type === 'Urgent' ? 'red' : 'orange',
+                                                                color: 'white',
+                                                                padding: '2px',
+                                                                borderRadius: '10px',
+                                                                width: '75px',
+                                                                textAlign: 'center',
+                                                            }}
+                                                        >
+                                                            {report.data.type}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div className="topRightSide">
-                                                    <i><p className="report-hour">{new Date(report.data.timestamp.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</p></i>
-                                                    <i><p className="report-date">{new Date(report.data.timestamp.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</p></i>
+                                                    {deletingReportId === report.id ? (
+                                                        <p style={{ color: 'red' }}>Deleting...</p>
+                                                    ) : editingReportId === report.id ? (
+                                                        <>
+                                                            {isUpdating ? (
+                                                                <p style={{ color: 'blue' }}>Updating...</p>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleSaveEditReport(report.id)}
+                                                                    style={{
+                                                                        backgroundColor: '#49A8FF',
+                                                                        color: 'white',
+                                                                        padding: '5px 10px',
+                                                                        border: 'none',
+                                                                        borderRadius: '5px',
+                                                                        cursor: 'pointer',
+                                                                    }}
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Icon
+                                                                icon={"material-symbols:edit"}
+                                                                fontSize={24}
+                                                                style={{ cursor: 'pointer' }}
+                                                                onClick={() => handleEditReport(report.id, report.data.report, report.data.type)}
+                                                            />
+                                                            <Icon
+                                                                icon={"ic:baseline-delete"}
+                                                                fontSize={24}
+                                                                style={{ cursor: 'pointer' }}
+                                                                onClick={() => handleDeleteReport(report.id)}
+                                                            />
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <p className="report-content" style={{minHeight: "87px"}}>{report.data.report}</p>
+                                            <div className="infoAndDate">
+                                                <p style={{
+                                                    fontStyle: "italic",
+                                                    color: "#51587E",
+                                                    fontSize: "14px"
+                                                }}>By {report.data.person} - {formattedTime} on {formattedDate}</p>
+                                            </div>
+                                            {editingReportId === report.id ? (
+                                                <textarea
+                                                    value={editedContent}
+                                                    onChange={(e) => setEditedContent(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        minHeight: '87px',
+                                                        padding: '10px',
+                                                        borderRadius: '5px',
+                                                        border: '1px solid #D9D9D9',
+                                                    }}
+                                                />
+                                            ) : (
+                                                <p className="report-content" style={{ minHeight: "87px" }}>{report.data.report}</p>
+                                            )}
                                             {meetingSchedules[report.id] ? (
                                                 <>
-                                                    <p css={showMeetingScheduleStyle} onClick={() => handleShowMeetingScheduleClick(report.id)}>
+                                                    <ShowMeetingSchedule onClick={() => handleShowMeetingScheduleClick(report.id)}>
                                                         Show meeting schedule
-                                                    </p>
+                                                    </ShowMeetingSchedule>
                                                     {expandedReportId === report.id && (
-                                                        <div css={expandedCardStyle}>
-                                                            <p><strong>Meeting Scheduled</strong></p>
-                                                            <p style={{color: "#51587E"}}>{meetingSchedules[report.id].date} / {meetingSchedules[report.id].timeStart} - {meetingSchedules[report.id].timeEnd}</p>
-                                                            <p>{meetingSchedules[report.id].description}</p>
-                                                            <p>Place : {meetingSchedules[report.id].place}</p>
-                                                        </div>
+                                                        <ExpandedCard>
+                                                            <p style={{fontWeight: "500", fontSize: "17px"}}>Meeting Scheduled</p>
+                                                            <p style={{ color: "#51587E", fontStyle: "italic", fontSize: "14px" }}>
+                                                                By {meetingSchedules[report.id].writer} 
+                                                                {meetingSchedules[report.id].createdAt ? 
+                                                                    ` - ${meetingSchedules[report.id].createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                                                                    ${formatDate(meetingSchedules[report.id].createdAt.toDate().toISOString().split('T')[0])}` : 'N/A'}
+                                                            </p>
+
+                                                            <p style={{fontSize: "16px"}}>{meetingSchedules[report.id].description}</p>
+                                                            <div className="meeting-description">
+                                                                <div className="leftSide">
+                                                                    <div className="meeting-description-component" css={meetindDescriptionComponentStyle}>
+                                                                        <Icon icon={"material-symbols:meeting-room"} color="#51587E"  />
+                                                                        <p style={{color: "#51587E"}}>Type</p>
+                                                                        <p>{meetingSchedules[report.id].type}</p>
+                                                                    </div>
+                                                                    <div className="meeting-description-component" css={meetindDescriptionComponentStyle}>
+                                                                        <Icon icon={"mdi:location"} color="#51587E" />
+                                                                        <p style={{color: "#51587E"}}>Location</p>
+                                                                        <p>{meetingSchedules[report.id].place}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="rightSide">
+                                                                    <div className="meeting-description-component" css={meetindDescriptionComponentStyle}>
+                                                                        <Icon icon={"clarity:date-solid"} color="#51587E" />
+                                                                        <p style={{color: "#51587E"}}>Date</p>
+                                                                        <p>{formatDate(meetingSchedules[report.id].date)}</p>
+                                                                    </div>
+                                                                    <div className="meeting-description-component" css={meetindDescriptionComponentStyle}>
+                                                                        <Icon icon={"mingcute:time-fill"} color="#51587E" />
+                                                                        <p style={{color: "#51587E"}}>Time</p>
+                                                                        <p>{meetingSchedules[report.id].timeStart} - {meetingSchedules[report.id].timeEnd}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </ExpandedCard>
                                                     )}
+
                                                 </>
-                                            ) : user.role == "Enrichment" && (
-                                                <button css={buttonWhiteStyle} onClick={() => handleScheduleMeetingClick(report.id)}>
+                                            ) : user?.role == "Enrichment" && (
+                                                <ButtonWhite onClick={() => handleScheduleMeetingClick(report.id)}>
                                                     Schedule a meeting
-                                                </button>
+                                                </ButtonWhite>
                                             )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
+                                        </ReportItem>
+                                    );
+                                })}
+                            </div>
                         )}
                     </div>
                     <div className="right-side">
-                        <div className="excelButtonContainer" style={{display: "flex", justifyContent: 'start', marginBottom: "20px"}}>
-                            <button onClick={() => setIsExportModalOpen(true)} css={buttonStyle} style={{marginTop: "0px"}}>Export to Excel</button>
+                        <div style={{ display: "flex", justifyContent: 'start', marginBottom: "20px" }}>
+                            <Button onClick={() => setIsExportModalOpen(true)} style={{ marginTop: "0px" }}>Export to Excel</Button>
                         </div>
-                        <div className="add-a-record-box" css={addRecordBoxStyle}>
-                            <p className="headerp">Add a record</p>
-                            <div className="recordForm" css={recordFormStyle}>
-                                <p>Description</p>
-                                <textarea name="" id="" rows={10} value={description} onChange={handleDescriptionChange}></textarea>
-                                <p>Rating</p>
-                                <div className="radioButtons" css={radioButtonsStyle}>
-                                    <p style={{color: "#51587E"}}>Horrible</p>
-                                    {[1, 2, 3, 4, 5].map(rating => (
-                                        <label key={rating}>
-                                            <input
-                                                type="radio"
-                                                name="rating"
-                                                value={rating}
-                                                checked={selectedRating === rating}
-                                                onChange={handleRatingChange}
-                                            />
-                                            {rating}
-                                        </label>
-                                    ))}
-                                    <p style={{color: "#51587E"}}>Excellent</p>
-                                </div>
-                                <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>
-                            </div>
-                        </div>
+                        <AddRecordBox studentName={student?.name || ''} onRecordAdded={handleRecordAdded} />
                     </div>
-                </div>
+                </BottomContentContainer>
 
-            </div>
+            </ContentSide>
             <Modal
                 isOpen={isModalOpen}
                 onClose={handleModalClose}
@@ -924,7 +678,7 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
                 onClose={handleExportModalClose}
                 onExport={handleExportModalSubmit}
             />
-        </main>
+        </Main>
     );
 };
 

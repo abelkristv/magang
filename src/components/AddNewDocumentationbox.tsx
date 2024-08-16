@@ -289,6 +289,8 @@ const AddNewDocumentationBox = () => {
     const headerp = css`
         background-color: #ebebeb;
         padding: 10px;
+        text-align: center;
+        border-radius: 10px 10px 0px 0px;
         font-size: 20px;
     `;
 
@@ -296,12 +298,13 @@ const AddNewDocumentationBox = () => {
         margin-top: 40px;
         border: 1px solid #ebebeb;
         text-align: start;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.25);
     `;
 
     const headerGridStyle = css`
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
+        display: flex;
+        flex-direction: column;
         text-align: start;
         gap: 10px;
         margin-top: 20px;
@@ -603,6 +606,12 @@ const AddNewDocumentationBox = () => {
         }
     `
 
+    const documentationMeetingStyle = css`
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    `
+
     return (
         <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
@@ -612,23 +621,23 @@ const AddNewDocumentationBox = () => {
                 <p className="headerp" css={headerp}>Add a documentation</p>
                 <div className="contentSide" css={contentSideStyle}>
                     <div className="leftSide">
-                        <p>Header</p>
+                        <p>Main</p>
                         <div className="headerGrid" css={headerGridStyle}>
-                            <div className="input">
-                                <p>Title</p>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                            <div className="titleContainer" style={{width: "100%"}}>
+                                <div className="input">
+                                    <p>Title</p>
+                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                </div>
                             </div>
-                            <div className="input">
-                                <p>Invitation Number</p>
-                                <input type="text" value={invitationNumber} onChange={(e) => setInvitationNumber(e.target.value)} />
-                            </div>
-                            <div className="input">
-                                <p>Description</p>
-                                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
-                            </div>
-                            <div className="input">
-                                <p>Leader</p>
-                                <input type="text" value={leader} onChange={(e) => setLeader(e.target.value)} />
+                            <div className="DocumentationMeeting" css={documentationMeetingStyle}>
+                                <div className="input">
+                                    <p>Documentation Type</p>
+                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                </div>
+                                <div className="input">
+                                    <p>Meeting Leader</p>
+                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                </div>
                             </div>
                         </div>
                         <div className="leftBottomContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>

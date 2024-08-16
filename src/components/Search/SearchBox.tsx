@@ -33,6 +33,7 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
     const [majors, setMajors] = useState<Major[]>([]);
     const [periods, setPeriods] = useState<string[]>([]);
     const [totalComments, setTotalComments] = useState<{ [key: string]: number }>({});
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const userAuth = useAuth();
 
     const [searchState, setSearchState] = useState<SearchState>({
@@ -83,6 +84,7 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
         };
 
         const fetchData = async () => {
+            setIsLoading(true);
             const user: User = await fetchUser(userAuth?.currentUser?.email!)
                 .then((user) => user._tag === "Some" ? user.value : { id: "null" } as User);
             if (user.id === "null") {
@@ -134,6 +136,8 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
                 companies: companies,
                 majors: majors,
             }));
+
+            setIsLoading(false);
         };
 
         fetchPeriods();
@@ -148,12 +152,28 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
 
     const fetchTotalComments = async (students: Student[]) => {
         const newTotalComments: { [key: string]: number } = {};
+    
         for (const student of students) {
-            const commentsCollection = collection(db, "studentReportComment");
-            const commentsQuery = query(commentsCollection, where("studentName", "==", student.name));
-            const commentsSnapshot = await getDocs(commentsQuery);
-            newTotalComments[student.name] = commentsSnapshot.size;
+            const studentReportsCollection = collection(db, "studentReport");
+            const studentReportsQuery = query(studentReportsCollection, where("studentName", "==", student.name));
+            const studentReportsSnapshot = await getDocs(studentReportsQuery);
+    
+            // Extract all report IDs related to the student
+            const reportIds = studentReportsSnapshot.docs.map(doc => doc.id);
+    
+            if (reportIds.length > 0) {
+                const commentsCollection = collection(db, "studentReportComment");
+                const commentsQuery = query(commentsCollection, where("reportID", "in", reportIds));
+                const commentsSnapshot = await getDocs(commentsQuery);
+    
+                // Count the number of comments for this student
+                newTotalComments[student.name] = commentsSnapshot.size;
+            } else {
+                // If there are no reports, set the total comments to 0
+                newTotalComments[student.name] = 0;
+            }
         }
+    
         setTotalComments(newTotalComments);
     };
 
@@ -374,8 +394,14 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
             {filteredStudents.length > 0 ? (
                 searchState.isGridView ? (
                     <div className="studentRow" css={studentRow}>
-                        {filteredStudents.map(student => (
-                            <StudentCard key={student.id} student={student} onClick={() => onSelectStudent(student.iden)} totalComments={totalComments[student.name] || 0} />
+                        {filteredStudents.map((student, index) => (
+                            <StudentCard 
+                                key={student.id} 
+                                student={student} 
+                                onClick={() => onSelectStudent(student.iden)} 
+                                totalComments={totalComments[student.name] || 0} 
+                                isLoading={isLoading} 
+                            />
                         ))}
                     </div>
                 ) : (
