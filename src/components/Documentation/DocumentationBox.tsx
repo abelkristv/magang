@@ -305,16 +305,17 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         button {
             font-size: 17px;
             padding: 7px;
-            border: 1px solid black;
+            border: 1px solid #49A8FF;
             background-color: white;
+            color: #49A8FF;
             cursor: pointer;
 
             &.active {
-                background-color: black;
+                background-color: #49A8FF;
                 color: white;
 
                 &:hover {
-                    background-color: black;
+                    background-color: #49A8FF;
                 }
             }
 

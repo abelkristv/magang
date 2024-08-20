@@ -2,11 +2,13 @@
 import { css } from "@emotion/react";
 import { useEffect, useRef, useState } from 'react';
 import { collection, query, getDocs, addDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "../../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { useAuth } from '../helper/AuthProvider';
-import { fetchUser } from '../controllers/UserController';
-import User from "../model/User";
+import { useAuth } from '../../helper/AuthProvider';
+import { fetchUser } from '../../controllers/UserController';
+import User from "../../model/User";
+import DropdownComponent from "./DropdownComponent";
 
 const AddNewDocumentationBox = () => {
     const [date, setDate] = useState(new Date());
@@ -21,7 +23,13 @@ const AddNewDocumentationBox = () => {
     const [isDiscussionModalOpen, setIsDiscussionModalOpen] = useState(false);
     const [modalDiscussionDetails, setModalDiscussionDetails] = useState([]);
     const [attendees, setAttendees] = useState([]);
+    const [newAttendee, setNewAttendee] = useState(""); // State for the new attendee input
+    const [results, setResults] = useState([]);
+    const [newResult, setNewResult] = useState(""); // State for the new result input
     const [totalCounter, setTotalCounter] = useState(0); // Counter for total discussion details
+    const [pictures, setPictures] = useState([]);
+    const [newPicture, setNewPicture] = useState(null); // State for the new picture file
+    const [isPicturesModalOpen, setIsPicturesModalOpen] = useState(false);
     const attendeeModalRef = useRef(null);
     const discussionModalRef = useRef(null);
     const userAuth = useAuth();
@@ -29,7 +37,8 @@ const AddNewDocumentationBox = () => {
     const [title, setTitle] = useState("");
     const [invitationNumber, setInvitationNumber] = useState("");
     const [description, setDescription] = useState("");
-    const [leader, setLeader] = useState("");
+    const [documentationType, setDocumentationType] = useState(""); // State for documentation type
+    const [meetingLeader, setMeetingLeader] = useState(""); // State for meeting leader
     const [discussionTitle, setDiscussionTitle] = useState("");
     const [personResponsible, setPersonResponsible] = useState("");
     const [furtherActions, setFurtherActions] = useState("");
@@ -40,18 +49,20 @@ const AddNewDocumentationBox = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
 
-    const [user, setUser] = useState<User>()
+    const [user, setUser] = useState<User>();
+
+    const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
+
+    const [fileName, setFileName] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
-            const user =  await fetchUser(userAuth?.currentUser?.email!)
-            if (user._tag == "Some") {
+            const user = await fetchUser(userAuth?.currentUser?.email!)
+            if (user._tag === "Some") {
                 setUser(user.value)
             } else {
                 setUser({} as User)
             }
-            
-            
         }
         fetchData()
     }, []);
@@ -131,8 +142,17 @@ const AddNewDocumentationBox = () => {
         setDeadline("");
     };
 
-    const addAttendee = () => {
-        setAttendees([...attendees, ""]);
+    const openResultsModal = () => setIsResultsModalOpen(true);
+    const closeResultsModal = () => setIsResultsModalOpen(false);
+
+    const openPicturesModal = () => setIsPicturesModalOpen(true);
+    const closePicturesModal = () => setIsPicturesModalOpen(false);
+
+    const handleAddAttendee = () => {
+        if (newAttendee.trim() !== "") {
+            setAttendees([...attendees, newAttendee]);
+            setNewAttendee(""); // Clear the input field after adding the attendee
+        }
     };
 
     const handleAttendeeChange = (index, event) => {
@@ -196,65 +216,71 @@ const AddNewDocumentationBox = () => {
         setTotalCounter(totalCounter - 1);
     };
 
+    const storage = getStorage();
+
+    const handleAddPicture = async () => {
+        try {
+            if (newPicture) {
+                // Create a storage reference
+                const storageRef = ref(storage, `images/${newPicture.name}`);
+
+                // Upload the file to Firebase Storage
+                const snapshot = await uploadBytes(storageRef, newPicture);
+
+                // Get the download URL
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                // Add the URL to the pictures array
+                setPictures([...pictures, downloadURL]);
+
+                // Clear the file input after adding the picture
+                setNewPicture(null);
+                setFileName("");
+            }
+        } catch (error) {
+            console.error("Error uploading picture: ", error);
+            alert("Failed to upload picture. Please try again.");
+        }
+    };
+
     const handleAddDocumentation = async () => {
         try {
-            // Parse the time field to create a Date object
             const parsedTime = new Date(time);
-    
-            // Check if user object and email are defined
+
             if (!user || !user.email) {
                 throw new Error("User is not defined or user email is missing");
             }
-    
-            // Log values to debug
-            console.log("Title:", title);
-            console.log("Invitation Number:", invitationNumber);
-            console.log("Description:", description);
-            console.log("Leader:", leader);
-            console.log("Place:", location);
-            console.log("Time:", parsedTime);
-            console.log("Attendance List:", attendees);
-            console.log("Type:", type);
-            console.log("Writer:", user.email);
 
-            const nomor_undangan = invitationNumber
-    
             // Add the main documentation data
             const docRef = await addDoc(collection(db, "documentation"), {
                 title,
-                nomor_undangan,
+                nomor_undangan: invitationNumber,
                 description,
-                leader,
+                leader: meetingLeader, // Use the meetingLeader state
                 place: location,
                 time: parsedTime,
                 attendanceList: attendees,
-                timestamp: parsedTime, // Use the parsed time as the timestamp
-                type,
-                writer: user.email // Ensure writer field is not undefined
-            });
-    
-            // Log docRef to verify
-            console.log("Document reference ID:", docRef.id);
-    
-            // Add the discussion details
-            for (const detail of modalDiscussionDetails) {
-                console.log("Adding discussion detail:", detail);
-                await addDoc(collection(db, "discussionDetails"), {
-                    docID: docRef.id,
+                discussionDetails: modalDiscussionDetails.map(detail => ({
                     discussionTitle: detail.discussionTitle,
                     personResponsible: detail.personResponsible,
                     furtherActions: detail.furtherActions,
-                    deadline: new Date(detail.deadline)
-                });
-            }
-    
+                    deadline: new Date(detail.deadline),
+                })),
+                results,
+                pictures, // Now contains URLs of the images from Firebase Storage
+                type: documentationType, // Use the documentationType state
+                writer: user.email,
+                timestamp: parsedTime, // Use the parsed time as the timestamp
+            });
+
             alert("Documentation added successfully!");
-    
+
             // Clear the form after successful submission
             setTitle("");
             setInvitationNumber("");
             setDescription("");
-            setLeader("");
+            setDocumentationType(""); // Clear documentation type
+            setMeetingLeader(""); // Clear meeting leader
             setDiscussionTitle("");
             setPersonResponsible("");
             setFurtherActions("");
@@ -264,12 +290,46 @@ const AddNewDocumentationBox = () => {
             setAttendees([]);
             setModalDiscussionDetails([]);
             setTotalCounter(0); // Reset the total counter
+            setResults([]); // Reset the results list
+            setPictures([]); // Reset the pictures list
         } catch (error) {
             console.error("Error adding documentation: ", error);
             alert("Failed to add documentation. Please try again.");
         }
     };
     
+
+    const handleAddResult = () => {
+        if (newResult.trim() !== "") {
+            setResults([...results, newResult]);
+            setNewResult(""); 
+        }
+    };
+
+    const handleResultChange = (index, event) => {
+        const newResults = [...results];
+        newResults[index] = event.target.value;
+        setResults(newResults);
+    };
+
+    const handleRemoveResult = (index) => {
+        const newResults = [...results];
+        newResults.splice(index, 1);
+        setResults(newResults);
+    };
+
+    const handlePictureChange = (event) => {
+        if (event.target.files && event.target.files[0]) {
+            setNewPicture(event.target.files[0]);
+            setFileName(event.target.files[0].name);
+        }
+    };
+
+    const handleRemovePicture = (index) => {
+        const newPictures = [...pictures];
+        newPictures.splice(index, 1);
+        setPictures(newPictures);
+    };
 
     const mainStyle = css`
         background-color: white;
@@ -287,7 +347,7 @@ const AddNewDocumentationBox = () => {
     `;
 
     const headerp = css`
-        background-color: #ebebeb;
+        background-color: #F5F5F5;
         padding: 10px;
         text-align: center;
         border-radius: 10px 10px 0px 0px;
@@ -314,12 +374,15 @@ const AddNewDocumentationBox = () => {
     const contentSideStyle = css`
         display: flex;
         justify-content: space-between;
-        padding: 10px;
+        padding: 80px 100px 100px 100px;
         .leftSide {
-            width: 60%;
+            width: 50%;
+            padding-right: 50px;
+            border-right: 1px solid black
         }
         .rightSide {
-            width: 35%;
+            width: 50%;
+            padding-left: 50px;
         }
 
         .input {
@@ -348,14 +411,14 @@ const AddNewDocumentationBox = () => {
 
     const buttonStyle = css`
         padding: 10px;
-        background-color: black;
-        color: white;
-        border: none;
+        background-color: white;
+        color: #49A8FF;
+        border: 1px solid #49A8FF;
         border-radius: 5px;
         margin-top: 10px;
         font-size: 15px;
         &:hover {
-            background-color: #303030;
+            background-color: white;
             cursor: pointer;
         }
     `;
@@ -392,7 +455,7 @@ const AddNewDocumentationBox = () => {
         width: 557px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 10px;
         border-radius: 10px;
 
         .headerp {
@@ -425,6 +488,7 @@ const AddNewDocumentationBox = () => {
     `;
 
     const inputStyle = css`
+        height: auto;
         padding: 10px;
         font-size: 16px;
         border: 1px solid #ccc;
@@ -434,8 +498,9 @@ const AddNewDocumentationBox = () => {
     const modalFormStyle = css`
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 10px;
         padding: 20px;
+        box-sizing: border-box;
 
         p {
             text-align: start;
@@ -462,7 +527,6 @@ const AddNewDocumentationBox = () => {
         border: 1px solid #ACACAC;
         display: flex;
         flex-direction: column;
-        // gap: 10px;
 
         .attendeeInputContainer {
             display: flex;
@@ -472,7 +536,6 @@ const AddNewDocumentationBox = () => {
             }
             .removeIcon {
                 margin-right: 10px;
-
                 cursor: pointer;
                 visibility: hidden;
             }
@@ -494,6 +557,52 @@ const AddNewDocumentationBox = () => {
                 flex-grow: 1;
                 background-color: white;
             }
+        }
+    `;
+
+    const inputAndButtonContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: start;
+        padding-left: 20px;
+        padding-right: 20px;
+        box-sizing: border-box;
+
+        input {
+            flex-grow: 1;
+            height: 35px;
+            border-radius: 5px;
+            border: 1px solid gray;
+            padding: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #49A8FF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+
+            &:hover {
+                background-color: #62b3fc;
+            }
+        }
+    `;
+
+    const addButtonStyle = css`
+        background-color: #49A8FF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 15px;
+
+        &:hover {
+            background-color: #62b3fc;
         }
     `;
 
@@ -609,8 +718,103 @@ const AddNewDocumentationBox = () => {
     const documentationMeetingStyle = css`
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 40px;
+        .inputDoc {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            input {
+                width: 100%;
+                box-sizing: border-box;
+                height: 46px;
+                border-radius: 5px;
+                border: 1px solid #ACACAC;
+            }
+        }
+        
     `
+
+    const titleContainerStyle = css`
+        width: 100%;
+        margin-bottom: 10px;
+        .inputTitle {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            input {
+                box-sizing: border-box;
+                width: 100%;
+                height: 46px;
+                border-radius: 5px;
+                border: 1px solid #ACACAC;
+            }
+        }
+    `
+
+    const scheduleTopSideStyle = css`
+        display: flex;
+        gap: 30px;
+        margin-top: 20px;
+    `
+
+    const timeContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        input {
+            height: 47px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ACACAC;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    `
+
+    const locationContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        input {
+            height: 47px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ACACAC;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    `
+
+    const pictureGridContainerStyle = css`
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    `;
+
+    const pictureGridItemStyle = css`
+        position: relative;
+        width: 100%;
+        height: 150px;
+        border-radius: 5px;
+        overflow: hidden;
+    `;
+
+    const deleteIconStyle = css`
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        padding: 2px;
+        &:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+    `;
+
 
     return (
         <main className="mainStyle" css={mainStyle}>
@@ -621,94 +825,101 @@ const AddNewDocumentationBox = () => {
                 <p className="headerp" css={headerp}>Add a documentation</p>
                 <div className="contentSide" css={contentSideStyle}>
                     <div className="leftSide">
-                        <p>Main</p>
+                        <p style={{fontSize: "19px"}}>Main</p>
                         <div className="headerGrid" css={headerGridStyle}>
-                            <div className="titleContainer" style={{width: "100%"}}>
-                                <div className="input">
+                            <div className="titleContainer" css={titleContainerStyle}>
+                                <div className="inputTitle">
                                     <p>Title</p>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
                                 </div>
                             </div>
                             <div className="DocumentationMeeting" css={documentationMeetingStyle}>
-                                <div className="input">
+                                <div className="inputDoc">
                                     <p>Documentation Type</p>
-                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                    <input type="text" value={documentationType} onChange={(e) => setDocumentationType(e.target.value)} />
                                 </div>
-                                <div className="input">
+                                <div className="inputDoc">
                                     <p>Meeting Leader</p>
-                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                    <input type="text" value={meetingLeader} onChange={(e) => setMeetingLeader(e.target.value)} />
                                 </div>
                             </div>
                         </div>
-                        <div className="leftBottomContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
-                            <div className="item">
-                                <p style={{ marginBottom: "20px"}}>Discussion Details</p>
-                                <p>Total : {totalCounter}</p>
-                                <button css={buttonStyle} onClick={openDiscussionModal}>Add a discussion details</button>
-                                {discussionDetails.map((detail, index) => (
-                                    <div key={index} css={discussionCardStyle}>
-                                        <p><strong>Title:</strong> {detail.discussionTitle}</p>
-                                        <p><strong>Person Responsible:</strong> {detail.personResponsible}</p>
-                                        <p><strong>Further Actions:</strong> {detail.furtherActions}</p>
-                                        <p><strong>Deadline:</strong> {detail.deadline}</p>
-                                        <div className="itemAction">
-                                            <div className="leftSide">
-                                                <Icon icon={"fluent-mdl2:set-action"} />
-                                                <p>Further Actions</p>
+                        <div className="leftBottomContainer" >
+                            <p className="header" style={{marginBottom: "20px", fontSize: "19px"}}>Discussion</p>
+                            <div className="discussionItem" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                <div className="item">
+                                    <p>Details <span style={{color: "#49A8FF"}}>({totalCounter})</span></p>
+                                    <button css={buttonStyle} onClick={openDiscussionModal}>See or Add More</button>
+                                    {discussionDetails.map((detail, index) => (
+                                        <div key={index} css={discussionCardStyle}>
+                                            <p><strong>Title:</strong> {detail.discussionTitle}</p>
+                                            <p><strong>Person Responsible:</strong> {detail.personResponsible}</p>
+                                            <p><strong>Further Actions:</strong> {detail.furtherActions}</p>
+                                            <p><strong>Deadline:</strong> {detail.deadline}</p>
+                                            <div className="itemAction">
+                                                <div className="leftSide">
+                                                    <Icon icon={"fluent-mdl2:set-action"} />
+                                                    <p>Further Actions</p>
+                                                </div>
+                                                <div className="rightSide">
+                                                    <Icon icon={"material-symbols:edit"} onClick={() => handleEditDiscussionDetail(index)} />
+                                                    <Icon icon={"material-symbols:delete"} onClick={() => handleDeleteDiscussionDetail(index)} />
+                                                </div>
+                                                <p>{detail.furtherActions}</p>
                                             </div>
-                                            <div className="rightSide">
-                                                <Icon icon={"material-symbols:edit"} onClick={() => handleEditDiscussionDetail(index)} />
-                                                <Icon icon={"material-symbols:delete"} onClick={() => handleDeleteDiscussionDetail(index)} />
+                                            <div className="itemAction">
+                                                <div className="leftSide">
+                                                    <Icon icon={"material-symbols:avg-time"} />
+                                                    <p>Deadline</p>
+                                                </div>
+                                                <p>{detail.deadline}</p>
                                             </div>
-                                            <p>{detail.furtherActions}</p>
+                                            <div className="itemAction">
+                                                <div className="leftSide">
+                                                    <Icon icon={"material-symbols:avg-time"} />
+                                                    <p>Person Responsible</p>
+                                                </div>
+                                                <p>{detail.personResponsible}</p>
+                                            </div>
                                         </div>
-                                        <div className="itemAction">
-                                            <div className="leftSide">
-                                                <Icon icon={"material-symbols:avg-time"} />
-                                                <p>Deadline</p>
-                                            </div>
-                                            <p>{detail.deadline}</p>
-                                        </div>
-                                        <div className="itemAction">
-                                            <div className="leftSide">
-                                                <Icon icon={"material-symbols:avg-time"} />
-                                                <p>Person Responsible</p>
-                                            </div>
-                                            <p>{detail.personResponsible}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
+                                <div className="item">
+                                    <p>Results <span style={{color: "#49A8FF"}}>({results.length})</span></p>
+                                    <button css={buttonStyle} onClick={openResultsModal}>See or Add more</button>
+                                </div>
                             </div>
-                            <div className="item">
-                                <p style={{ marginBottom: "20px" }}>Attendance List</p>
-                                <p>Total : {attendees.length}</p>
-                                <button css={buttonStyle} onClick={openAttendeeModal}>Add an attendee</button>
-                            </div>
-                            
                         </div>
                         
                     </div>
                     <div className="rightSide">
                         <div className="scheduleContainer">
                             <p>Schedule</p>
-                            <div className="input" style={{ marginTop: "20px", marginBottom: "10px" }}>
+                            <div className="scheduleTopSide" css={scheduleTopSideStyle}>
+                                <div className="typeContainer" style={{position: "relative"}}>
+                                    <p>Type</p>
+                                    <DropdownComponent selectedValue={type} setSelectedValue={setType} />
+                                </div>
+                                <div className="timeContainer" style={{ marginBottom: "20px" }} css={timeContainerStyle}>
+                                    <p>Time</p>
+                                    <input type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="locationContainer" style={{ marginBottom: "20px" }} css={locationContainerStyle}>
                                 <p>Location</p>
                                 <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
                             </div>
-                            <div className="input" style={{ marginBottom: "20px" }}>
-                                <p>Time</p>
-                                <input type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />
-                            </div>
+                            
                         </div>
-                        <div className="typeContainer">
-                            <p>Type</p>
-                            <div className="input" style={{ marginTop: "20px", marginBottom: "10px" }}>
-                                <p>Documentation Type</p>
-                                <select name="" id="" value={type} onChange={(e) => setType(e.target.value)}>
-                                    <option value="Meeting">Meeting</option>
-                                    <option value="Discussion">Discussion</option>
-                                    <option value="Evaluation">Evaluation</option>
-                                </select>
+                        <p className="header" style={{marginBottom: "20px", fontSize: "19px"}}>Snapshot</p>
+                        <div className="snapshotItemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                            <div className="item">
+                                <p>Attendees <span style={{color: "#49A8FF"}}>({attendees.length})</span></p>
+                                <button css={buttonStyle} onClick={openAttendeeModal}>See or Add more</button>
+                            </div>
+                            <div className="item">
+                                <p>Pictures <span style={{color: "#49A8FF"}}>({pictures.length})</span></p>
+                                <button css={buttonStyle} onClick={openPicturesModal}>See or Add more</button>
                             </div>
                         </div>
 
@@ -726,22 +937,34 @@ const AddNewDocumentationBox = () => {
                             <p className="headerp">Add an Attendee</p>
                             <button css={closeButtonStyle} onClick={closeAttendeeModal}>x</button>
                         </div>
+                        <div className="inputAndButtonContainer" css={inputAndButtonContainerStyle}>
+                            <p>Attendee</p>
+                            <input
+                                type="text"
+                                placeholder="New Attendee"
+                                value={newAttendee}
+                                onChange={(e) => setNewAttendee(e.target.value)}
+                                css={inputStyle}
+                            />
+                        </div>
+                        <div className="buttonContainer" style={{display: "flex", justifyContent: "end", paddingRight: "20px", boxSizing: "border-box"}}>
+                            <button type="button" css={addButtonStyle} onClick={handleAddAttendee}>
+                                Add
+                            </button>
+                        </div>
                         <form css={modalFormStyle}>
-                            <div className="modalHeader" style={{display: "flex", justifyContent: "space-between"}}>
-                                <p>Add</p>
-                                <Icon icon={"zondicons:add-outline"} onClick={addAttendee} cursor={"pointer"} />
-                            </div>
-                            <hr />
                             <div className="modalBox" css={modalBoxStyle}>
                                 {attendees.map((attendee, index) => (
                                     <div key={index} className="attendeeInputContainer" css={attendeeInputContainerStyle}>
-                                        <input
-                                            type="text"
-                                            placeholder={`Attendee ${index + 1}`}
-                                            value={attendee}
-                                            onChange={(e) => handleAttendeeChange(index, e)}
-                                            css={inputStyle}
-                                        />
+                                        <div className="inputNumContainer" style={{display: "grid", width: "100%", height: "auto", gridTemplateColumns: "0.1fr 1fr 1fr", paddingLeft: "10px", alignItems: "center"}}>
+                                            <p>{index + 1}</p>
+                                            <input
+                                                placeholder={`Attendee ${index + 1}`}
+                                                value={`${attendee}`}
+                                                onChange={(e) => handleAttendeeChange(index, e)}
+                                                css={inputStyle}
+                                            />
+                                        </div>
                                         <Icon
                                             icon="mdi:delete"
                                             color="#51587E"
@@ -827,6 +1050,123 @@ const AddNewDocumentationBox = () => {
                     </div>
                 </div>
             )}
+            {isResultsModalOpen && (
+                <div css={modalStyle}>
+                    <div css={modalContentStyle} ref={attendeeModalRef}>
+                        <div className="modalHeader" css={modalHeaderStyle}>
+                            <p className="headerp">Add a Result</p>
+                            <button css={closeButtonStyle} onClick={closeResultsModal}>x</button>
+                        </div>
+                        <div className="inputAndButtonContainer" css={inputAndButtonContainerStyle}>
+                            <p>Results</p>
+                            <input
+                                type="text"
+                                placeholder="New Result"
+                                value={newResult}
+                                onChange={(e) => setNewResult(e.target.value)}
+                                css={inputStyle}
+                            />
+                        </div>
+                        <div className="buttonContainer" style={{display: "flex", justifyContent: "end", paddingRight: "20px", boxSizing: "border-box"}}>
+                            <button type="button" css={addButtonStyle} onClick={handleAddResult}>
+                                Add
+                            </button>
+                        </div>
+                        <form css={modalFormStyle}>
+                            <div className="modalBox" css={modalBoxStyle}>
+                                {results.map((result, index) => (
+                                    <div key={index} className="attendeeInputContainer" css={attendeeInputContainerStyle}>
+                                        <div className="inputNumContainer" style={{display: "grid", width: "100%", height: "auto", gridTemplateColumns: "0.1fr 1fr 1fr", paddingLeft: "10px", alignItems: "center"}}>
+                                            <p>{index + 1}</p>
+                                            <input
+                                                placeholder={`Result ${index + 1}`}
+                                                value={`${result}`}
+                                                onChange={(e) => handleResultChange(index, e)}
+                                                css={inputStyle}
+                                            />
+                                        </div>
+                                        <Icon
+                                            icon="mdi:delete"
+                                            color="#51587E"
+                                            fontSize={25}
+                                            className="removeIcon"
+                                            onClick={() => handleRemoveResult(index)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {isPicturesModalOpen && (
+                <div css={modalStyle}>
+                    <div css={modalContentStyle} ref={attendeeModalRef}>
+                        <div className="modalHeader" css={modalHeaderStyle}>
+                            <p className="headerp">Add a Picture</p>
+                            <button css={closeButtonStyle} onClick={closePicturesModal}>x</button>
+                        </div>
+                        <div className="inputContainer" style={{ position: "relative", height: "60px", border: "1px solid #ACACAC", margin: "20px", boxSizing: "border-box", display: "flex", alignItems: "center" }}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePictureChange}
+                                style={{
+                                    position: "absolute",
+                                    width: "100%",
+                                    height: "100%",
+                                    boxSizing: "border-box",
+                                    top: 0, left: 0, opacity: 0, zIndex: 2, cursor: "pointer",
+                                }}
+                            />
+                            <div className="labelContainer" style={{ position: "absolute", right: "0px", display: "flex", padding: "10px", boxSizing: "border-box", backgroundColor: "#F0ECEC", alignItems: "center", height: "100%", zIndex: 1, cursor: "pointer" }}>
+                                <label
+                                    htmlFor="input"
+                                    style={{
+                                        borderRadius: "5px",
+                                        cursor: "pointer",
+                                        display: "inline-block"
+                                    }}
+                                >
+                                    Browse
+                                </label>
+                            </div>
+                            {fileName && (
+                                <div style={{ marginLeft: "10px", padding: "10px", boxSizing: "border-box", zIndex: 1 }}>
+                                    {fileName}
+                                </div>
+                            )}
+                        </div>
+
+
+                        <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", paddingRight: "20px", boxSizing: "border-box" }}>
+                            <button type="button" css={addButtonStyle} onClick={handleAddPicture}>
+                                Add
+                            </button>
+                        </div>
+                        <form css={modalFormStyle}>
+                            <div className="modalBox" css={modalBoxStyle}>
+                                <div className="pictureGridContainer" css={pictureGridContainerStyle}>
+                                    {pictures.map((picture, index) => (
+                                        <div key={index} className="pictureGridItem" css={pictureGridItemStyle}>
+                                            <img src={picture} alt={`Picture ${index + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "5px" }} />
+                                            <Icon
+                                                icon="mdi:delete"
+                                                color="#51587E"
+                                                fontSize={25}
+                                                className="removeIcon"
+                                                onClick={() => handleRemovePicture(index)}
+                                                css={deleteIconStyle}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
         </main>
     );
 }

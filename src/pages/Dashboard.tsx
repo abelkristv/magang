@@ -11,7 +11,7 @@ import StudentListBox from '../components/StudentList/StudentListBox';
 import ProfileBox from '../components/ProfileBox';
 import DocumentationBox from '../components/Documentation/DocumentationBox';
 import StudentDetailBox from '../components/StudentDetail/StudentDetailBox';
-import AddNewDocumentationBox from '../components/AddNewDocumentationbox';
+import AddNewDocumentationBox from '../components/Documentation/AddNewDocumentationbox';
 import { useAuth } from '../helper/AuthProvider'; // Import the authentication provider
 
 const Dashboard = () => {
