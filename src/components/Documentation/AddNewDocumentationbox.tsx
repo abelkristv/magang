@@ -343,6 +343,7 @@ const AddNewDocumentationBox = () => {
         p {
             text-align: start;
             font-size: 20px;
+            font-weight: 300;
         }
     `;
 

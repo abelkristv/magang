@@ -6,12 +6,13 @@ export const Main = styled.main`
     height: 100%;
     padding: 40px 43px;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow: hidden;
 `;
 
 export const NavSide = styled.div`
     display: flex;
     justify-content: space-between;
+    background-color: white;
 
     p {
         text-align: start;
@@ -25,11 +26,15 @@ export const ContentSide = styled.div`
 
 export const UserCard = styled.div`
     display: flex;
+    items-align: center;
+    justify-content: center;
     gap: 20px;
     box-shadow: 0px 0px 5px 1px #dbdbdb;
     border-radius: 10px;
     width: 100%;
     min-width: 900px;
+    position: relative;
+    margin-top: -1rem;
 
     img {
         width: 160px;
@@ -44,7 +49,11 @@ export const UserDesc = styled.div`
     flex-direction: column;
     width: 100%;
     text-align: left;
-    padding: 20px;
+    padding: 15px;
+    padding-left: 5px;
+    height: 100%;
+    justify-content: center;
+    items-align: center;
 `;
 
 export const InfoContainer = styled.div`
@@ -54,8 +63,15 @@ export const InfoContainer = styled.div`
     color: black;
 `;
 
+export const InfoContainer2 = styled.div`
+    display: flex;
+
+    width: 100%;
+    color: black;
+`;
+
 export const Information = styled.div`
-    margin-top: 20px;
+    margin-top: 15px;
     color: #51587E;
     display: flex;
     flex-direction: column;
@@ -64,15 +80,15 @@ export const Information = styled.div`
 
 export const GreaterInformationContainer = styled.div`
     display: flex;
-    justify-content: space-between;
-    font-size: 17px;
+    font-size: 15px;
 
     .left-side {
-        width: 50%;
+        width: 48%;
     }
 
     .right-side {
-        width: 46%;
+        width: 53%;
+        margin-left: -5%;
     }
 `;
 
@@ -87,36 +103,48 @@ export const Filter = styled.div`
 
     select {
         padding: 10px;
-        font-size: 18px;
-        border: none;
+        font-size: 15px;
+        border: 1px solid #ccc;
         border-radius: 5px;
+        cursor: pointer;
+        background-color: #EBEBEB;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 200px;
     }
 `;
 
 export const BottomContentContainer = styled.div`
     display: flex;
-    margin-top: 15px;
+    justify-content: space-between;
+    margin-top: 20px;
     gap: 50px;
 
     .left-side {
-        width: 60%;
+        width: 63%;
     }
 
     .right-side {
-        width: 40%;
+        width: 37%;
     }
 `;
 
 export const Dropdown = styled.div`
-    position: relative;
-    display: flex;
-    background-color: #EBEBEB;
     padding: 10px;
-    width: 200px;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 10px;
-    cursor: pointer;
+        font-size: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 200px;
+        background-color: #EBEBEB;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+`;
+
+export const DropdownFilterOption = styled.option`
+    font-size: 15px;
 `;
 
 export const DropdownContent = styled.div<{ isOpen: boolean }>`
@@ -128,11 +156,11 @@ export const DropdownContent = styled.div<{ isOpen: boolean }>`
     text-align: start;
     position: absolute;
     top: 120%;
-    left: -49%;
-    width: 400px;
+    left: -43%;
+    width: 375px;
     padding: 20px;
     border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     z-index: 10;
 `;
 
@@ -141,7 +169,7 @@ export const Button = styled.button`
     background-color: #49A8FF;
     padding: 10px;
     color: white;
-    border-radius: 10px;
+    border-radius: 6px;
     font-weight: 600;
     font-size: 20px;
     margin-top: 40px;
@@ -153,12 +181,13 @@ export const Button = styled.button`
 `;
 
 export const ReportItem = styled.div`
-    border-bottom: 1px solid #ebebeb;
-    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0, 0.3);
+    padding: 10px 0 30px 0;
     display: flex;
     flex-direction: column;
     text-align: left;
     gap: 5px;
+    margin-bottom: 18px;
 
     .report-writer {
         font-weight: bold;
@@ -196,12 +225,11 @@ export const ReportItem = styled.div`
 `;
 
 export const ButtonWhite = styled.button`
-    padding: 6px;
-    border: 2px solid #49A8FF;
-    border-radius: 5px;
-    font-weight: 600;
-    margin-top: 10px;
-    width: 200px;
+    border: 1.4px solid #49A8FF;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    width: fit-content;
     color: #49A8FF;
     background-color: white;
 
@@ -225,11 +253,6 @@ export const ExpandedCard = styled.div`
     padding: 10px 0px 0px 50px;
     border-radius: 10px;
     margin-top: 0px;
-
-    .meeting-description {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
 `;
 
 export const Placeholder = styled.div`

@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 
 import { css } from "@emotion/react";
+import { Icon } from "@iconify/react/dist/iconify.js";
 import { useEffect, useRef, useState } from "react";
 
 const ExportModal = ({ isOpen, onClose, onExport }) => {
@@ -32,7 +33,17 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
         const end = new Date(endDate);
         const diffTime = Math.abs(end - start);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 31;
+
+        if (end < start) {
+            setError('The end date cannot be earlier than the start date.');
+            return false;
+        } else if (diffDays > 31) {
+            setError('The end date must be within one month from the start date.');
+            return false;
+        }
+
+        setError('');
+        return true;
     };
 
     const handleSubmit = (e) => {
@@ -40,8 +51,6 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
         if (validateDates()) {
             onExport({ startDate, endDate });
             onClose();
-        } else {
-            setError('The end date must be within one month from the start date.');
         }
     };
 
@@ -61,6 +70,7 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
     `;
 
     const modalContentStyle = css`
+        margin-bottom: 3rem;
         background: white;
         border-radius: 10px;
         width: 557px;
@@ -73,7 +83,7 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
             margin: 0px;
             border-radius: 10px 10px 0px 0px;
             background-color: #ebebeb;
-            padding: 10px;
+            padding: 10px 14px;
             font-size: 19px;
             font-weight: medium;
         }
@@ -89,12 +99,13 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
     const buttonStyle = css`
         background-color: #49A8FF;
         color: white;
-        padding: 10px;
-        width: 50%;
+        padding: 10px 20px;
+        height: auto;
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 17px;
+        font-weight: 500;
         &:hover {
             background-color: #68b5fc;
         }
@@ -103,13 +114,13 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
     const formStyle = css`
         display: flex;
         flex-direction: column;
-        gap: 20px;
         padding: 20px;
+        padding-top: 0;
 
         p {
             text-align: start;
         }
-    `
+    `;
 
     const modalHeaderStyle = css`
         display: flex;
@@ -117,60 +128,70 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
         padding-right: 10px;
         align-items: center;
         background-color: #F0ECEC;
-
         border-radius: 10px 10px 0px 0px;
 
         .headerp {
+            margin-left: 5px;
             margin-bottom: 0px;
         }
     `;
 
     const closeButtonStyle = css`
-        background: none;
-        border: none;
         cursor: pointer;
-        font-size: 20px;
-        font-weight: bold;
-        color: #888;
+    `;
+
+    const popupHeaderStyle = css`
+        font-size: 17px;
+        margin-bottom: 12px;
+    `;
+
+    const errorStyle = css`
+        color: red;
+        font-size: 13px;
+        text-align: center;
     `;
 
     return (
         <div css={modalStyle}>
             <div ref={modalRef} css={modalContentStyle}>
                 <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp">Export to Excel</p>
-                    <button css={closeButtonStyle} onClick={onClose}>x</button>
+                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Export to Excel</p>
+                    <Icon icon="mdi:close" onClick={onClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
                 <form onSubmit={handleSubmit} css={formStyle}>
+                    <p css={popupHeaderStyle}>Period</p>
                     <div className="content" style={{display: "flex", justifyContent: "space-between"}}>
-                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%"}}>
+                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%", fontSize:"15px"}}>
                             <p>Start</p>
                             <input 
                                 type="date" 
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                                 css={inputStyle}
+                                style={{width:"14.3rem", fontSize:"15px"}}
                                 required
                             />
                         </div>
-                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%"}}>
+                        <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%", fontSize:"15px"}}>
                             <p>End</p>
                             <input 
                                 type="date" 
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 css={inputStyle}
+                                style={{width:"14.3rem", fontSize:"15px"}}
                                 required
                             />
                         </div>
                     </div>
-                    {error && <p style={{color: 'red'}}>{error}</p>}
-                    <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
-                        <button type="submit" css={buttonStyle}>
-                            Export
-                        </button>
+                    <div style={{marginTop: "2.2rem", display:"flex", flexDirection:"column", alignItems:"center"}}>
+                        {error && <p css={errorStyle}>{error}</p>}
+                        <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
+                            <button type="submit" css={buttonStyle}>
+                                Export
+                            </button>
+                        </div>
                     </div>
-                    
                 </form>
             </div>
         </div>

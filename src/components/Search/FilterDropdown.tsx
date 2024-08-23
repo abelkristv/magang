@@ -78,7 +78,7 @@ const dropdownContentStyle = (isDropdownOpen: boolean) => css`
         font-size: 17px;
         padding: 11px;
         box-sizing: border-box;
-        font-weight: 600;
+        font-weight: 500;
         background-color: #000000;
         color: white;
         border: none;
@@ -90,6 +90,7 @@ const dropdownContentStyle = (isDropdownOpen: boolean) => css`
         }
     }
 `;
+
 
 const FilterDropdown = ({
     isDropdownOpen,
@@ -110,15 +111,15 @@ const FilterDropdown = ({
 
     return (
         <div className="filterView" css={filterViewStyle}>
-            <p>Filter View: </p>
+            <p>Filter by: </p>
             <div className="dropdown" css={dropdownStyle} onClick={toggleDropdown}>
                 <p>All Students</p>
-                <Icon icon={"weui:arrow-filled"} rotate={45} />
+                <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} />
             </div>
             <div className="dropdown-content" css={dropdownContentStyle(isDropdownOpen)}>
                 <p>Period</p>
-                <select value={tempSelectedPeriod} onChange={handleTempPeriodChange}>
-                    <option value="">All</option>
+                <select value={tempSelectedPeriod} onChange={handleTempPeriodChange} >
+                    <option value="" >All</option>
                     {periods.map((period, index) => (
                         <option key={index} value={period}>{period}</option>
                     ))}
@@ -144,7 +145,7 @@ const FilterDropdown = ({
                 <div 
                     className="buttonContainer"
                     style={{display: "flex", justifyContent: "end"}}>
-                    <button onClick={handleApplyFilters}>Apply</button>
+                    <button onClick={handleApplyFilters} style={{backgroundColor: '#49A8FF'}}>Apply</button>
                 </div>
             </div>
         </div>
