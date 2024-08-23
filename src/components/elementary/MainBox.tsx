@@ -21,6 +21,7 @@ const MainBox = ({navText,  children}: MainBoxProps) => {
         p {
             text-align: start;
             font-size: 20px;
+            font-weight: 300;
         }
     `
 

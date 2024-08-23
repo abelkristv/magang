@@ -24,11 +24,12 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
         height: 100%;
         padding: 20px;
         box-sizing: border-box;
-        min-width: ${'305px'};
+        min-width: ${'300px'};
+        max-width: ${'303px'};
         background-image: url(${sidebarBackground});
         background-size: cover;
         background-position: center;
-        box-shadow: inset 0px 0px 400px 110px rgba(0, 0, 0, .7);
+        box-shadow: inset 0px 0px 400px 110px rgba(0, 0, 0, .68);
     `;
 
     const enrichmentDocumentationStyle = css`
@@ -37,6 +38,8 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
         color: white;
         text-align: start;
         font-size: 13px;
+        padding-right: 9px;
+        padding-left: 9px;
 
         h2 {
             font-weight: 500;
@@ -45,9 +48,10 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
 
     const sidebarContentContainerStyle = (isActive: boolean) => css`
         width: 100%;
+        height: 57px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
         background-color: ${isActive ? 'white' : 'transparent'};
         color: ${isActive ? 'black' : 'white'};
         padding: 15px;
@@ -72,7 +76,9 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
 
         hr {
             width: 100%;
+            height: 0.09px;
             background-color: white;
+            border: none;
         }
     `;
 
@@ -80,8 +86,9 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
         display: flex;
         width: 100%;
         padding: 15px;
-        gap: 15px;
-        font-size: 20px;
+        padding-left: 19.5px;
+        gap: 18px;
+        font-size: 16px;
         align-items: center;
         font-weight: 400;
         border: none;
@@ -94,6 +101,13 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
         flex-direction: column;
         gap: 10px;
     `;
+
+    const linkStyle = (isActive: boolean) => css`
+        color: ${isActive ? 'black' : 'white'};
+        text-decoration: none;
+        font-weight: ${isActive ? '500' : '300'};
+    `;
+
 
     const handleLogout = async () => {
         try {
@@ -110,7 +124,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
             <div className="top-side" css={topSideStyle}>
                 <div className="enrichmentDokum">
                     <div className="enrichmentDocumentationStyle" css={enrichmentDocumentationStyle}>
-                        <h2>Enrichment Documentation</h2>
+                        <h2 style={{fontWeight: '400'}}>Enrichment Documentation</h2>
                         <img src={binusLogo} alt="" width={50} height={50} />
                     </div>
                     <hr />
@@ -122,7 +136,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                         onClick={() => setActiveTab("Dashboard")}
                     >
                         <Icon icon={"ic:round-dashboard"} color={activeTab === "Dashboard" ? "black" : "white"} fontSize={25} />
-                        <a href="#">Dashboard</a>
+                        <a href="#" css={linkStyle(activeTab === "Dashboard")}>Dashboard</a>
                     </div>
                     <div
                         className="sidebarContentContainer"
@@ -133,7 +147,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                         }}
                     >
                         <Icon icon={"material-symbols:search"} color={activeTab === "Search" ? "black" : "white"} fontSize={25} />
-                        <a href="#">Search</a>
+                        <a href="#" css={linkStyle(activeTab === "Search")}>Search</a>
                     </div>
                 </div>
                 <hr />
@@ -147,7 +161,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                         }}
                     >
                         <Icon icon={"pepicons-pop:people"} color={activeTab === "Student List" ? "black" : "white"} fontSize={25} />
-                        <a href="#">Student List</a>
+                        <a href="#" css={linkStyle(activeTab === "Student List")}>Student List</a>
                     </div>
                     <div
                         className="sidebarContentContainer"
@@ -155,7 +169,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                         onClick={() => setActiveTab("Documentation")}
                     >
                         <Icon icon={"material-symbols:book"} color={activeTab === "Documentation" ? "black" : "white"} fontSize={25} />
-                        <a href="#">Documentation</a>
+                        <a href="#" css={linkStyle(activeTab === "Documentation")}>Documentation</a>
                     </div>
                 </div>
                 <hr />
@@ -165,11 +179,11 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                     onClick={() => setActiveTab("Profile")}
                 >
                     <Icon icon={"material-symbols:face"} color={activeTab === "Profile" ? "black" : "white"} fontSize={25} />
-                    <a href="#">Profile</a>
+                    <a href="#" css={linkStyle(activeTab === "Profile")}>Profile</a>
                     {todayReportsCount > 0 && ( // Display report count if greater than 0
-                        <div className="notificationContainer" style={{display: "flex", width: "100%", justifyContent: "end", position: "relative", alignItems: "center"}}>
-                            <Icon icon={"clarity:notification-solid"} fontSize={24} />
-                            <span style={{ color: 'red', borderRadius: '50%', position: "absolute", top: "-8px", right: "-7px"}}>
+                        <div className="notificationContainer" style={{display: "flex", width: "50%", justifyContent: "end", position: "relative", alignItems: "center", paddingRight: '8px'}}>
+                            <Icon icon={"clarity:notification-solid"} fontSize={22} color={activeTab === "Profile" ? "51587E" : "white"} />
+                            <span style={{ color: 'red', borderRadius: '50%', position: "absolute", top: "-8px", right: "4px"}}>
                                 {todayReportsCount}
                             </span>
                         </div>

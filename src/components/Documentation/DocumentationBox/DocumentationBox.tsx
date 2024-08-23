@@ -325,6 +325,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         p {
             text-align: start;
             font-size: 20px;
+            font-weight: 300;
         }
     `;
 

@@ -186,6 +186,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         p {
             text-align: start;
             font-size: 20px;
+            font-weight: 300;
         }
     `;
 
@@ -210,14 +211,14 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     const studentRow = css`
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: 40px;
+        gap: 35px;
         margin-top: 40px;
     `;
 
     const cardStyle = css`
         background-color: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
         padding: 20px;
         box-sizing: border-box;
         box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.25);
@@ -353,15 +354,16 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
             font-size: 17px;
             padding: 11px;
             box-sizing: border-box;
-            font-weight: 600;
-            background-color: #000000;
+            font-weight: 500;
+            background-color: #49A8FF;
             color: white;
             border: none;
             border-radius: 10px;
+            transition: 0.15s ease all;
 
             &:hover {
                 cursor: pointer;
-                background-color: #363636;
+                background-color: #68b5fc;
             }
         }
     `;
@@ -392,7 +394,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
     return (
         <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
-                <p>Student List</p>
+                <p style={{fontWeight: "300"}}>Student List</p>
             </div>
             <div className="contentSide" css={contentSide}>
                 <div className="searchRow" css={searchRow}>
@@ -400,10 +402,10 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                         Total: {filteredStudents.length}
                     </div>
                     <div className="filterView" css={filterViewStyle}>
-                        <p>Filter By: </p>
+                        <p style={{fontSize:"15px"}} >Filter By: </p>
                         <div className="dropdown" css={dropdownStyle} onClick={toggleDropdown}>
                             <p>All Students</p>
-                            <Icon icon={"weui:arrow-filled"} rotate={45} />
+                            <Icon style={{fontSize:"10px"}} icon={"weui:arrow-filled"} rotate={45} />
                         </div>
                         <div className="dropdown-content" css={dropdownContentStyle}>
                             <p>Period</p>
@@ -458,9 +460,9 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                                     <img src={student.image_url} alt={student.name} />
                                     <div className="student-description" css={cardStudentDescription}>
                                         <div className="text">
-                                            <p style={{ fontSize: "18px" }}>{student.name}</p>
+                                            <p style={{ fontSize: "18px", fontWeight: "500" }}>{student.name}</p>
                                             <p style={{ color: "#49A8FF", fontSize: "16px" }}>{student.nim}</p>
-                                            <p style={{ fontSize: "13px" }}>{student.major}</p>
+                                            <p style={{ fontSize: "13px", fontWeight: "500" }}>{student.major}</p>
                                         </div>
                                     </div>
                                 </div>
