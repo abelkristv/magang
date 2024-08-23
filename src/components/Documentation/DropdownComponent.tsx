@@ -9,13 +9,13 @@ export const Dropdown = styled.div`
     border: 1px solid #ACACAC;
     padding: 10px;
     box-sizing: border-box;
-    width: 200px;
+    width: 100%;
     height: 47px;
     justify-content: space-between;
     align-items: center;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 10px;
+    // margin-top: 10px;
 `;
 
 export const DropdownContent = styled.div<{ isOpen: boolean }>`
@@ -28,13 +28,13 @@ export const DropdownContent = styled.div<{ isOpen: boolean }>`
     position: absolute;
     top: 95%;
     left: 0;
-    width: 250px;
-    // padding: 20px;
+    width: 100%;
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 10;
     p {
-        padding: 20px;
+        padding: 10px;
+        margin: 0;
     }
     p:hover {
         background-color: #49A8FF;
@@ -43,29 +43,36 @@ export const DropdownContent = styled.div<{ isOpen: boolean }>`
     }
 `;
 
-const DropdownComponent = ({ selectedValue, setSelectedValue }) => {
+interface DropdownComponentProps {
+    selectedValue: string;
+    setSelectedValue: (value: string) => void;
+    options: string[];
+}
+
+const DropdownComponent: React.FC<DropdownComponentProps> = ({ selectedValue, setSelectedValue, options }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const handleDropdownClick = () => {
-        console.log("test")
         setIsDropdownOpen(!isDropdownOpen);
     };
 
-    const handleOptionClick = (value) => {
+    const handleOptionClick = (value: string) => {
         setSelectedValue(value);
         setIsDropdownOpen(false);
     };
 
     return (
-        <div>
+        <div style={{ position: 'relative' }}>
             <Dropdown onClick={handleDropdownClick}>
                 <p>{selectedValue}</p>
                 <Icon icon={"weui:arrow-filled"} rotate={isDropdownOpen ? 180 : 0} />
             </Dropdown>
             <DropdownContent isOpen={isDropdownOpen}>
-                <p onClick={() => handleOptionClick("Meeting")}>Meeting</p>
-                <p onClick={() => handleOptionClick("Discussion")}>Discussion</p>
-                <p onClick={() => handleOptionClick("Evaluation")}>Evaluation</p>
+                {options.map((option, index) => (
+                    <p key={index} onClick={() => handleOptionClick(option)}>
+                        {option}
+                    </p>
+                ))}
             </DropdownContent>
         </div>
     );

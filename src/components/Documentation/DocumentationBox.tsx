@@ -7,17 +7,19 @@ import { collection, query, getDocs, where } from "firebase/firestore";
 import { db } from "../../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useAuth } from '../../helper/AuthProvider';
-import { fetchUser } from '../../controllers/UserController';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { fetchAllDocumentation } from "../../controllers/DocumentationController";
 import AttendanceTable from "./AttendanceTable";
 import DiscussionDetails from "./DiscussionDetails";
+import DiscussionResultsTable from "./DiscussionResultsTable";
+import ImageGallery from "./ImageGallery";
+import { fetchUser } from "../../controllers/UserController";
 
 const DocumentationBox = ({ setGlobalActiveTab }) => {
     const [date, setDate] = useState(new Date());
     const [selectedButton, setSelectedButton] = useState('All');
-    const [documentations, setDocumentations] = useState<Documentation[]>([]);
+    const [documentations, setDocumentations] = useState([]);
     const [filteredDocumentations, setFilteredDocumentations] = useState([]);
     const [selectedDocumentation, setSelectedDocumentation] = useState(null);
     const [activeTab, setActiveTab] = useState('discussion');
@@ -27,7 +29,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     const [exportStartDate, setExportStartDate] = useState('');
     const [exportEndDate, setExportEndDate] = useState('');
     const [exportType, setExportType] = useState('All');
-    const [docDates, setDocDates] = useState([]); // New state for dates with documentation
+    const [docDates, setDocDates] = useState([]);
     const userAuth = useAuth();
     const modalRef = useRef(null);
 
@@ -102,7 +104,6 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         };
     }, [isExportModalOpen]);
 
-    // Automatically select the first documentation when filteredDocumentations changes
     useEffect(() => {
         if (filteredDocumentations.length > 0) {
             setSelectedDocumentation(filteredDocumentations[0]);
@@ -138,28 +139,27 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     const closeExportModal = () => setIsExportModalOpen(false);
 
     const exportToExcel = async () => {
-        // Filter documentation based on export settings
         const startDate = new Date(exportStartDate);
         const endDate = new Date(exportEndDate);
         const filteredDocs = documentations.filter(doc => {
             const docDate = new Date(doc.timestamp.seconds * 1000);
             return docDate >= startDate && docDate <= endDate && (exportType === 'All' || doc.type === exportType);
         });
-    
+
         const meetingCount = filteredDocs.filter(doc => doc.type === 'Meeting').length;
         const discussionCount = filteredDocs.filter(doc => doc.type === 'Discussion').length;
         const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
-    
+
         const summaryData = [
             ['Enrichment Activity Documentation Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Start Date', exportStartDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Meeting Count', meetingCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Discussion Count', discussionCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Evaluation Count', evaluationCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             [],
         ];
-    
+
         const headers = [
             'Title',
             'Nomor Undangan',
@@ -172,12 +172,12 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             'Discussion Details',
             'Attendance List'
         ];
-    
+
         const data = await Promise.all(filteredDocs.map(async (doc) => {
             const q = query(collection(db, "discussionDetails"), where("docID", "==", doc.id));
             const querySnapshot = await getDocs(q);
             const details = querySnapshot.docs.map(detail => detail.data());
-    
+
             return [
                 doc.title,
                 doc.nomor_undangan,
@@ -191,12 +191,12 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                 doc.attendanceList.join(', '),
             ];
         }));
-    
+
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet([...summaryData, headers, ...data]);
-    
+
         XLSX.utils.book_append_sheet(wb, ws, "Documentation");
-    
+
         const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
         const s2ab = (s) => {
             const buf = new ArrayBuffer(s.length);
@@ -204,9 +204,9 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
             return buf;
         };
-    
+
         saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "documentation.xlsx");
-    
+
         closeExportModal();
     };
 
@@ -518,6 +518,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         display: flex;
         flex-direction: column;
         gap: 10px;
+        width: 45%;
         margin-top: 10px;
     `
 
@@ -566,13 +567,6 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                                             </div>
                                             <p>{selectedDocumentation.leader}</p>
                                         </div>
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
-                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
-                                                <Icon icon={"ion:archive"} fontSize={22} color="#51587E"/>
-                                                <p>Archiver</p>
-                                            </div>
-                                            <p>{selectedDocumentation.writer}</p>
-                                        </div>
 
                                         <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
                                             <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
@@ -581,15 +575,16 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                                             </div>
                                             <p>{selectedDocumentation.type}</p>
                                         </div>
-                                    </div>
-                                    <div className="informationRightSide" css={informationStyle}>
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
                                             <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
                                                 <Icon icon={"ic:outline-place"} fontSize={22} color="#51587E"/>
                                                 <p>Place</p>
                                             </div>
                                             <p>{selectedDocumentation.place}</p>
                                         </div>
+                                    </div>
+                                    <div className="informationRightSide" css={informationStyle}>
+                                        
                                         <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
                                             <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
                                                 <Icon icon={"clarity:date-line"} fontSize={22} color="#51587E"/>
@@ -604,13 +599,15 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                                             </div>
                                             <p>{formatTime(selectedDocumentation.timestamp)}</p>
                                         </div>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                            {/* Placeholder for spacing */}
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 
                                 
                                 <p style={{marginTop: "20px"}}>{selectedDocumentation.description}</p>
-                                {/* Tabs for Discussion Details and Attendance List */}
                                 <div className="tabs" css={tabContainerStyle}>
                                     <div
                                         className={`tab ${activeTab === 'discussion' ? 'active' : ''}`}
@@ -624,16 +621,32 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                                     >
                                         Attendance List
                                     </div>
+                                    <div
+                                        className={`tab ${activeTab === 'images' ? 'active' : ''}`}
+                                        onClick={() => handleTabClick('images')}
+                                    >
+                                        Images
+                                    </div>
+                                    <div
+                                        className={`tab ${activeTab === 'results' ? 'active' : ''}`}
+                                        onClick={() => handleTabClick('results')}
+                                    >
+                                        Discussion Results
+                                    </div>
                                 </div>
                                 <div className="tabContent" css={tabContentStyle}>
                                     {activeTab === 'discussion' ? (
                                         <DiscussionDetails discussionDetails={discussionDetails} formatDate={formatDate} />
-                                    ) : (
+                                    ) : activeTab === 'attendance' ? (
                                         <AttendanceTable
                                             sortedAttendanceList={sortedAttendanceList}
                                             handleSort={handleSort}
                                             getSortArrow={getSortArrow}
                                         />
+                                    ) : activeTab === 'images' ? (
+                                        <ImageGallery images={selectedDocumentation.pictures} />
+                                    ) : (
+                                        <DiscussionResultsTable results={selectedDocumentation.results} />
                                     )}
                                 </div>
                             </>
@@ -647,7 +660,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                         onChange={setDate}
                         value={date}
                         css={calendarStyle}
-                        tileContent={tileContent} // Add this prop
+                        tileContent={tileContent}
                     />
                     <div className="buttonGrid" css={buttonGridStyle}>
                         <button
