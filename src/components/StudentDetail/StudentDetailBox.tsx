@@ -6,11 +6,12 @@ import { collection, doc, getDoc, getDocs, query, where, addDoc, deleteDoc, upda
 import { db } from "../../firebase";
 import Student from "../../model/Student";
 import { fetchUser } from "../../controllers/UserController";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import User from "../../model/User";
 import Modal from "./Modal";
 import ExportModal from "./ExportModal";
 import AddRecordBox from "./AddARecordBox";
+import { saveAs } from 'file-saver';
 
 interface StudentDetailBoxProps {
     studentId: string;
@@ -292,42 +293,75 @@ const StudentDetailBox = ({ studentId }: StudentDetailBoxProps) => {
         }
     };
 
-    const exportToExcel = (startDate, endDate) => {
+    const exportToExcel = async (startDate, endDate) => {
         const filteredReports = reports.filter(report => {
             const reportDate = new Date(report.data.timestamp.seconds * 1000);
             return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
         });
-
+    
         const reportCount = filteredReports.length;
-
+    
         const summaryData = [
-            ['Student Performance and Behaviour Documentation'],
-            ['Start Date', startDate],
-            ['End Date', endDate],
-            ['Report Count', reportCount.toString()],
+            ['Student Performance and Behaviour Documentation', '', '', ''],
+            ['Start Date', startDate, '', ''],
+            ['End Date', endDate, '', ''],
+            ['Report Count', reportCount.toString(), '', ''],
         ];
-
+    
         const headers = [
             'Writer',
             'Report',
             'Timestamp',
         ];
-
+    
         const data = filteredReports.map(report => ({
             Writer: report.data.writer,
             Report: report.data.report,
             Timestamp: new Date(report.data.timestamp.seconds * 1000).toLocaleString(),
         }));
-
-        const worksheet = XLSX.utils.json_to_sheet([]);
-        XLSX.utils.sheet_add_aoa(worksheet, summaryData);
-        XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: summaryData.length });
-        XLSX.utils.sheet_add_json(worksheet, data, { origin: summaryData.length + 1, skipHeader: true });
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
-
-        XLSX.writeFile(workbook, "StudentReports.xlsx");
+    
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Reports');
+    
+        // Add summary data
+        worksheet.addRows(summaryData);
+    
+        // Define and style header row
+        const headerRow = worksheet.addRow(headers);
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'center' };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            };
+        });
+    
+        // Add data rows
+        data.forEach((rowData) => {
+            const row = worksheet.addRow(Object.values(rowData));
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+            });
+        });
+    
+        // Set column widths for better readability
+        worksheet.columns = [
+            { key: 'Writer', width: 20 },
+            { key: 'Report', width: 30 },
+            { key: 'Timestamp', width: 20 },
+        ];
+    
+        // Export the file
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StudentReports.xlsx');
     };
 
     const handleExportModalClose = () => {
