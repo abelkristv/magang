@@ -17,6 +17,7 @@
     "@iconify/icons-bx": "^1.2.6",
     "@iconify/react": "^5.0.1",
     "emailjs-com": "^3.2.0",
+    "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "firebase": "^10.12.2",
     "fp-ts": "^2.16.9",
@@ -27,9 +28,11 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.1",
     "styled-components": "^6.1.11",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xlsx-styles": "^0.8.21"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",

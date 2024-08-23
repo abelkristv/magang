@@ -57,7 +57,7 @@ const Profile = () => {
 
                 const q = query(
                     collection(db, "studentReport"),
-                    where("writer", "==", email),
+                    // where("writer", "==", email),
                     where("timestamp", ">=", todayStart),
                     where("timestamp", "<=", todayEnd)
                 );

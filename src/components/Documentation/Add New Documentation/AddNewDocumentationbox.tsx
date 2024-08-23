@@ -1,61 +1,80 @@
 /** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
-import { useEffect, useState } from 'react';
-import { collection, query, getDocs, addDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db } from "../../firebase";
-import { useAuth } from '../../helper/AuthProvider';
-import { fetchUser } from '../../controllers/UserController';
-import User from "../../model/User";
-import DropdownComponent from "./DropdownComponent";
+import { useEffect, useState, ChangeEvent } from 'react';
+import { collection, query, getDocs, addDoc, where } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
+import { db } from "../../../firebase";
+import { useAuth } from '../../../helper/AuthProvider';
+import { fetchUser } from '../../../controllers/UserController';
+import User from "../../../model/User";
+import DropdownComponent from "../DocumentationBox/DropdownComponent";
 import AttendeeModal from "./Modal/AttendeeModal";
 import DiscussionModal from "./Modal/DiscussionModal";
 import ResultsModal from "./Modal/ResultsModal";
 import PicturesModal from "./Modal/PicturesModal";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { Button, ContentContainer, ContentSide, DocumentationMeeting, ErrorText, Header, HeaderGrid, LocationContainer, MainContainer, NavSide, RequiredLabel, ScheduleTopSide, TimeContainer, TitleContainer } from "./AddNewDocumentationBox.styles";
 
-const AddNewDocumentationBox = () => {
-    const [date, setDate] = useState(new Date());
-    const [selectedButton, setSelectedButton] = useState('All');
-    const [documentations, setDocumentations] = useState([]);
-    const [filteredDocumentations, setFilteredDocumentations] = useState([]);
-    const [selectedDocumentation, setSelectedDocumentation] = useState(null);
-    const [activeTab, setActiveTab] = useState('discussion');
-    const [discussionDetails, setDiscussionDetails] = useState([]);
-    const [userRole, setUserRole] = useState(null);
-    const [isAttendeeModalOpen, setIsAttendeeModalOpen] = useState(false);
-    const [isDiscussionModalOpen, setIsDiscussionModalOpen] = useState(false);
-    const [modalDiscussionDetails, setModalDiscussionDetails] = useState([]);
-    const [attendees, setAttendees] = useState([]);
-    const [newAttendee, setNewAttendee] = useState(""); // State for the new attendee input
-    const [results, setResults] = useState([]);
-    const [newResult, setNewResult] = useState(""); // State for the new result input
-    const [totalCounter, setTotalCounter] = useState(0); // Counter for total discussion details
-    const [pictures, setPictures] = useState([]);
-    const [newPicture, setNewPicture] = useState(null); // State for the new picture file
-    const [isPicturesModalOpen, setIsPicturesModalOpen] = useState(false);
+interface DiscussionDetail {
+    discussionTitle: string;
+    personResponsible: string;
+    furtherActions: string;
+    deadline: string; 
+}
+
+interface Picture {
+    file: File;
+    url: string;
+}
+
+const AddNewDocumentationBox: React.FC = () => {
+    const [date, setDate] = useState<Date>(new Date());
+    const [selectedButton, setSelectedButton] = useState<string>('All');
+    const [documentations, setDocumentations] = useState<any[]>([]);
+    const [filteredDocumentations, setFilteredDocumentations] = useState<any[]>([]);
+    const [selectedDocumentation, setSelectedDocumentation] = useState<any | null>(null);
+    const [activeTab, setActiveTab] = useState<string>('discussion');
+    const [discussionDetails, setDiscussionDetails] = useState<DiscussionDetail[]>([]);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isAttendeeModalOpen, setIsAttendeeModalOpen] = useState<boolean>(false);
+    const [isDiscussionModalOpen, setIsDiscussionModalOpen] = useState<boolean>(false);
+    const [modalDiscussionDetails, setModalDiscussionDetails] = useState<DiscussionDetail[]>([]);
+    const [attendees, setAttendees] = useState<string[]>([]);
+    const [newAttendee, setNewAttendee] = useState<string>(""); 
+    const [results, setResults] = useState<string[]>([]);
+    const [newResult, setNewResult] = useState<string>(""); 
+    const [totalCounter, setTotalCounter] = useState<number>(0); 
+    const [pictures, setPictures] = useState<Picture[]>([]);
+    const [newPicture, setNewPicture] = useState<File | null>(null); 
+    const [isPicturesModalOpen, setIsPicturesModalOpen] = useState<boolean>(false);
     const userAuth = useAuth();
 
-    const [title, setTitle] = useState("");
-    const [invitationNumber, setInvitationNumber] = useState("");
-    const [description, setDescription] = useState("");
-    const [documentationType, setDocumentationType] = useState("Meeting"); // Default to "Meeting"
-    const [meetingLeader, setMeetingLeader] = useState("");
-    const [discussionTitle, setDiscussionTitle] = useState("");
-    const [personResponsible, setPersonResponsible] = useState("");
-    const [furtherActions, setFurtherActions] = useState("");
-    const [deadline, setDeadline] = useState("");
-    const [location, setLocation] = useState("");
-    const [time, setTime] = useState("");
-    const [type, setType] = useState("Online");
-    const [isEditing, setIsEditing] = useState(false);
-    const [editingIndex, setEditingIndex] = useState(null);
+    const [title, setTitle] = useState<string>("");
+    const [invitationNumber, setInvitationNumber] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [documentationType, setDocumentationType] = useState<string>("Meeting"); 
+    const [meetingLeader, setMeetingLeader] = useState<string>("");
+    const [discussionTitle, setDiscussionTitle] = useState<string>("");
+    const [personResponsible, setPersonResponsible] = useState<string>("");
+    const [furtherActions, setFurtherActions] = useState<string>("");
+    const [deadline, setDeadline] = useState<string>("");
+    const [location, setLocation] = useState<string>("");
+    const [time, setTime] = useState<string>("");
+    const [type, setType] = useState<string>("Online");
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-    const [user, setUser] = useState<User>();
+    const [user, setUser] = useState<User | undefined>();
 
-    const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
+    const [isResultsModalOpen, setIsResultsModalOpen] = useState<boolean>(false);
 
-    const [fileName, setFileName] = useState("");
+    const [fileName, setFileName] = useState<string>("");
+
+    // Error states
+    const [titleError, setTitleError] = useState<string>("");
+    const [documentationTypeError, setDocumentationTypeError] = useState<string>("");
+    const [meetingLeaderError, setMeetingLeaderError] = useState<string>("");
+    const [timeError, setTimeError] = useState<string>("");
+    const [locationError, setLocationError] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -83,7 +102,11 @@ const AddNewDocumentationBox = () => {
     useEffect(() => {
         const fetchUserRole = async () => {
             const user = await fetchUser(userAuth?.currentUser?.email!);
-            setUserRole(user.role);
+            if (user._tag === "Some") {
+                setUserRole(user.value.role);
+            } else {
+                setUserRole(null);
+            }
         };
 
         fetchUserRole();
@@ -102,7 +125,7 @@ const AddNewDocumentationBox = () => {
             const fetchDiscussionDetails = async () => {
                 const q = query(collection(db, "discussionDetails"), where("docID", "==", selectedDocumentation.id));
                 const querySnapshot = await getDocs(q);
-                const details = querySnapshot.docs.map(doc => doc.data());
+                const details = querySnapshot.docs.map(doc => doc.data() as DiscussionDetail);
                 setDiscussionDetails(details);
             };
 
@@ -132,24 +155,24 @@ const AddNewDocumentationBox = () => {
     const handleAddAttendee = () => {
         if (newAttendee.trim() !== "") {
             setAttendees([...attendees, newAttendee]);
-            setNewAttendee(""); // Clear the input field after adding the attendee
+            setNewAttendee(""); 
         }
     };
 
-    const handleAttendeeChange = (index, event) => {
+    const handleAttendeeChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
         const newAttendees = [...attendees];
         newAttendees[index] = event.target.value;
         setAttendees(newAttendees);
     };
 
-    const handleRemoveAttendee = (index) => {
+    const handleRemoveAttendee = (index: number) => {
         const newAttendees = [...attendees];
         newAttendees.splice(index, 1);
         setAttendees(newAttendees);
     };
 
     const handleAddDiscussionDetail = () => {
-        if (isEditing) {
+        if (isEditing && editingIndex !== null) {
             const updatedDetails = [...modalDiscussionDetails];
             updatedDetails[editingIndex] = {
                 discussionTitle,
@@ -179,7 +202,7 @@ const AddNewDocumentationBox = () => {
         setDeadline("");
     };
 
-    const handleEditDiscussionDetail = (index) => {
+    const handleEditDiscussionDetail = (index: number) => {
         const detail = modalDiscussionDetails[index];
         setDiscussionTitle(detail.discussionTitle);
         setPersonResponsible(detail.personResponsible);
@@ -190,7 +213,7 @@ const AddNewDocumentationBox = () => {
         openDiscussionModal();
     };
 
-    const handleDeleteDiscussionDetail = (index) => {
+    const handleDeleteDiscussionDetail = (index: number) => {
         const updatedDetails = [...modalDiscussionDetails];
         updatedDetails.splice(index, 1);
         setModalDiscussionDetails(updatedDetails);
@@ -199,91 +222,144 @@ const AddNewDocumentationBox = () => {
 
     const storage = getStorage();
 
+    const validateInputs = () => {
+        let valid = true;
+
+        if (!title.trim()) {
+            setTitleError("Title is required");
+            valid = false;
+        } else {
+            setTitleError("");
+        }
+
+        if (!documentationType.trim()) {
+            setDocumentationTypeError("Documentation Type is required");
+            valid = false;
+        } else {
+            setDocumentationTypeError("");
+        }
+
+        if (!meetingLeader.trim()) {
+            setMeetingLeaderError("Meeting Leader is required");
+            valid = false;
+        } else {
+            setMeetingLeaderError("");
+        }
+
+        if (!time.trim()) {
+            setTimeError("Time is required");
+            valid = false;
+        } else {
+            setTimeError("");
+        }
+
+        if (!location.trim()) {
+            setLocationError("Location is required");
+            valid = false;
+        } else {
+            setLocationError("");
+        }
+
+        return valid;
+    };
+
     const handleAddPicture = () => {
         if (newPicture) {
             const objectUrl = URL.createObjectURL(newPicture);
             setPictures([...pictures, { file: newPicture, url: objectUrl }]);
     
-            // Clear the file input after adding the picture
             setNewPicture(null);
             setFileName("");
         }
     };
     
+    
+const handleAddDocumentation = async () => {
+    if (!validateInputs()) {
+        return;
+    }
 
-    const handleAddDocumentation = async () => {
-        try {
-            const parsedTime = new Date(time);
-    
-            if (!user || !user.email) {
-                throw new Error("User is not defined or user email is missing");
-            }
-    
-            // Upload each picture to Firebase Storage and collect their URLs
-            const pictureUrls = await Promise.all(
-                pictures.map(async (picture) => {
-                    const storageRef = ref(storage, `images/${picture.file.name}`);
-                    const snapshot = await uploadBytes(storageRef, picture.file);
-                    return getDownloadURL(snapshot.ref);
-                })
-            );
-    
-            // Add the main documentation data
-            const docRef = await addDoc(collection(db, "documentation"), {
-                title,
-                nomor_undangan: invitationNumber,
-                description,
-                leader: meetingLeader, // Use the meetingLeader state
-                place: location,
-                time: parsedTime,
-                attendanceList: attendees,
-                results,
-                pictures: pictureUrls, // Now contains URLs of the images from Firebase Storage
-                type: documentationType, // Use the documentationType state
-                writer: user.email,
-                timestamp: parsedTime, // Use the parsed time as the timestamp
-            });
-    
-            // Add each discussion detail to the discussionDetails collection
-            await Promise.all(
-                modalDiscussionDetails.map(async (detail) => {
-                    await addDoc(collection(db, "discussionDetails"), {
-                        discussionTitle: detail.discussionTitle,
-                        personResponsible: detail.personResponsible,
-                        furtherActions: detail.furtherActions,
-                        deadline: new Date(detail.deadline),
-                        docID: docRef.id, // Reference to the main documentation document
-                    });
-                })
-            );
-    
-            alert("Documentation and discussion details added successfully!");
-    
-            // Clear the form after successful submission
-            setTitle("");
-            setInvitationNumber("");
-            setDescription("");
-            setDocumentationType(""); // Clear documentation type
-            setMeetingLeader(""); // Clear meeting leader
-            setDiscussionTitle("");
-            setPersonResponsible("");
-            setFurtherActions("");
-            setDeadline("");
-            setLocation("");
-            setTime("");
-            setAttendees([]);
-            setModalDiscussionDetails([]);
-            setTotalCounter(0); // Reset the total counter
-            setResults([]); // Reset the results list
-            setPictures([]); // Reset the pictures list
-        } catch (error) {
-            console.error("Error adding documentation: ", error);
-            alert("Failed to add documentation. Please try again.");
+    try {
+        const parsedTime = new Date(time);
+
+        if (!user || !user.email) {
+            throw new Error("User is not defined or user email is missing");
         }
-    };
-    
-    
 
+        const pictureUrls = await Promise.all(
+            pictures.map(async (picture) => {
+                let fileName = picture.file.name;
+                const storageRef = ref(storage, `images/${fileName}`);
+
+                const existingFiles = await listAll(ref(storage, 'images'));
+                const existingFileNames = existingFiles.items.map(item => item.name);
+
+                let count = 1;
+                while (existingFileNames.includes(fileName)) {
+                    const nameWithoutExtension = picture.file.name.replace(/\.[^/.]+$/, "");
+                    const extension = picture.file.name.split('.').pop();
+                    fileName = `${nameWithoutExtension}_${count}.${extension}`;
+                    count++;
+                }
+
+                const newStorageRef = ref(storage, `images/${fileName}`);
+                const snapshot = await uploadBytes(newStorageRef, picture.file);
+                return getDownloadURL(snapshot.ref);
+            })
+        );
+
+        const docRef = await addDoc(collection(db, "documentation"), {
+            title,
+            nomor_undangan: invitationNumber,
+            description,
+            leader: meetingLeader,
+            place: location,
+            time: parsedTime,
+            attendanceList: attendees,
+            results,
+            pictures: pictureUrls,
+            type: documentationType,
+            writer: user.email,
+            timestamp: parsedTime,
+        });
+
+        await Promise.all(
+            modalDiscussionDetails.map(async (detail) => {
+                await addDoc(collection(db, "discussionDetails"), {
+                    discussionTitle: detail.discussionTitle,
+                    personResponsible: detail.personResponsible,
+                    furtherActions: detail.furtherActions,
+                    deadline: new Date(detail.deadline),
+                    docID: docRef.id,
+                });
+            })
+        );
+
+        alert("Documentation and discussion details added successfully!");
+
+        // Reset all form fields
+        setTitle("");
+        setInvitationNumber("");
+        setDescription("");
+        setDocumentationType("");
+        setMeetingLeader("");
+        setDiscussionTitle("");
+        setPersonResponsible("");
+        setFurtherActions("");
+        setDeadline("");
+        setLocation("");
+        setTime("");
+        setAttendees([]);
+        setModalDiscussionDetails([]);
+        setTotalCounter(0);
+        setResults([]);
+        setPictures([]);
+    } catch (error) {
+        console.error("Error adding documentation: ", error);
+        alert("Failed to add documentation. Please try again.");
+    }
+};
+    
     const handleAddResult = () => {
         if (newResult.trim() !== "") {
             setResults([...results, newResult]);
@@ -291,224 +367,78 @@ const AddNewDocumentationBox = () => {
         }
     };
 
-    const handleResultChange = (index, event) => {
+    const handleResultChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
         const newResults = [...results];
         newResults[index] = event.target.value;
         setResults(newResults);
     };
 
-    const handleRemoveResult = (index) => {
+    const handleRemoveResult = (index: number) => {
         const newResults = [...results];
         newResults.splice(index, 1);
         setResults(newResults);
     };
 
-    const handlePictureChange = (event) => {
+    const handlePictureChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
             setNewPicture(event.target.files[0]);
             setFileName(event.target.files[0].name);
         }
     };
 
-    const handleRemovePicture = (index) => {
+    const handleRemovePicture = (index: number) => {
         const newPictures = [...pictures];
         newPictures.splice(index, 1);
         setPictures(newPictures);
     };
 
-    const mainStyle = css`
-        background-color: white;
-        width: 100%;
-        height: 100%;
-        padding: 40px 43px 40px 43px;
-        box-sizing: border-box;
-    `;
-
-    const navSide = css`
-        p {
-            text-align: start;
-            font-size: 20px;
-            font-weight: 300;
-        }
-    `;
-
-    const headerp = css`
-        background-color: #F5F5F5;
-        padding: 10px;
-        text-align: center;
-        border-radius: 10px 10px 0px 0px;
-        font-size: 20px;
-    `;
-
-    const contentStyle = css`
-        margin-top: 40px;
-        border: 1px solid #ebebeb;
-        text-align: start;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.25);
-    `;
-
-    const headerGridStyle = css`
-        display: flex;
-        flex-direction: column;
-        text-align: start;
-        gap: 10px;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    `;
-
-    const contentSideStyle = css`
-        display: flex;
-        justify-content: space-between;
-        padding: 80px 100px 100px 100px;
-        .leftSide {
-            width: 50%;
-            padding-right: 50px;
-            border-right: 1px solid black
-        }
-        .rightSide {
-            width: 50%;
-            padding-left: 50px;
-        }
-
-        .input {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 95%;
-
-            input {
-                height: 35px;
-                border-radius: 5px;
-                border: 1px solid gray;
-            }
-        }
-    `;
-
-    const buttonStyle = css`
-        padding: 10px;
-        background-color: #49A8FF;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        margin-top: 10px;
-        font-size: 15px;
-        cursor: pointer;
-
-        &:hover {
-            background-color: #62b3fc;
-        }
-    `;
-
-    const documentationMeetingStyle = css`
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        .inputDoc {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            input {
-                width: 100%;
-                box-sizing: border-box;
-                height: 46px;
-                border-radius: 5px;
-                border: 1px solid #ACACAC;
-            }
-        }
-    `;
-
-    const titleContainerStyle = css`
-        width: 100%;
-        margin-bottom: 10px;
-        .inputTitle {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            input {
-                box-sizing: border-box;
-                width: 100%;
-                height: 46px;
-                border-radius: 5px;
-                border: 1px solid #ACACAC;
-            }
-        }
-    `;
-
-    const scheduleTopSideStyle = css`
-        display: flex;
-        gap: 30px;
-        margin-top: 20px;
-    `;
-
-    const timeContainerStyle = css`
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        input {
-            height: 47px;
-            box-sizing: border-box;
-            border-radius: 5px;
-            border: 1px solid #ACACAC;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-    `;
-
-    const locationContainerStyle = css`
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        input {
-            height: 47px;
-            box-sizing: border-box;
-            border-radius: 5px;
-            border: 1px solid #ACACAC;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-    `;
-
     return (
-        <main className="mainStyle" css={mainStyle}>
-            <div className="navSide" css={navSide}>
+        <MainContainer>
+            <NavSide>
                 <p>Add New Documentation</p>
-            </div>
-            <div className="content" css={contentStyle}>
-                <p className="headerp" css={headerp}>Add a documentation</p>
-                <div className="contentSide" css={contentSideStyle}>
+            </NavSide>
+            <ContentContainer>
+                <Header>Add a documentation</Header>
+                <ContentSide>
                     <div className="leftSide">
                         <p style={{ fontSize: "19px" }}>Main</p>
-                        <div className="headerGrid" css={headerGridStyle}>
-                            <div className="titleContainer" css={titleContainerStyle}>
+                        <HeaderGrid>
+                            <TitleContainer>
                                 <div className="inputTitle">
-                                    <p>Title</p>
+                                    <RequiredLabel>
+                                        Title <span>*</span>
+                                    </RequiredLabel>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                                    {titleError && <ErrorText>{titleError}</ErrorText>}
                                 </div>
-                            </div>
-                            <div className="DocumentationMeeting" css={documentationMeetingStyle}>
+                            </TitleContainer>
+                            <DocumentationMeeting>
                                 <div className="inputDoc">
-                                    <p>Documentation Type</p>
+                                    <RequiredLabel>
+                                        Documentation Type <span>*</span>
+                                    </RequiredLabel>
                                     <DropdownComponent
                                         selectedValue={documentationType}
                                         setSelectedValue={setDocumentationType}
                                         options={["Meeting", "Evaluation", "Discussion"]}
                                     />
+                                    {documentationTypeError && <ErrorText>{documentationTypeError}</ErrorText>}
                                 </div>
                                 <div className="inputDoc">
-                                    <p>Meeting Leader</p>
+                                    <RequiredLabel>
+                                        Meeting Leader <span>*</span>
+                                    </RequiredLabel>
                                     <input type="text" value={meetingLeader} onChange={(e) => setMeetingLeader(e.target.value)} />
+                                    {meetingLeaderError && <ErrorText>{meetingLeaderError}</ErrorText>}
                                 </div>
-                            </div>
-                        </div>
+                            </DocumentationMeeting>
+                        </HeaderGrid>
                         <div className="leftBottomContainer" >
                             <p className="header" style={{ marginBottom: "20px", fontSize: "19px" }}>Discussion</p>
                             <div className="discussionItem" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                                 <div className="item">
                                     <p>Details <span style={{ color: "#49A8FF" }}>({totalCounter})</span></p>
-                                    <button css={buttonStyle} onClick={openDiscussionModal}>See or Add More</button>
+                                    <Button onClick={openDiscussionModal}>See or Add More</Button>
                                     {discussionDetails.map((detail, index) => (
                                         <div key={index}>
                                             <p><strong>Title:</strong> {detail.discussionTitle}</p>
@@ -545,7 +475,7 @@ const AddNewDocumentationBox = () => {
                                 </div>
                                 <div className="item">
                                     <p>Results <span style={{ color: "#49A8FF" }}>({results.length})</span></p>
-                                    <button css={buttonStyle} onClick={openResultsModal}>See or Add more</button>
+                                    <Button onClick={openResultsModal}>See or Add more</Button>
                                 </div>
                             </div>
                         </div>
@@ -553,42 +483,50 @@ const AddNewDocumentationBox = () => {
                     </div>
                     <div className="rightSide">
                         <div className="scheduleContainer">
-                            <p>Schedule</p>
-                            <div className="scheduleTopSide" css={scheduleTopSideStyle}>
+                            <p style={{fontSize: "19px"}}>Schedule</p>
+                            <ScheduleTopSide>
                                 <div className="typeContainer" style={{ position: "relative", display: "flex", flexDirection: "column", gap: "10px" }}>
-                                    <p>Type</p>
+                                    <RequiredLabel>
+                                        Type <span>*</span>
+                                    </RequiredLabel>
                                     <DropdownComponent selectedValue={type} setSelectedValue={setType} options={["Online", "Onsite"]} />
                                 </div>
-                                <div className="timeContainer" style={{ marginBottom: "20px" }} css={timeContainerStyle}>
-                                    <p>Time</p>
+                                <TimeContainer>
+                                    <RequiredLabel>
+                                        Time <span>*</span>
+                                    </RequiredLabel>
                                     <input type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="locationContainer" style={{ marginBottom: "20px" }} css={locationContainerStyle}>
-                                <p>Location</p>
+                                    {timeError && <ErrorText>{timeError}</ErrorText>}
+                                </TimeContainer>
+                            </ScheduleTopSide>
+                            <LocationContainer>
+                                <RequiredLabel>
+                                    Location <span>*</span>
+                                </RequiredLabel>
                                 <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
-                            </div>
+                                {locationError && <ErrorText>{locationError}</ErrorText>}
+                            </LocationContainer>
                             
                         </div>
-                        <p className="header" style={{ marginBottom: "20px", fontSize: "19px" }}>Snapshot</p>
+                        <p className="header" style={{ marginBottom: "20px", fontSize: "19px", marginTop: "20px" }}>Snapshot</p>
                         <div className="snapshotItemContainer" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                             <div className="item">
                                 <p>Attendees <span style={{ color: "#49A8FF" }}>({attendees.length})</span></p>
-                                <button css={buttonStyle} onClick={openAttendeeModal}>See or Add more</button>
+                                <Button onClick={openAttendeeModal}>See or Add more</Button>
                             </div>
                             <div className="item">
                                 <p>Pictures <span style={{ color: "#49A8FF" }}>({pictures.length})</span></p>
-                                <button css={buttonStyle} onClick={openPicturesModal}>See or Add more</button>
+                                <Button onClick={openPicturesModal}>See or Add more</Button>
                             </div>
                         </div>
 
                     </div>
-                </div>
-                <div className="addButtonContainer" css={{ textAlign: 'center', padding: "0px 50px 50px 50px"}}>
-                    <button css={buttonStyle} style={{width: "300px"}} onClick={handleAddDocumentation}>Add Documentation</button>
+                </ContentSide>
+                <div css={{ textAlign: 'center', padding: "0px 50px 50px 50px"}}>
+                    <Button style={{width: "300px"}} onClick={handleAddDocumentation}>Add Documentation</Button>
                 </div>
                 
-            </div>
+            </ContentContainer>
             <AttendeeModal
                 isAttendeeModalOpen={isAttendeeModalOpen}
                 closeAttendeeModal={closeAttendeeModal}
@@ -637,7 +575,7 @@ const AddNewDocumentationBox = () => {
                 handlePictureChange={handlePictureChange}
                 handleRemovePicture={handleRemovePicture}
             />
-        </main>
+        </MainContainer>
     );
 }
 

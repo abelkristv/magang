@@ -56,7 +56,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
     
                 const reportQuery = query(
                     studentReportRef,
-                    where("writer", "==", user.email),
+                    // where("writer", "==", user.email),
                     where("type", "==", "Urgent") // Fetch only records with type="Urgent"
                 );
     

@@ -1,47 +1,51 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import Calendar from 'react-calendar';
+import Calendar, { CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useEffect, useState, useRef } from 'react';
 import { collection, query, getDocs, where } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { useAuth } from '../../helper/AuthProvider';
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
-import { fetchAllDocumentation } from "../../controllers/DocumentationController";
+import { useAuth } from '../../../helper/AuthProvider';
+import ExcelJS from 'exceljs';import { saveAs } from 'file-saver';
+import { fetchAllDocumentation } from "../../../controllers/DocumentationController";
 import AttendanceTable from "./AttendanceTable";
 import DiscussionDetails from "./DiscussionDetails";
 import DiscussionResultsTable from "./DiscussionResultsTable";
 import ImageGallery from "./ImageGallery";
-import { fetchUser } from "../../controllers/UserController";
+import { fetchUser } from "../../../controllers/UserController";
+import Documentation from "../../../model/Documentation";
 
-const DocumentationBox = ({ setGlobalActiveTab }) => {
-    const [date, setDate] = useState(new Date());
-    const [selectedButton, setSelectedButton] = useState('All');
-    const [documentations, setDocumentations] = useState([]);
-    const [filteredDocumentations, setFilteredDocumentations] = useState([]);
-    const [selectedDocumentation, setSelectedDocumentation] = useState(null);
-    const [activeTab, setActiveTab] = useState('discussion');
-    const [discussionDetails, setDiscussionDetails] = useState(null);
-    const [userRole, setUserRole] = useState(null);
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const [exportStartDate, setExportStartDate] = useState('');
-    const [exportEndDate, setExportEndDate] = useState('');
-    const [exportType, setExportType] = useState('All');
-    const [docDates, setDocDates] = useState([]);
+interface DocumentationBoxProps {
+    setGlobalActiveTab: (tabName: string) => void;
+}
+
+const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab }) => {
+    const [date, setDate] = useState<Date>(new Date());
+    const [selectedButton, setSelectedButton] = useState<string>('All');
+    const [documentations, setDocumentations] = useState<Documentation[]>([]);
+    const [filteredDocumentations, setFilteredDocumentations] = useState<Documentation[]>([]);
+    const [selectedDocumentation, setSelectedDocumentation] = useState<Documentation | null>(null);
+    const [activeTab, setActiveTab] = useState<string>('discussion');
+    const [discussionDetails, setDiscussionDetails] = useState<any[]>([]); // Replace 'any' with the correct type if known
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+    const [exportStartDate, setExportStartDate] = useState<string>('');
+    const [exportEndDate, setExportEndDate] = useState<string>('');
+    const [exportType, setExportType] = useState<string>('All');
+    const [docDates, setDocDates] = useState<string[]>([]);
     const userAuth = useAuth();
-    const modalRef = useRef(null);
+    const modalRef = useRef<HTMLDivElement>(null);
 
-    const [sortField, setSortField] = useState(null);
-    const [sortOrder, setSortOrder] = useState('asc');
+    const [sortField, setSortField] = useState<string | null>(null);
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
     useEffect(() => {
         const fetchData = async () => {
             const documentation = await fetchAllDocumentation();
-            if (documentation._tag == "Some") {
+            if (documentation._tag === "Some") {
                 setDocumentations(documentation.value);
-                const docDates = documentation.value.map(doc => new Date(doc.timestamp.seconds * 1000).toDateString());
+                const docDates = documentation.value.map((doc: Documentation) => new Date(doc.timestamp.seconds * 1000).toDateString());
                 setDocDates(docDates);
             } else {
                 setDocumentations([]);
@@ -54,11 +58,10 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     useEffect(() => {
         const fetchUserRole = async () => {
             const user = await fetchUser(userAuth?.currentUser?.email!);
-            if (user._tag == "Some") {
+            if (user._tag === "Some") {
                 setUserRole(user.value.role);
-            }
-            else {
-                setUserRole(undefined)
+            } else {
+                setUserRole(null);
             }
         };
 
@@ -87,8 +90,8 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     }, [selectedDocumentation, activeTab]);
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (modalRef.current && !modalRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
                 closeExportModal();
             }
         };
@@ -112,26 +115,26 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         }
     }, [filteredDocumentations]);
 
-    const handleButtonClick = (buttonName) => {
+    const handleButtonClick = (buttonName: string) => {
         setSelectedButton(buttonName);
     };
 
-    const handleDocItemClick = (doc) => {
+    const handleDocItemClick = (doc: Documentation) => {
         setSelectedDocumentation(doc);
-        setDiscussionDetails(null);
+        setDiscussionDetails([]);
     };
 
-    const formatDate = (timestamp) => {
+    const formatDate = (timestamp: { seconds: number, nanoseconds: number }) => {
         const date = new Date(timestamp.seconds * 1000);
         return date.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    const formatTime = (timestamp) => {
+    const formatTime = (timestamp: { seconds: number, nanoseconds: number }) => {
         const date = new Date(timestamp.seconds * 1000);
         return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
     };
 
-    const handleTabClick = (tab) => {
+    const handleTabClick = (tab: string) => {
         setActiveTab(tab);
     };
 
@@ -145,11 +148,11 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             const docDate = new Date(doc.timestamp.seconds * 1000);
             return docDate >= startDate && docDate <= endDate && (exportType === 'All' || doc.type === exportType);
         });
-
+    
         const meetingCount = filteredDocs.filter(doc => doc.type === 'Meeting').length;
         const discussionCount = filteredDocs.filter(doc => doc.type === 'Discussion').length;
         const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
-
+    
         const summaryData = [
             ['Enrichment Activity Documentation Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Start Date', exportStartDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -159,7 +162,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             ['Evaluation Count', evaluationCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             [],
         ];
-
+    
         const headers = [
             'Title',
             'Nomor Undangan',
@@ -172,45 +175,121 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
             'Discussion Details',
             'Attendance List'
         ];
-
+    
         const data = await Promise.all(filteredDocs.map(async (doc) => {
             const q = query(collection(db, "discussionDetails"), where("docID", "==", doc.id));
             const querySnapshot = await getDocs(q);
             const details = querySnapshot.docs.map(detail => detail.data());
-
-            return [
-                doc.title,
-                doc.nomor_undangan,
-                doc.leader,
-                doc.place,
-                formatDate(doc.timestamp),
-                formatTime(doc.timestamp),
-                doc.type,
-                doc.description,
-                details.map(detail => detail.discussionTitle).join(', '),
-                doc.attendanceList.join(', '),
-            ];
+    
+            return {
+                title: doc.title,
+                nomor_undangan: doc.nomor_undangan,
+                leader: doc.leader,
+                place: doc.place,
+                date: formatDate(doc.timestamp),
+                time: formatTime(doc.timestamp),
+                type: doc.type,
+                description: doc.description,
+                discussionDetails: details.map(detail => detail.discussionTitle).join(', '),
+                attendanceList: doc.attendanceList || [],
+            };
         }));
-
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet([...summaryData, headers, ...data]);
-
-        XLSX.utils.book_append_sheet(wb, ws, "Documentation");
-
-        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
-        const s2ab = (s) => {
-            const buf = new ArrayBuffer(s.length);
-            const view = new Uint8Array(buf);
-            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
-        };
-
-        saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "documentation.xlsx");
-
+    
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Documentation');
+    
+        worksheet.addRows(summaryData);
+    
+        worksheet.addRow(headers);
+        worksheet.getRow(summaryData.length + 1).eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'center' };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            };
+        });
+    
+        data.forEach((doc) => {
+            const rowIndex = worksheet.lastRow!.number + 1;
+            const attendanceList = doc.attendanceList;
+            const discussionDetails = doc.discussionDetails.split(', '); // Assuming discussionDetails are comma-separated
+        
+            const numRows = Math.max(attendanceList.length, discussionDetails.length, 1);
+        
+            worksheet.mergeCells(`A${rowIndex}:A${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`B${rowIndex}:B${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`C${rowIndex}:C${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`D${rowIndex}:D${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`E${rowIndex}:E${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`F${rowIndex}:F${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`G${rowIndex}:G${rowIndex + numRows - 1}`);
+            worksheet.mergeCells(`H${rowIndex}:H${rowIndex + numRows - 1}`);
+        
+            worksheet.getCell(`A${rowIndex}`).value = doc.title;
+            worksheet.getCell(`B${rowIndex}`).value = doc.nomor_undangan;
+            worksheet.getCell(`C${rowIndex}`).value = doc.leader;
+            worksheet.getCell(`D${rowIndex}`).value = doc.place;
+            worksheet.getCell(`E${rowIndex}`).value = doc.date;
+            worksheet.getCell(`F${rowIndex}`).value = doc.time;
+            worksheet.getCell(`G${rowIndex}`).value = doc.type;
+            worksheet.getCell(`H${rowIndex}`).value = doc.description;
+        
+            if (discussionDetails.length === 1) {
+                worksheet.mergeCells(`I${rowIndex}:I${rowIndex + numRows - 1}`);
+                worksheet.getCell(`I${rowIndex}`).value = discussionDetails[0];
+            } else if (discussionDetails.length > 1) {
+                discussionDetails.forEach((detail, i) => {
+                    worksheet.getCell(`I${rowIndex + i}`).value = detail;
+                });
+            } else {
+                worksheet.getCell(`I${rowIndex}`).value = '';
+            }
+        
+            if (attendanceList.length > 1) {
+                attendanceList.forEach((attendee, i) => {
+                    worksheet.getCell(`J${rowIndex + i}`).value = attendee;
+                });
+            } else {
+                worksheet.mergeCells(`J${rowIndex}:J${rowIndex + numRows - 1}`);
+                worksheet.getCell(`J${rowIndex}`).value = attendanceList[0] || '';
+            }
+        
+            for (let i = rowIndex; i < rowIndex + numRows; i++) {
+                worksheet.getRow(i).eachCell((cell) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' },
+                    };
+                });
+            }
+        });                
+    
+        worksheet.columns = [
+            { key: 'title', width: 30 },
+            { key: 'nomor_undangan', width: 20 },
+            { key: 'leader', width: 20 },
+            { key: 'place', width: 20 },
+            { key: 'date', width: 30 },
+            { key: 'time', width: 15 },
+            { key: 'type', width: 15 },
+            { key: 'description', width: 30 },
+            { key: 'discussion_details', width: 30 },
+            { key: 'attendance_list', width: 30 },
+        ];
+    
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'documentation.xlsx');
+    
         closeExportModal();
     };
+    
 
-    const handleSort = (field) => {
+    const handleSort = (field: string) => {
         if (sortField === field) {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
@@ -219,7 +298,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         }
     };
 
-    const getSortArrow = (field) => {
+    const getSortArrow = (field: string) => {
         if (sortField === field) {
             return sortOrder === 'asc' ? '▲' : '▼';
         }
@@ -227,15 +306,12 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
     };
 
     const sortedAttendanceList = selectedDocumentation?.attendanceList.sort((a, b) => {
-        if (sortField) {
-            if (sortOrder === 'asc') {
-                return a[sortField] > b[sortField] ? 1 : -1;
-            } else {
-                return a[sortField] < b[sortField] ? 1 : -1;
-            }
+        if (sortOrder === 'asc') {
+            return a > b ? 1 : -1;
+        } else {
+            return a < b ? 1 : -1;
         }
-        return 0;
-    });
+    });    
 
     const mainStyle = css`
         background-color: white;
@@ -522,18 +598,28 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
         margin-top: 10px;
     `
 
-    const tileContent = ({ date, view }) => {
+    const tileContent = ({ date, view }: { date: Date, view: string }) => {
         if (view === 'month' && docDates.includes(date.toDateString())) {
             return <div style={{ width: '6px', height: '6px', backgroundColor: '#00ff08', borderRadius: '50%', margin: '0 auto', marginTop: '5px' }} />;
         }
         return null;
     };
+
+    const handleDateChange: CalendarProps['onChange'] = (value, event) => {
+        if (value instanceof Date) {
+            setDate(value);
+        } else if (Array.isArray(value)) {
+            if (value[0] instanceof Date) {
+                setDate(value[0]);
+            }
+        }
+    };
     
-    if (userRole == "Company") {
+    if (userRole === "Company") {
         return (
             <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
-                <p>You Cant view this page</p>
+                <p>You Can't view this page</p>
             </div>
         </main>
         )
@@ -639,14 +725,14 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                                         <DiscussionDetails discussionDetails={discussionDetails} formatDate={formatDate} />
                                     ) : activeTab === 'attendance' ? (
                                         <AttendanceTable
-                                            sortedAttendanceList={sortedAttendanceList}
+                                            sortedAttendanceList={sortedAttendanceList || []}
                                             handleSort={handleSort}
                                             getSortArrow={getSortArrow}
                                         />
                                     ) : activeTab === 'images' ? (
-                                        <ImageGallery images={selectedDocumentation.pictures} />
+                                        <ImageGallery images={selectedDocumentation.pictures || []} />
                                     ) : (
-                                        <DiscussionResultsTable results={selectedDocumentation.results} />
+                                        <DiscussionResultsTable results={selectedDocumentation.results || []} />
                                     )}
                                 </div>
                             </>
@@ -657,7 +743,7 @@ const DocumentationBox = ({ setGlobalActiveTab }) => {
                 </div>
                 <div className="rightSide">
                     <Calendar
-                        onChange={setDate}
+                        onChange={handleDateChange}
                         value={date}
                         css={calendarStyle}
                         tileContent={tileContent}
