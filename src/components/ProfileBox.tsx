@@ -163,20 +163,30 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         background-color: white;
         width: 100%;
         height: 100%;
-        padding: 40px 43px 40px 43px;
+        padding: 40px 15px 40px 43px;
         box-sizing: border-box;
     `;
 
     const navSide = css`
         width: 98%;
+        max-height: 10px;
         p {
             text-align: start;
             font-size: 20px;
         }
     `;
 
+    const headerTop = css`
+        font-weight: 300;
+    `;
+
+    const loadingWidth = css`
+        max-height: 155px;
+    `;
+    
+
     const contentSide = css`
-        margin-top: 40px;
+        margin-top: 37px;
     `;
 
     const userCardStyle = css`
@@ -186,12 +196,12 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         border-radius: 10px;
         width: 100%;
         min-width: 900px;
-        min-height: 216px;
+        min-height: 155px;
 
         img {
-            min-width: 163px;
-            width: 163px;
-            min-height: 100%;
+            min-width: 145px;
+            width: 155px;
+            height: 185px;
             object-fit: cover;
             border-radius: 10px 0px 0px 10px;
         }
@@ -200,6 +210,8 @@ const ProfileBox = ({ setTodayReportsCount }) => {
     const userDescStyle = css`
         display: flex;
         flex-direction: column;
+        items-align: center;
+        justify-content: center;
         width: 100%;
         text-align: left;
         padding: 15px 15px 15px 0px;
@@ -223,15 +235,14 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         }
 
         p {
-            font-size: 17px;
+            font-size: 16px;
         }
     `;
 
     const informationStyle = css`
-        margin-top: 30px;
+        margin-top: 20px;
         color: #51587E;
         display: flex;
-        gap: 50px;
 
         .column {
             display: flex;
@@ -264,13 +275,17 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         display: flex;
         justify-content: space-between;
         width: 100%;
-        margin-top: 40px;
+        margin-top: 20px;
         .bottomContainer {
             width: 100%;
             .heading {
                 display: flex;
                 justify-content: space-between;
                 font-weight: medium;
+            }
+
+            .fixTextWeight{
+                font-weight: 600;
             }
 
             .filterMajor {
@@ -288,17 +303,17 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         gap: 25px;
         padding: 2px;
         box-sizing: border-box;
-        overflow: scroll;
+        overflow: auto;
         height: 500px;
 
         .recordCard {
             display: flex;
             flex-direction: row;
-            box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
+            box-shadow: 1px 1px 4px 3px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
             background-color: white;
             align-items: center;
-            min-height: 170px;
+            height: 160px;
 
             img {
                 width: 114px;
@@ -311,11 +326,11 @@ const ProfileBox = ({ setTodayReportsCount }) => {
     `;
 
     const placeholderStyle = css`
-        background-color: #f0f0f0;
+        background-color: white;
         border-radius: 10px;
         width: 100%;
         min-width: 900px;
-        min-height: 216px;
+        min-height: 155px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -345,14 +360,13 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         border-radius: 5px;
         cursor: pointer;
         width: 242px;
-        height: 47px;
         background-color: #EBEBEB;
         display: flex;
         justify-content: space-between;
         align-items: center;
 
         p {
-            font-size: 17px;
+            font-size: 15px;
         }
     `;
 
@@ -374,6 +388,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
             margin: 0;
             padding: 10px 0px 10px 0px;
             cursor: pointer;
+            font-size: 16px;
         }
 
         select {
@@ -395,7 +410,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
             background-color: #000000;
             color: white;
             font-size: 17px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             margin-top: 10px;
             &:hover {
@@ -421,6 +436,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
     const cardStyle = css`
         .leftSide {
             // width: ${editableUser?.role == "Enrichment" ? "50%" : "100%"} !important;
+            overflow: hidden;
         }
         .rightSide {
             width: 50%;
@@ -434,7 +450,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         width: 258px !important;
         border-bottom: 1px solid gray;
         padding: 0px;
-        font-size: 17px !important;
+        font-size: 16px !important;
     `;
 
 
@@ -443,30 +459,32 @@ const ProfileBox = ({ setTodayReportsCount }) => {
         <main className="mainStyle" css={mainStyle}>
             {isLoading ? (
                 <div className="navSide" css={navSide}>
-                    <p>Profile</p>
-                    <div className="contentSide" css={contentSide}>
-                        <div className="placeholder" css={placeholderStyle}>
-                            <div className="circle"></div>
-                            <div className="line"></div>
-                            <div className="line"></div>
-                            <div className="line"></div>
-                        </div>
-                    </div>
-                    <div className="bottomContent" css={bottomContentStyle}>
-                        <div className="bottomContainer">
-                            <div className="heading">
-                                <p>Unsolved Urgent Student Records</p>
+                    <div css={loadingWidth}>
+                        <p css={headerTop}>Profile</p>
+                        <div className="contentSide" css={contentSide}>
+                            <div className="placeholder" css={placeholderStyle}>
+                                <div className="circle"></div>
+                                <div className="line"></div>
+                                <div className="line"></div>
+                                <div className="line"></div>
                             </div>
-                            <div className="recentlyAddedRecordsContainer" css={recentlyAddedRecordsContainerStyle}>
-                                <div className="placeholder" css={placeholderStyle}>
-                                    <div className="line"></div>
-                                    <div className="line"></div>
-                                    <div className="line"></div>
+                        </div>
+                        <div className="bottomContent" css={bottomContentStyle}>
+                            <div className="bottomContainer">
+                                <div className="heading fixTextWeight">
+                                    <p>Unresolved Urgent Student Records</p>
                                 </div>
-                                <div className="placeholder" css={placeholderStyle}>
-                                    <div className="line"></div>
-                                    <div className="line"></div>
-                                    <div className="line"></div>
+                                <div className="recentlyAddedRecordsContainer" css={recentlyAddedRecordsContainerStyle}>
+                                    <div className="placeholder" css={placeholderStyle}>
+                                        <div className="line"></div>
+                                        <div className="line"></div>
+                                        <div className="line"></div>
+                                    </div>
+                                    <div className="placeholder" css={placeholderStyle}>
+                                        <div className="line"></div>
+                                        <div className="line"></div>
+                                        <div className="line"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -474,20 +492,20 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                 </div>
             ) : (
                 <div className="navSide" css={navSide}>
-                    <p>Profile</p>
+                    <p css={headerTop}>Profile</p>
                     <div className="contentSide" css={contentSide}>
                         <div className="userCard" css={userCardStyle}>
                             <img src={user?.image_url} alt="" />
                             <div className="userDesc" css={userDescStyle}>
-                                <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px" }}>
-                                    <p style={{ fontWeight: "500", fontSize: "21px" }}>{editableUser?.name}</p>
+                                <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1px" }}>
+                                    <p style={{ fontWeight: "600", fontSize: "18px" }}>{editableUser?.name}</p>
                                     {isEditing ? (
-                                        <button onClick={handleSubmit}>Submit</button>
+                                        (<Icon icon={"mingcute:check-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />)
                                     ) : (
                                         <Icon icon={"mingcute:edit-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
                                     )}
                                 </div>
-                                <p style={{ color: "#51587E", fontSize: "17.5px" }}>{editableUser?.role == "Company" ? "Site Supervisor" : "Enrichment SOCS"}</p>
+                                <p style={{ color: "#51587E", fontWeight: "500", fontSize: "16px" }}>{editableUser?.role == "Company" ? "Site Supervisor" : "Enrichment SOCS"}</p>
                                 <div className="information" css={informationStyle}>
                                     <div className="column">
                                         <div className="infoContainer" css={infoContainerStyle}>
@@ -537,13 +555,13 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                         <div className="bottomContainer">
                             <div className="heading">
                                 <div className="pContainer" style={{display: "flex", alignItems: "center"}}>
-                                    <p style={{fontWeight: "500"}}>Unresolved Urgent Student Records</p>
+                                    <p style={{fontWeight: "600", fontSize: "19px"}}>Unresolved Urgent Student Records</p>
                                 </div>
                                 <div className="righSide" style={{display: "flex", gap: "10px", alignItems: "center", position: "relative"}}>
                                     <p style={{fontSize: '15px'}}>Filter By : </p>
                                     <div className="filterMajor" css={dropdownStyle} onClick={toggleDropdown}>
                                         <p>{selectedMajor || "All Majors"}</p>
-                                        <Icon icon={"weui:arrow-filled"} rotate={45} />
+                                        <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} />
                                     </div>
                                     {isDropdownOpen && 
                                         <div className="dropdown-content" css={dropdownContentStyle}>
@@ -556,7 +574,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                                             </select>
                                             
                                             <div className="buttonContainer" style={{display: "flex", justifyContent: "end", marginTop: "30px"}}>
-                                                <button onClick={handleApplyFilters}>Apply</button>
+                                                <button onClick={handleApplyFilters} style={{backgroundColor: "#49A8FF"}}>Apply</button>
                                             </div>
                                         </div>
                                     }
@@ -573,7 +591,7 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                                         const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
                                         return (
                                         <div key={index} className="recordCard">
-                                            {record.imageUrl && <img src={record.imageUrl} alt={record.studentName} />}
+                                            {record.imageUrl && <img src={record.imageUrl} alt={record.studentName} style={{height:"7px"}} />}
                                             <div style={{
                                                 width: "100%",
                                                 padding: "10px",
@@ -582,69 +600,78 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                                                 display: "flex",
                                                 flexDirection: "row",
                                                 paddingRight: "20px",
-                                                gap: "10px",
-                                                justifyContent: "space-between"
+                                                gap: "10px"
                                             }}>
                                                 <div css={cardStyle} className="leftSide" style={
-                                                    editableUser?.role == "Enrichment" ? { overflow: "scroll", width: "49%", paddingTop: "0px" } :
-                                                    { overflow: "scroll", width: "100%", paddingTop: "0px" }
+                                                    editableUser?.role == "Enrichment" ? { width: "50%", paddingTop: "0px" } :
+                                                    { width: "100%", paddingTop: "0px" }
                                                     }>
                                                     <div className="name-header" style={{ display: "flex", justifyContent: "space-between", flexDirection: "column" }}>
                                                         <p style={{ fontSize: "17.5px", fontWeight: "500" }}>{record.studentName}</p>
-                                                        <p style={{fontSize: "15px", color: "#51587E"}}>{record.studentData.nim}</p>
+                                                        <p style={{fontSize: "15px", fontWeight: "500", color: "#51587E"}}>{record.studentData.nim}</p>
                                                         <div className="studentInfoContainer" style={{
                                                             display: "flex",
                                                             flexDirection: "column",
                                                             gap: "10px",
                                                             marginTop: "10px"
                                                         }}>
-                                                            <div className="studentInfoContent" style={{
-                                                                display: "grid",
-                                                                gridTemplateColumns: "0.05fr 0.3fr 0.3fr"
-                                                            }}>
-                                                                <Icon icon={"ph:building-bold"} fontSize={20} />
-                                                                <p style={{fontSize: "15px"}}>Organization Name</p>
-                                                                <p style={{fontSize: "15px"}}>{record.studentData.tempat_magang}</p>
-                                                            </div>
-                                                            <div className="studentInfoContent" style={{
-                                                                display: "grid",
-                                                                gridTemplateColumns: "0.05fr 0.3fr 0.3fr"
-                                                            }}>
-                                                                <Icon icon={"material-symbols:supervisor-account"} fontSize={20} />
-                                                                <p style={{fontSize: "15px"}}>Faculty Supervisor</p>
-                                                                <p style={{fontSize: "15px"}}>{record.studentData.faculty_supervisor}</p>
-                                                            </div>
-                                                            <div className="studentInfoContent" style={{
-                                                                display: "grid",
-                                                                gridTemplateColumns: "0.05fr 0.3fr 0.3fr"
-                                                            }}>
-                                                                <Icon icon={"ic:outline-people"} fontSize={20} />
-                                                                <p style={{fontSize: "15px"}}>Site Supervisor</p>
-                                                                <p style={{fontSize: "15px"}}>{record.studentData.site_supervisor}</p>
+                                                            <div style={{display: 'flex', flexDirection: "column", gap: "5px"}}>
+                                                                <div className="studentInfoContent" style={{
+                                                                    display: "grid",
+                                                                    gridTemplateColumns: "0.063fr 0.31fr 0.3fr",
+                                                                    alignItems:"center"
+                                                                }}>
+                                                                    <Icon icon={"ph:building-bold"} fontSize={20} color="#51587E" />
+                                                                    <p style={{fontSize: "15px", color: "#51587E"}}>Organization Name</p>
+                                                                    <p style={{fontSize: "15px", color: "black"}}>{record.studentData.tempat_magang}</p>
+                                                                </div>
+                                                                <div className="studentInfoContent" style={{
+                                                                    display: "grid",
+                                                                    gridTemplateColumns: "0.063fr 0.31fr 0.3fr",
+                                                                    alignItems:"center"
+                                                                }}>
+                                                                    <Icon icon={"material-symbols:supervisor-account"} fontSize={20} color="#51587E" />
+                                                                    <p style={{fontSize: "15px", color: "#51587E"}}>Faculty Supervisor</p>
+                                                                    <p style={{fontSize: "15px", color: "black"}}>{record.studentData.faculty_supervisor}</p>
+                                                                </div>
+                                                                <div className="studentInfoContent" style={{
+                                                                    display: "grid",
+                                                                    gridTemplateColumns: "0.063fr 0.31fr 0.3fr",
+                                                                    alignItems:"center"
+                                                                }}>
+                                                                    <Icon icon={"ic:outline-people"} fontSize={20} color="#51587E" />
+                                                                    <p style={{fontSize: "15px", color: "#51587E"}}>Site Supervisor</p>
+                                                                    <p style={{fontSize: "15px", color: "black"}}>{record.studentData.site_supervisor}</p>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 
-                                                <div className="rightSide" style={{ width: "50%", padding: "10px", height: "100%", boxSizing: "border-box" }}>
+                                                <div className="rightSide" style={{position:"relative", width: "70%", paddingLeft: "10px", height: "100%", boxSizing: "border-box" }}>
                                                     <div style={{
                                                         marginBottom: "10px",
                                                         display: "flex",
                                                         flexDirection: "column",
                                                         height: "100%",
-                                                        gap: "10px",
-                                                        paddingLeft: "20px",
+                                                        // gap: "5px",
+                                                        paddingLeft: "35px",
                                                         borderLeft: "1px solid #ACACAC"
                                                     }} css={recordCard}>
                                                         <div className="record-header" style={{
                                                             display: "flex",
                                                             gap: "20px",
+                                                            justifyContent: "space-between"
                                                         }}>
-                                                            <p style={{fontSize: "18px"}}>{record.writer}</p>
+                                                            <p style={{fontSize: "16px", fontWeight: "500"}}>{record.writer}</p>
                                                             <p
                                                                 style={{
+                                                                    position: "absolute",
+                                                                    right: "0px",
+                                                                    top: "5px",
                                                                     backgroundColor: record.type === 'Report' ? '#A024FF' : record.type === 'Urgent' ? 'red' : 'orange',
                                                                     color: 'white',
+                                                                    fontWeight: '500',
                                                                     padding: '2px',
                                                                     borderRadius: '10px',
                                                                     fontSize: "15px",
@@ -666,7 +693,8 @@ const ProfileBox = ({ setTodayReportsCount }) => {
                                                         <div className="content">
                                                             <p style={{
                                                                 color: "#5F6368",
-                                                                fontSize: "14px"
+                                                                fontSize: "16px",
+                                                                marginTop: "13px"
                                                             }}>{record.report}</p>
                                                         </div>
                                                     </div>

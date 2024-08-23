@@ -12,7 +12,7 @@ const searchHistoryStyle = css`
     position: absolute;
     top: 100%;
     left: 0;
-    width: 751px;
+    width: 100%;
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -20,16 +20,16 @@ const searchHistoryStyle = css`
     z-index: 1;
     max-height: 200px;
     overflow-y: auto;
+    scrollbar-width: thin;
 
     .container {
         &:hover {
-            background-color: #f2f2f2;
+            background-color: #EBEBEB;
             cursor: pointer;
         }
     }
 
     p {
-        padding: 10px;
         margin: 0;
         text-align: start;
     }
@@ -48,7 +48,7 @@ const SearchHistory = ({ searchHistory, isSearchHistoryOpen, handleSearchHistory
                         handleSearchHistoryClick(history);
                     }}
                     className="container"
-                    style={{ display: "flex", gap: "5px", alignItems: "center", paddingLeft: "20px", marginTop: "10px" }}
+                    style={{ display: "flex", gap: "5px", alignItems: "center", paddingLeft: "13px", paddingTop: "10px", paddingBottom: "10px" }}
                 >
                     <Icon icon={"material-symbols:history"} fontSize={24} color="#ACACAC" />
                     <p style={{ color: "#ACACAC" }}>{history}</p>

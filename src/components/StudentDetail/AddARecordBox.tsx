@@ -18,6 +18,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
     const [selectedPerson, setSelectedPerson] = useState<string>("Student");
     const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState<boolean>(false);
     const [isPersonDropdownOpen, setIsPersonDropdownOpen] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
 
     const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setDescription(event.target.value);
@@ -35,7 +36,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
 
     const handleAddRecord = async () => {
         if (description.trim() === "") {
-            alert("Please provide a description.");
+            setError("Description cannot be empty.");
             return;
         }
 
@@ -52,11 +53,9 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         try {
             await addDoc(collection(db, "studentReport"), newRecord);
             alert("Record added successfully!");
-            // Clear the form fields after successful submission
             setDescription("");
             setSelectedType("Report");
             setSelectedPerson("Student");
-            // Notify parent to fetch the updated reports
             onRecordAdded();
         } catch (error) {
             console.error("Error adding document: ", error);
@@ -72,17 +71,16 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         border-radius: 10px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
         p {
             text-align: start;
         }
         .headerp {
             background-color: #ebebeb;
             margin: 0px;
-            font-size: 20px;
             font-weight: 600;
             padding: 5px;
             text-align: center;
+            height: auto;
         }
     `;
 
@@ -94,6 +92,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
 
         p {
             font-weight: 500;
+            font-size: 17px;
         }
     `;
 
@@ -103,9 +102,11 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         padding: 10px;
         color: white;
         border-radius: 10px;
-        font-weight: 600;
-        font-size: 20px;
+        font-weight: 500;
+        font-size: 17px;
         margin-top: 40px;
+        width: 60%;
+        margin: auto;
 
         &:hover {
             cursor: pointer;
@@ -121,7 +122,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
 
     const dropdownStyle = css`
         position: relative;
-        margin-top: 10px;
+        margin-top: 15px;
     `;
 
     const dropdownButtonStyle = css`
@@ -134,6 +135,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
+        height: 23px;
 
         &:hover {
             background-color: #f0f0f0;
@@ -147,11 +149,12 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         border-radius: 5px;
         width: 100%;
         max-height: 150px;
-        margin-top: 5px;
+        margin-top: 0px;
         text-align: start;
         overflow-y: auto;
         z-index: 10;
         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        font-size: 15px;
     `;
 
     const dropdownItemStyle = (isSelected: boolean) => css`
@@ -166,16 +169,48 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         }
     `;
 
+    const buttonContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 2rem;
+    `;
+
+    const errorStyle = css`
+        color: red;
+        margin-bottom: 4px;
+    `;
+
     return (
         <div className="add-a-record-box" css={addRecordBoxStyle}>
-            <p className="headerp">Add a record</p>
+            <p className="headerp" style={{fontSize:"19px"}}>Add a record</p>
             <div className="recordForm" css={recordFormStyle}>
                 <p>Description</p>
-                <textarea name="" id="" rows={10} value={description} onChange={handleDescriptionChange}></textarea>
+                <textarea
+                    style={{
+                        border: "1px solid #D9D9D9",
+                        borderRadius: "5px",
+                        padding: "8px",
+                        outline: "none",
+                        fontSize: "15px",
+                        width: "100%",
+                        height: "13.3rem",
+                        resize: "none",
+                        boxSizing: "border-box",
+                        fontFamily: "inherit",
+                        lineHeight: "1.5",
+                        scrollbarWidth:"thin"
+                    }}
+                    rows={10}
+                    value={description}
+                    onChange={handleDescriptionChange}
+                />
                 <div className="dropdown-section" css={dropdownSectionStyle}>
                     <div className="type-dropdown" css={dropdownStyle}>
+                    <p style={{marginBottom: "5px", fontSize:"17px"}}>Type</p>
                         <div css={dropdownButtonStyle} onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}>
-                            {selectedType} <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} />
+                            <div style={{fontSize:"15px"}}>{selectedType}</div>
+                            <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
                         </div>
                         {isTypeDropdownOpen && (
                             <div css={dropdownContentStyle}>
@@ -192,8 +227,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                         )}
                     </div>
                     <div className="person-dropdown" css={dropdownStyle}>
+                    <p style={{marginBottom: "5px", fontSize:"17px"}}>Person</p>
                         <div css={dropdownButtonStyle} onClick={() => setIsPersonDropdownOpen(!isPersonDropdownOpen)}>
-                            {selectedPerson} <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} />
+                            <div style={{fontSize:"15px"}}>{selectedPerson}</div>
+                            <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
                         </div>
                         {isPersonDropdownOpen && (
                             <div css={dropdownContentStyle}>
@@ -210,7 +247,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                         )}
                     </div>
                 </div>
-                <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>
+                <div css={buttonContainerStyle}>
+                    {error && <p css={errorStyle} style={{fontSize:"13px"}}>{error}</p>}
+                    <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>
+                </div>
             </div>
         </div>
     );

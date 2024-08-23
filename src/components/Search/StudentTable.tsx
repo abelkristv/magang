@@ -15,7 +15,7 @@ const tableStyle = css`
     border-collapse: separate;
     border-spacing: 0;
     margin-top: 20px;
-    border: 2px solid #FFFFFF;
+    border: 2px solid #ECEAEA;
     border-radius: 15px;
     overflow: hidden;
 
@@ -40,7 +40,7 @@ const tableStyle = css`
     }
 
     thead th {
-        background-color: #ECECEC;
+        background-color: #DEDEDE;
         font-weight: 400;
     }
 
@@ -53,7 +53,7 @@ const tableStyle = css`
     }
 
     tbody tr:nth-of-type(even) {
-        background-color: #f5f5f5;
+        background-color: #F0ECEC;
     }
 
     tbody tr:last-of-type td:first-of-type {
@@ -104,10 +104,10 @@ const StudentTable = ({ students, totalComments, sortField, sortOrder, handleSor
             <tbody>
                 {students.map((student, index) => (
                     <tr key={student.iden}>
-                        <td className="no-column" style={{ borderLeft: "2px solid #F2F2F2", borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{index + 1}</td>
+                        <td className="no-column" style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{index + 1}</td>
                         <td className="name-column" style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{student.name}</td>
                         <td className="nim-column" style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{student.nim}</td>
-                        <td style={{ borderRight: "2px solid #F2F2F2", borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{student.major}</td>
+                        <td style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{student.major}</td>
                     </tr>
                 ))}
             </tbody>

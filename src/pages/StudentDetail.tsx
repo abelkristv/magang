@@ -782,7 +782,7 @@ function StudentDetail() {
                                                 ))}
                                                 <div className="schedule-a-meeting-button" style={{display: "flex", justifyContent: "start", width: "100%", marginTop: "20px"}}>
                                                 {user?.role === 'Enrichment' && hasCommented(record.id) && (
-                                                    <PrimaryButton bg_color='#45A049' bg_color_hover='#5ca15f' content='Schedule a meeting' height={50} borderRadius='10px' onClick={openModal} />
+                                                    <PrimaryButton bg_color='#45A049' bg_color_hover='#5ca15f' content='Schedule meeting' height={60} borderRadius='10px' onClick={openModal} />
                                                 )}
                                                 </div>
                                             </>
