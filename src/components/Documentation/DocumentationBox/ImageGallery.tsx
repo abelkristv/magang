@@ -1,9 +1,17 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ImageGallery = ({ images = [] }) => {
-    const [selectedImage, setSelectedImage] = useState(images[0]); // Default to the first image, if available
+interface ImageGalleryProps {
+    images: string[];
+}
+
+const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [] }) => {
+    const [selectedImage, setSelectedImage] = useState<string>(images[0] || ''); 
+
+    useEffect(() => {
+        setSelectedImage(images[0] || '');
+    }, [images]);
 
     const galleryStyle = css`
         display: grid;
@@ -42,7 +50,6 @@ const ImageGallery = ({ images = [] }) => {
         text-align: center;
         font-size: 18px;
         color: #888;
-        // margin-top: 20px;
         margin-left: 20px;
     `;
 

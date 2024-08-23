@@ -9,9 +9,9 @@ import DashboardBox from '../components/Dashboard/DashboardBox';
 import SearchBox from '../components/Search/SearchBox';
 import StudentListBox from '../components/StudentList/StudentListBox';
 import ProfileBox from '../components/ProfileBox';
-import DocumentationBox from '../components/Documentation/DocumentationBox';
+import DocumentationBox from '../components/Documentation/DocumentationBox/DocumentationBox';
 import StudentDetailBox from '../components/StudentDetail/StudentDetailBox';
-import AddNewDocumentationBox from '../components/Documentation/AddNewDocumentationbox';
+import AddNewDocumentationBox from '../components/Documentation/Add New Documentation/AddNewDocumentationbox';
 import { useAuth } from '../helper/AuthProvider'; // Import the authentication provider
 
 const Dashboard = () => {
@@ -30,7 +30,7 @@ const Dashboard = () => {
                 const reportQuery = query(
                     studentReportRef,
                     where("type", "==", "Urgent"), // Filter by type="Urgent"
-                    where("writer", "==", userAuth.currentUser.email) // Filter by writer's email
+                    // where("writer", "==", userAuth.currentUser.email) // Filter by writer's email
                 );
 
                 const reportSnapshot = await getDocs(reportQuery);

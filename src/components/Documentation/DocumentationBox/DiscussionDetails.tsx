@@ -2,6 +2,18 @@
 import { css } from "@emotion/react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 
+type DiscussionDetail = {
+    discussionTitle: string;
+    furtherActions: string;
+    deadline: { seconds: number; nanoseconds: number };
+    personResponsible: string;
+};
+
+interface DiscussionDetailsProps {
+    discussionDetails: DiscussionDetail[] | null;
+    formatDate: (timestamp: { seconds: number; nanoseconds: number }) => string;
+}
+
 const discussionDetailStyle = css`
     display: flex;
     flex-direction: column;
@@ -21,7 +33,7 @@ const discussionDetailStyle = css`
     }
 `;
 
-const DiscussionDetails = ({ discussionDetails, formatDate }) => {
+const DiscussionDetails: React.FC<DiscussionDetailsProps> = ({ discussionDetails, formatDate }) => {
     return (
         <div>
             {discussionDetails ? (
