@@ -7,11 +7,19 @@ interface AttendanceTableProps {
     getSortArrow: (field: string) => string;
 }
 
+
+const attendanceTableContainerStyle = css`
+    max-height: 505px;
+    height: 505px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+`;
+
 const attendanceTableStyle = css`
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    margin-top: 20px;
+    margin-top: 5px;
     border: 2px solid #FFFFFF;
     border-radius: 15px;
     overflow: hidden;
@@ -37,20 +45,32 @@ const attendanceTableStyle = css`
     }
 
     thead th {
-        background-color: #ECECEC;
-        font-weight: 400;
+        background-color: #C2C2C2;
+        font-weight: 500;
     }
 
     thead th:last-of-type {
         border-top-right-radius: 10px;
     }
+    
+    tbody{
+        tr{
+            vertical-align: top;
+        }
+    }
 
     tbody tr:nth-of-type(odd) {
         background-color: #ffffff;
+        &:hover{
+            background-color: #E2E2E2;
+        }
     }
-
+    
     tbody tr:nth-of-type(even) {
-        background-color: #f5f5f5;
+        background-color: #CFCFCF;
+        &:hover{
+            background-color: #C7C7C7;
+        }
     }
 
     tbody tr:last-of-type td:first-of-type {
@@ -72,26 +92,28 @@ const attendanceTableStyle = css`
 
 const AttendanceTable = ({ sortedAttendanceList, handleSort, getSortArrow }: AttendanceTableProps) => {
     return (
-        <table css={attendanceTableStyle}>
-            <thead>
-                <tr>
-                    <th className="no-column" onClick={() => handleSort('no')}>
-                        No. <span>{getSortArrow('no')}</span>
-                    </th>
-                    <th onClick={() => handleSort('name')}>
-                        Name <span>{getSortArrow('name')}</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {sortedAttendanceList.map((attendee, index) => (
-                    <tr key={index}>
-                        <td className="no-column" style={{ borderLeft: "2px solid #F2F2F2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{index + 1}</td>
-                        <td style={{ borderRight: "2px solid #F2F2F2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{attendee}</td>
+        <div css={attendanceTableContainerStyle}>
+            <table css={attendanceTableStyle}>
+                <thead>
+                    <tr>
+                        <th className="no-column" onClick={() => handleSort('no')}>
+                            No. <span>{getSortArrow('no')}</span>
+                        </th>
+                        <th onClick={() => handleSort('name')}>
+                            Name <span>{getSortArrow('name')}</span>
+                        </th>
                     </tr>
-                ))}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {sortedAttendanceList.map((attendee, index) => (
+                        <tr key={index}>
+                            <td className="no-column" style={{ borderLeft: "2px solid #C2C2C2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #C2C2C2" : "none", borderTop: "none" }}>{index + 1}</td>
+                            <td style={{ borderRight: "2px solid #C2C2C2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #C2C2C2" : "none", borderTop: "none" }}>{attendee}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     );
 };
 

@@ -42,6 +42,25 @@ export const UserCard = styled.div`
         object-fit: cover;
         border-radius: 10px 0px 0px 10px;
     }
+
+    @keyframes pulse {
+        0% {
+            background-color: #e0e0e0;
+        }
+        50% {
+            background-color: #f0f0f0;
+        }
+        100% {
+            background-color: #e0e0e0;
+        }
+    }
+    
+    .loading-placeholder {
+        animation: pulse 1.5s infinite ease-in-out;
+        border-radius: 5px;
+    }
+
+    
 `;
 
 export const UserDesc = styled.div`
@@ -61,6 +80,22 @@ export const InfoContainer = styled.div`
     grid-template-columns: 0.65fr 1fr;
     width: 100%;
     color: black;
+    @keyframes pulse {
+        0% {
+            background-color: #e0e0e0;
+        }
+        50% {
+            background-color: #f0f0f0;
+        }
+        100% {
+            background-color: #e0e0e0;
+        }
+    }
+
+    .loading-placeholder {
+        animation: pulse 1.5s infinite ease-in-out;
+        border-radius: 5px;
+    }
 `;
 
 export const InfoContainer2 = styled.div`
@@ -68,6 +103,22 @@ export const InfoContainer2 = styled.div`
 
     width: 100%;
     color: black;
+    @keyframes pulse {
+        0% {
+            background-color: #e0e0e0;
+        }
+        50% {
+            background-color: #f0f0f0;
+        }
+        100% {
+            background-color: #e0e0e0;
+        }
+    }
+
+    .loading-placeholder {
+        animation: pulse 1.5s infinite ease-in-out;
+        border-radius: 5px;
+    }
 `;
 
 export const Information = styled.div`
@@ -156,8 +207,8 @@ export const DropdownContent = styled.div<{ isOpen: boolean }>`
     text-align: start;
     position: absolute;
     top: 120%;
-    left: -43%;
-    width: 375px;
+    left: -65%;
+    width: 435px;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
@@ -240,7 +291,6 @@ export const ButtonWhite = styled.button`
 `;
 
 export const ShowMeetingSchedule = styled.p`
-    cursor: pointer;
     color: #49A8FF;
     font-weight: bold;
 
@@ -256,14 +306,51 @@ export const ExpandedCard = styled.div`
 `;
 
 export const Placeholder = styled.div`
-    width: 100%;
-    height: 200px;
+    border-bottom: 1px solid rgba(0,0,0, 0.3);
+    padding: 10px 0 30px 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #ebebeb;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    color: #888;
-    font-size: 18px;
+    flex-direction: column;
+    text-align: left;
+    gap: 5px;
+    margin-bottom: 18px;
+    background-color: #f0f0f0;
+    animation: pulse 1.5s infinite;
+
+    .topSide {
+        display: flex;
+        justify-content: space-between;
+        .topLeftSide, .topRightSide {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+    }
+
+    .infoAndDate {
+        p {
+            width: 50%;
+            height: 14px;
+            background-color: #ddd;
+            border-radius: 4px;
+        }
+    }
+
+    .report-content {
+        width: 100%;
+        height: 87px;
+        background-color: #ddd;
+        border-radius: 5px;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
 `;
