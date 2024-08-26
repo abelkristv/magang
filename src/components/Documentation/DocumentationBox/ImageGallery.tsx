@@ -15,32 +15,34 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [] }) => {
 
     const galleryStyle = css`
         display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
+        grid-template-columns: 2.5fr 1.05fr;
+        gap: 6px;
         margin-top: 20px;
     `;
 
     const largeImageStyle = css`
         width: 100%;
-        height: 420px;
-        background-size: cover;
-        border-radius: 10px;
-        border: 2px solid #dbdbdb;
+        height: 507px;
+        object-fit: contain;
+        border-radius: 6px;
+        background-color: #CFCFCF;
     `;
 
     const thumbnailContainerStyle = css`
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        height: 420px;
+        gap: 6px;
+        height: 507px;
+        width: 100%;
         overflow-y: scroll;
+        overflow-x: hidden;
+        scrollbar-width: thin;
     `;
 
     const thumbnailStyle = css`
         width: 100%;
         cursor: pointer;
-        border-radius: 10px;
-        border: 2px solid #dbdbdb;
+        border-radius: 6px;
         &:hover {
             border-color: #49A8FF;
         }

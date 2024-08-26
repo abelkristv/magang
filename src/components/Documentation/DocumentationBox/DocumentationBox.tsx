@@ -15,6 +15,7 @@ import DiscussionResultsTable from "./DiscussionResultsTable";
 import ImageGallery from "./ImageGallery";
 import { fetchUser } from "../../../controllers/UserController";
 import Documentation from "../../../model/Documentation";
+import { Button } from "../Add New Documentation/AddNewDocumentationBox.styles";
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -287,6 +288,9 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
         closeExportModal();
     };
+
+
+
     
 
     const handleSort = (field: string) => {
@@ -311,7 +315,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         } else {
             return a < b ? 1 : -1;
         }
-    });    
+    }); 
 
     const mainStyle = css`
         background-color: white;
@@ -334,25 +338,30 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         justify-content: space-between;
         margin-top: 40px;
         .leftSide {
-            width: 70%;
+            width: 76%;
         }
 
         .rightSide {
-            width: 25%;
-            display: flex;
-            flex-direction: column;
+            width: 22%;
         }
     `;
 
     const calendarStyle = css`
-        width: 100%;
         border: none;
-        font-family: Arial, Helvetica, sans-serif;
         line-height: 1.125em;
+        font-size: 16px;
+        top: 0;
+
+        button {
+            margin: 0px !important;
+            padding: 0px !important;
+        }
+
+        abbr{
+            z-index: 2;
+        }
 
         .react-calendar__navigation {
-            padding-top: 10px;
-            padding-bottom: 10px;
             box-sizing: unset;
             border-top: 2px solid #dedede;
             border-bottom: 2px solid #dedede;
@@ -361,28 +370,81 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         .react-calendar__tile {
             width: 50px;
             height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
         }
 
         .react-calendar__tile--now {
             background: white !important;
         }
 
+        .react-calendar__tile:hover {
+            font-weight: 700;
+        }
+
         .react-calendar__tile--active {
-            background: #49A8FF !important;
             color: white !important;
-            border-radius: 100% !important;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            position: relative;
+            padding: 0px !important;
+        }
+
+        .react-calendar__tile--active:hover {
+            font-weight: 400;
+        }
+
+        .react-calendar__navigation__label__labelText {
+            font-size: 17px;
+            color: #828282;
+        }
+
+        .react-calendar__navigation__arrow {
+            font-size: 24px;
+            font-weight: 200;
+        }
+
+        .react-calendar__month-view__weekdays__weekday {
+            text-decoration: none;
+        }
+
+        .react-calendar__year-view__months__month:hover {
+            background-color: #e6e6e6;
+        }
+    
+        .react-calendar__year-view__months__month .docDatesActive {
+            visibility: hidden;
+        }
+
+        .react-calendar__month-view__days__day:nth-of-type(7n+6) {
+            color: black;
+        }
+
+        .react-calendar__month-view__weekdays__weekday abbr {
+            text-decoration: none;
+            cursor: default;
         }
     `;
 
+
     const buttonGridStyle = css`
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-columns: 0.45fr 0.9fr 1.1fr 1.1fr;
         margin-top: 20px;
+        border: 1px solid #49A8FF;
+        border-radius: 5px;
+        width: 100%;
 
         button {
-            font-size: 17px;
+            font-size: 15px;
+            font-weight: 400;
             padding: 7px;
-            border: 1px solid #49A8FF;
+            border: none;
             background-color: white;
             color: #49A8FF;
             cursor: pointer;
@@ -407,6 +469,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         display: flex;
         flex-direction: column;
         gap: 10px;
+        width: 100%;
 
         .docItem {
             padding: 10px;
@@ -423,12 +486,12 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     `;
 
     const docDetailBoxStyle = css`
-        padding: 20px;
+        padding: 15px 30px;
         border: 1px solid #dbdbdb;
         border-radius: 5px;
         background-color: white;
         position: relative;
-        margin-top: 40px;
+        margin-top: 0px;
 
         .decoBox {
             width: 34px;
@@ -451,30 +514,58 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const tabContainerStyle = css`
         display: flex;
         margin-top: 20px;
-        cursor: pointer;
-
+        display: flex;
+        flex-direction: column;
+        
         .tab {
+            cursor: pointer;
             padding: 10px 20px;
             border-radius: 5px 5px 0 0;
-            margin-right: 10px;
+            color: #9C9C9C;
+            font-weight: 500;
+            font-size: 16px;
+            position: relative;
+
+            &:hover {
+                color: #8C8C8C;
+            }
 
             &.active {
+                color: black;
+                font-weight: 600;
                 background-color: white;
                 border-bottom: 1px solid #49A8FF;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -2px;
+                    left: 0;
+                    width: 100%;
+                    height: 2px;
+                    background-color: #49A8FF;
+                }
+            }
+        }
+
+        div{
+            div{
+                border-bottom: 1px solid #9C9C9C;
             }
         }
     `;
 
+
     const tabContentStyle = css`
-        padding: 20px 20px 20px 0px;
         border-top: none;
         border-radius: 0 0 5px 5px;
+        margin-top: 12px;        
     `;
 
     const buttonContainerStyle = css`
         width: 100%;
         display: flex;
-        gap: 20px;
+        justify-content: space-between;
         margin-bottom: 20px;
 
         button {
@@ -593,25 +684,102 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const informationStyle = css`
         display: flex;
         flex-direction: column;
-        gap: 10px;
         width: 45%;
-        margin-top: 10px;
+        margin-bottom: 10px;
     `
 
-    const tileContent = ({ date, view }: { date: Date, view: string }) => {
-        if (view === 'month' && docDates.includes(date.toDateString())) {
-            return <div style={{ width: '6px', height: '6px', backgroundColor: '#00ff08', borderRadius: '50%', margin: '0 auto', marginTop: '5px' }} />;
+    const documentationTitleStyle = css`
+        font-size: 21px;
+        font-weight: 500;
+    `
+
+    const documentationInfoTitle = css`
+        color: #51587E;
+    `
+
+    const documentationInfoContent = css`
+        color: black;
+        font-weight: 450;
+    `
+
+    const getDotColor = (docType: string) => {
+        switch (docType) {
+            case 'Meeting':
+                return '#49A8FF';
+            case 'Discussion':
+                return '#FF9500';
+            case 'Evaluation':
+                return '#A024FF';
+            default:
+                return 'gray';
         }
-        return null;
     };
+
+    const [selectedDate, setSelectedDate] = useState<Date|null>(new Date());
+    const tileContent = ({ date, view }: { date: Date, view: string }) => {
+        const isActive = date.toDateString() === selectedDate?.toDateString();
+        const visibility = isActive ? 'visible' : 'hidden';
+    
+        let dotColor = 'gray'; // Default color if no documentation is found
+    
+        if (view === 'month' && docDates.includes(date.toDateString())) {
+            // Find the documentation for the current date
+            const docForDate = documentations.find(doc => new Date(doc.timestamp.seconds * 1000).toDateString() === date.toDateString());
+    
+            if (docForDate) {
+                dotColor = getDotColor(docForDate.type);
+            }
+    
+            return (
+                <div className="docDatesActive" style={{ width: '100%', height: '100%', display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", position: "absolute", zIndex: "0", marginTop: isActive ? '7px' : '37px' }}>
+                    {isActive && (
+                        <div className="dotDatesBlueCircle" style={{
+                            width: '30px',
+                            height: '30px',
+                            backgroundColor: '#49A8FF',
+                            borderRadius: '50%',
+                            zIndex: 1,
+                        }}> </div>
+                    )}
+                    <div className="docDatesDot" style={{
+                        width: '6px',
+                        height: '6px',
+                        marginTop: "3px",
+                        backgroundColor: dotColor,
+                        borderRadius: '50%',
+                        zIndex: 2,
+                    }}></div>
+                </div>
+            );
+        } else {
+            return (
+                <div className="docDatesActive" style={{ width: '100%', height: '100%', display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", position: "absolute", zIndex: "0", marginTop: "0px" }}>
+                    {isActive && (
+                        <div className="dotDatesBlueCircle" style={{
+                            width: '30px',
+                            height: '30px',
+                            backgroundColor: '#49A8FF',
+                            borderRadius: '50%',
+                            zIndex: 1,
+                        }}> </div>
+                    )}
+                </div>
+            );
+        }
+    };
+    
 
     const handleDateChange: CalendarProps['onChange'] = (value, event) => {
         if (value instanceof Date) {
             setDate(value);
+            setSelectedDate(value);
         } else if (Array.isArray(value)) {
             if (value[0] instanceof Date) {
                 setDate(value[0]);
+                setSelectedDate(value[0]);
             }
+        } else {
+            setSelectedDate(null); // Handle other cases by setting null
         }
     };
     
@@ -633,91 +801,93 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             <div className="contentBox" css={contentBoxStyle}>
                 <div className="leftSide">
                     <div className="buttonContainer" css={buttonContainerStyle}>
-                        <button onClick={() => setGlobalActiveTab('Add New Documentation')}>Add New Documentation</button>
-                        <button onClick={openExportModal}>Export to Excel</button>
+                        <Button onClick={() => setGlobalActiveTab('Add New Documentation')} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Add new documentation</Button>
+                        <div style={{display:"flex", gap:"13px"}}>
+                            <Button onClick={openExportModal} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Export to Excel</Button>
+                            <Button style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Download pictures</Button>
+                        </div>
                     </div>
                     <div className="box" css={docDetailBoxStyle}>
                         <div className="decoBox">
-
                         </div>
                         {selectedDocumentation ? (
-                            <>
-                                <h2>{selectedDocumentation.title}</h2>
-                                <p>{selectedDocumentation.nomor_undangan}</p>
-                                <div className="informationContainer" style={{display: "flex", gap: "100px"}}>
+                            <div>
+                                <p css={documentationTitleStyle} style={{textAlign:"center"}}>{selectedDocumentation.title}</p>
+                                {/* <p>{selectedDocumentation.nomor_undangan}</p> */}
+                                <div className="informationContainer" style={{display: "flex", gap: "75px", marginTop:"20px"}}>
                                     <div className="informationLeftSide" css={informationStyle}>
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
-                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "0.4fr 1fr", alignItems:"start", marginBottom:"10px"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "17px"}}>
                                                 <Icon icon={"fluent-mdl2:party-leader"} fontSize={22} color="#51587E"/>
-                                                <p>Leader</p>
+                                                <p css={documentationInfoTitle}>Leader</p>
                                             </div>
-                                            <p>{selectedDocumentation.leader}</p>
+                                            <p css={documentationInfoContent}>{selectedDocumentation.leader}</p>
                                         </div>
 
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
-                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "0.4fr 1fr", alignItems:"start"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "17px"}}>
                                                 <Icon icon={"mdi:filter-outline"} fontSize={22} color="#51587E"/>
-                                                <p>Type</p>
+                                                <p css={documentationInfoTitle}>Type</p>
                                             </div>
-                                            <p>{selectedDocumentation.type}</p>
-                                        </div>
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1.4fr 1fr"}}>
-                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
-                                                <Icon icon={"ic:outline-place"} fontSize={22} color="#51587E"/>
-                                                <p>Place</p>
-                                            </div>
-                                            <p>{selectedDocumentation.place}</p>
+                                            <p css={documentationInfoContent}>{selectedDocumentation.type}</p>
                                         </div>
                                     </div>
                                     <div className="informationRightSide" css={informationStyle}>
-                                        
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
-                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "0.4fr 1fr", alignItems:"start", marginBottom:"10px"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "17px"}}>
                                                 <Icon icon={"clarity:date-line"} fontSize={22} color="#51587E"/>
-                                                <p>Date</p>
+                                                <p css={documentationInfoTitle}>Date</p>
                                             </div>
-                                            <p>{formatDate(selectedDocumentation.timestamp)}</p>
+                                            <p css={documentationInfoContent}>{formatDate(selectedDocumentation.timestamp)}</p>
                                         </div>
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
-                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "20px"}}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "0.4fr 1fr", alignItems:"start"}}>
+                                            <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "17px"}}>
                                                 <Icon icon={"mingcute:time-line"} fontSize={22} color="#51587E"/>
-                                                <p>Time</p>
+                                                <p css={documentationInfoTitle}>Time</p>
                                             </div>
-                                            <p>{formatTime(selectedDocumentation.timestamp)}</p>
+                                            <p css={documentationInfoContent}>{formatTime(selectedDocumentation.timestamp)}</p>
                                         </div>
-                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+                                        <div className="itemContainer" style={{display: "grid", gridTemplateColumns: "0.4fr 1fr", alignItems:"start"}}>
                                             {/* Placeholder for spacing */}
                                         </div>
                                     </div>
                                 </div>
+                                <div className="itemContainer" style={{display:"flex", marginTop:"0px"}}>
+                                    <div className="itemLeftSide" style={{display: "flex", alignItems: "center", gap: "17px", width:"12.8%"}}>
+                                        <Icon icon={"ic:outline-place"} fontSize={22} color="#51587E"/>
+                                        <p css={documentationInfoTitle}>Place</p>
+                                    </div>
+                                    <p css={documentationInfoContent} style={{width:"84%"}}>{selectedDocumentation.place}</p>
+                                </div>
                                 
-                                
-                                
-                                <p style={{marginTop: "20px"}}>{selectedDocumentation.description}</p>
+                                {/* <p style={{marginTop: "20px"}}>{selectedDocumentation.description}</p> */}
+
                                 <div className="tabs" css={tabContainerStyle}>
-                                    <div
-                                        className={`tab ${activeTab === 'discussion' ? 'active' : ''}`}
-                                        onClick={() => handleTabClick('discussion')}
-                                    >
-                                        Discussion Details
-                                    </div>
-                                    <div
-                                        className={`tab ${activeTab === 'attendance' ? 'active' : ''}`}
-                                        onClick={() => handleTabClick('attendance')}
-                                    >
-                                        Attendance List
-                                    </div>
-                                    <div
-                                        className={`tab ${activeTab === 'images' ? 'active' : ''}`}
-                                        onClick={() => handleTabClick('images')}
-                                    >
-                                        Images
-                                    </div>
-                                    <div
-                                        className={`tab ${activeTab === 'results' ? 'active' : ''}`}
-                                        onClick={() => handleTabClick('results')}
-                                    >
-                                        Discussion Results
+                                    <div style={{display:"flex"}}>
+                                        <div
+                                            className={`tab ${activeTab === 'discussion' ? 'active' : ''}`}
+                                            onClick={() => handleTabClick('discussion')}
+                                        >
+                                            Discussion Details
+                                        </div>
+                                        <div
+                                            className={`tab ${activeTab === 'results' ? 'active' : ''}`}
+                                            onClick={() => handleTabClick('results')}
+                                        >
+                                            Discussion Results
+                                        </div>
+                                        <div
+                                            className={`tab ${activeTab === 'attendance' ? 'active' : ''}`}
+                                            onClick={() => handleTabClick('attendance')}
+                                        >
+                                            Attendance List
+                                        </div>
+                                        <div
+                                            className={`tab ${activeTab === 'images' ? 'active' : ''}`}
+                                            onClick={() => handleTabClick('images')}
+                                        >
+                                            Images
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="tabContent" css={tabContentStyle}>
@@ -735,7 +905,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                         <DiscussionResultsTable results={selectedDocumentation.results || []} />
                                     )}
                                 </div>
-                            </>
+                            </div>
                         ) : (
                             <p>Select a documentation to see details.</p>
                         )}
@@ -751,7 +921,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                     <div className="buttonGrid" css={buttonGridStyle}>
                         <button
                             className={selectedButton === 'All' ? 'active' : ''}
-                            style={{ borderRadius: "5px 0px 0px 5px" }}
+                            style={{borderRadius:"5px 0px 0px 5px"}}
                             onClick={() => handleButtonClick('All')}
                         >
                             All
@@ -770,7 +940,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                         </button>
                         <button
                             className={selectedButton === 'Evaluation' ? 'active' : ''}
-                            style={{ borderRadius: "0px 5px 5px 0px" }}
+                            style={{borderRadius:"0px 5px 5px 0px"}}
                             onClick={() => handleButtonClick('Evaluation')}
                         >
                             Evaluation
