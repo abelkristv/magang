@@ -4,9 +4,13 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev # Use a separate Dockerfile for development
     ports:
-      - "3000:80"
+      - "3000:5173" # Change this to match the port Vite uses in development
+    volumes:
+      - ./frontend:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Necessary for some environments to detect file changes
     depends_on:
       - db
 
