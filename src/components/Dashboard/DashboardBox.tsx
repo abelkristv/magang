@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import dashboardDocum from "../../assets/dashboard_docum.png";
-import MainBox from "../elementary/MainBox";
+import MainBox from "../Elementary/MainBox";
 
 
 interface DashboardBoxProps {

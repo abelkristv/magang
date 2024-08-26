@@ -13,10 +13,12 @@ interface SideBarProps {
     activeTab: string;
     setActiveTab: (tab: string) => void;
     setSelectedStudentId: (studentId: string |  null) => void;
-    todayReportsCount: number; // Add this prop
+    todayReportsCount: number;
 }
 
 const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayReportsCount }: SideBarProps) => {
+    const navigate = useNavigate();
+
     const sidebarStyle = css`
         display: flex;
         flex-direction: column;
@@ -108,11 +110,9 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
         font-weight: ${isActive ? '500' : '300'};
     `;
 
-
     const handleLogout = async () => {
         try {
             await signOut(auth);
-            const navigate = useNavigate();
             navigate('/login');
         } catch (error) {
             console.error("Error logging out: ", error);
@@ -133,7 +133,10 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Dashboard")}
-                        onClick={() => setActiveTab("Dashboard")}
+                        onClick={() => {
+                            setActiveTab("Dashboard");
+                            navigate('/dashboard/dashboard');
+                        }}
                     >
                         <Icon icon={"ic:round-dashboard"} color={activeTab === "Dashboard" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Dashboard")}>Dashboard</a>
@@ -144,6 +147,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                         onClick={() => {
                             setSelectedStudentId(null);
                             setActiveTab("Search");
+                            navigate('/dashboard/search');
                         }}
                     >
                         <Icon icon={"material-symbols:search"} color={activeTab === "Search" ? "black" : "white"} fontSize={25} />
@@ -158,6 +162,7 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                         onClick={() => {
                             setSelectedStudentId(null);
                             setActiveTab("Student List");
+                            navigate('/dashboard/student-list');
                         }}
                     >
                         <Icon icon={"pepicons-pop:people"} color={activeTab === "Student List" ? "black" : "white"} fontSize={25} />
@@ -166,7 +171,10 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Documentation")}
-                        onClick={() => setActiveTab("Documentation")}
+                        onClick={() => {
+                            setActiveTab("Documentation");
+                            navigate('/dashboard/documentation');
+                        }}
                     >
                         <Icon icon={"material-symbols:book"} color={activeTab === "Documentation" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Documentation")}>Documentation</a>
@@ -176,7 +184,10 @@ const Sidebar = ({ width, activeTab, setActiveTab, setSelectedStudentId, todayRe
                 <div
                     className="sidebarContentContainer"
                     css={sidebarContentContainerStyle(activeTab === "Profile")}
-                    onClick={() => setActiveTab("Profile")}
+                    onClick={() => {
+                        setActiveTab("Profile");
+                        navigate('/dashboard/profile');
+                    }}
                 >
                     <Icon icon={"material-symbols:face"} color={activeTab === "Profile" ? "black" : "white"} fontSize={25} />
                     <a href="#" css={linkStyle(activeTab === "Profile")}>Profile</a>

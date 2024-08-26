@@ -144,11 +144,12 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const exportToExcel = async () => {
         const startDate = new Date(exportStartDate);
         const endDate = new Date(exportEndDate);
+        endDate.setHours(23, 59, 59, 999);
         const filteredDocs = documentations.filter(doc => {
             const docDate = new Date(doc.timestamp.seconds * 1000);
             return docDate >= startDate && docDate <= endDate && (exportType === 'All' || doc.type === exportType);
         });
-    
+        
         const meetingCount = filteredDocs.filter(doc => doc.type === 'Meeting').length;
         const discussionCount = filteredDocs.filter(doc => doc.type === 'Discussion').length;
         const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
@@ -165,13 +166,11 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
         const headers = [
             'Title',
-            'Nomor Undangan',
             'Leader',
             'Place',
             'Date',
             'Time',
             'Type',
-            'Description',
             'Discussion Details',
             'Attendance List'
         ];
@@ -183,13 +182,11 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
             return {
                 title: doc.title,
-                nomor_undangan: doc.nomor_undangan,
                 leader: doc.leader,
                 place: doc.place,
                 date: formatDate(doc.timestamp),
                 time: formatTime(doc.timestamp),
                 type: doc.type,
-                description: doc.description,
                 discussionDetails: details.map(detail => detail.discussionTitle).join(', '),
                 attendanceList: doc.attendanceList || [],
             };
@@ -219,42 +216,43 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         
             const numRows = Math.max(attendanceList.length, discussionDetails.length, 1);
         
-            worksheet.mergeCells(`A${rowIndex}:A${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`B${rowIndex}:B${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`C${rowIndex}:C${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`D${rowIndex}:D${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`E${rowIndex}:E${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`F${rowIndex}:F${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`G${rowIndex}:G${rowIndex + numRows - 1}`);
-            worksheet.mergeCells(`H${rowIndex}:H${rowIndex + numRows - 1}`);
+            const columnsToMerge = ['A', 'B', 'C', 'D', 'E', 'F'];
+        
+            columnsToMerge.forEach((col) => {
+                if (!worksheet.getCell(`${col}${rowIndex}`).isMerged) {
+                    worksheet.mergeCells(`${col}${rowIndex}:${col}${rowIndex + numRows - 1}`);
+                }
+            });
         
             worksheet.getCell(`A${rowIndex}`).value = doc.title;
-            worksheet.getCell(`B${rowIndex}`).value = doc.nomor_undangan;
-            worksheet.getCell(`C${rowIndex}`).value = doc.leader;
-            worksheet.getCell(`D${rowIndex}`).value = doc.place;
-            worksheet.getCell(`E${rowIndex}`).value = doc.date;
-            worksheet.getCell(`F${rowIndex}`).value = doc.time;
-            worksheet.getCell(`G${rowIndex}`).value = doc.type;
-            worksheet.getCell(`H${rowIndex}`).value = doc.description;
+            worksheet.getCell(`B${rowIndex}`).value = doc.leader;
+            worksheet.getCell(`C${rowIndex}`).value = doc.place;
+            worksheet.getCell(`D${rowIndex}`).value = doc.date;
+            worksheet.getCell(`E${rowIndex}`).value = doc.time;
+            worksheet.getCell(`F${rowIndex}`).value = doc.type;
         
             if (discussionDetails.length === 1) {
-                worksheet.mergeCells(`I${rowIndex}:I${rowIndex + numRows - 1}`);
-                worksheet.getCell(`I${rowIndex}`).value = discussionDetails[0];
+                if (!worksheet.getCell(`G${rowIndex}`).isMerged) {
+                    worksheet.mergeCells(`G${rowIndex}:G${rowIndex + numRows - 1}`);
+                }
+                worksheet.getCell(`G${rowIndex}`).value = discussionDetails[0];
             } else if (discussionDetails.length > 1) {
                 discussionDetails.forEach((detail, i) => {
-                    worksheet.getCell(`I${rowIndex + i}`).value = detail;
+                    worksheet.getCell(`G${rowIndex + i}`).value = detail;
                 });
             } else {
-                worksheet.getCell(`I${rowIndex}`).value = '';
+                worksheet.getCell(`G${rowIndex}`).value = '';
             }
         
             if (attendanceList.length > 1) {
                 attendanceList.forEach((attendee, i) => {
-                    worksheet.getCell(`J${rowIndex + i}`).value = attendee;
+                    worksheet.getCell(`H${rowIndex + i}`).value = attendee;
                 });
             } else {
-                worksheet.mergeCells(`J${rowIndex}:J${rowIndex + numRows - 1}`);
-                worksheet.getCell(`J${rowIndex}`).value = attendanceList[0] || '';
+                if (!worksheet.getCell(`H${rowIndex}`).isMerged) {
+                    worksheet.mergeCells(`H${rowIndex}:H${rowIndex + numRows - 1}`);
+                }
+                worksheet.getCell(`H${rowIndex}`).value = attendanceList[0] || '';
             }
         
             for (let i = rowIndex; i < rowIndex + numRows; i++) {
@@ -267,17 +265,15 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                     };
                 });
             }
-        });                
+        });                        
     
         worksheet.columns = [
             { key: 'title', width: 30 },
-            { key: 'nomor_undangan', width: 20 },
             { key: 'leader', width: 20 },
             { key: 'place', width: 20 },
             { key: 'date', width: 30 },
             { key: 'time', width: 15 },
             { key: 'type', width: 15 },
-            { key: 'description', width: 30 },
             { key: 'discussion_details', width: 30 },
             { key: 'attendance_list', width: 30 },
         ];
@@ -474,6 +470,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const buttonContainerStyle = css`
         width: 100%;
         display: flex;
+        justify-content: space-between;
         gap: 20px;
         margin-bottom: 20px;
 
@@ -488,6 +485,11 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 background-color: #62b3fc;
                 cursor: pointer;
             }
+        }
+
+        .rightSide {
+            display: flex;
+
         }
     `
 
@@ -634,7 +636,11 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 <div className="leftSide">
                     <div className="buttonContainer" css={buttonContainerStyle}>
                         <button onClick={() => setGlobalActiveTab('Add New Documentation')}>Add New Documentation</button>
-                        <button onClick={openExportModal}>Export to Excel</button>
+                        <div className="rightSide">
+                            <button onClick={openExportModal}>Export to Excel</button>
+                            {/* <button onClick={openExportModal}>Export Pictures</button> */}
+                        </div>
+                        
                     </div>
                     <div className="box" css={docDetailBoxStyle}>
                         <div className="decoBox">

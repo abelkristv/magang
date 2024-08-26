@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import { getApp } from "firebase/app";
@@ -12,13 +11,14 @@ import ProfileBox from '../components/ProfileBox';
 import DocumentationBox from '../components/Documentation/DocumentationBox/DocumentationBox';
 import StudentDetailBox from '../components/StudentDetail/StudentDetailBox';
 import AddNewDocumentationBox from '../components/Documentation/Add New Documentation/AddNewDocumentationbox';
-import { useAuth } from '../helper/AuthProvider'; // Import the authentication provider
+import { useAuth } from '../helper/AuthProvider';
+import { Route, Routes, Navigate } from 'react-router-dom';
 
-const Dashboard = () => {
+const WorkSpace = () => {
     const [activeTab, setActiveTab] = useState<string>("Dashboard");
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-    const [urgentReportsCount, setUrgentReportsCount] = useState<number>(0); // Renamed state variable for clarity
-    const userAuth = useAuth(); // Use authentication context to get the current user
+    const [urgentReportsCount, setUrgentReportsCount] = useState<number>(0);
+    const userAuth = useAuth();
 
     useEffect(() => {
         const fetchUrgentReportsCount = async () => {
@@ -29,8 +29,7 @@ const Dashboard = () => {
 
                 const reportQuery = query(
                     studentReportRef,
-                    where("type", "==", "Urgent"), // Filter by type="Urgent"
-                    // where("writer", "==", userAuth.currentUser.email) // Filter by writer's email
+                    where("type", "==", "Urgent")
                 );
 
                 const reportSnapshot = await getDocs(reportQuery);
@@ -57,28 +56,31 @@ const Dashboard = () => {
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
                 setSelectedStudentId={setSelectedStudentId} 
-                todayReportsCount={urgentReportsCount} // Pass the count of urgent reports to Sidebar
+                todayReportsCount={urgentReportsCount}
             />
-            {activeTab === "Dashboard" && <DashboardBox setActiveTab={setActiveTab} />}
-            {activeTab === "Search" && 
-                (selectedStudentId ? (
-                    <StudentDetailBox studentId={selectedStudentId} />
-                ) : (
-                    <SearchBox onSelectStudent={setSelectedStudentId} />
-                ))
-            }
-            {activeTab === "Student List" && 
-                (selectedStudentId ? (
-                    <StudentDetailBox studentId={selectedStudentId} />
-                ) : (
-                    <StudentListBox onSelectStudent={setSelectedStudentId} />
-                ))
-            }
-            {activeTab === "Profile" && <ProfileBox setTodayReportsCount={setUrgentReportsCount} />} {/* Pass setUrgentReportsCount to ProfileBox */}
-            {activeTab === "Add New Documentation" && <AddNewDocumentationBox />}
-            {activeTab === "Documentation" && <DocumentationBox setGlobalActiveTab={setActiveTab} />}
+            <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" />} />
+                <Route path="/dashboard" element={<DashboardBox setActiveTab={setActiveTab} />} />
+                <Route path="/search" element={
+                    selectedStudentId ? (
+                        <StudentDetailBox studentId={selectedStudentId} />
+                    ) : (
+                        <SearchBox onSelectStudent={setSelectedStudentId} />
+                    )
+                } />
+                <Route path="/student-list" element={
+                    selectedStudentId ? (
+                        <StudentDetailBox studentId={selectedStudentId} />
+                    ) : (
+                        <StudentListBox onSelectStudent={setSelectedStudentId} />
+                    )
+                } />
+                <Route path="/profile" element={<ProfileBox setTodayReportsCount={setUrgentReportsCount} />} />
+                <Route path="/add-new-documentation" element={<AddNewDocumentationBox />} />
+                <Route path="/documentation" element={<DocumentationBox setGlobalActiveTab={setActiveTab} />} />
+            </Routes>
         </main>
     );
 }
 
-export default Dashboard;
+export default WorkSpace;

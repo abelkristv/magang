@@ -9,7 +9,7 @@ import { fetchAllStudents } from "../../controllers/StudentController";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
 import notFoundImage from "../../assets/not_found.png";
-import MainBox from "../elementary/MainBox";
+import MainBox from "../Elementary/MainBox";
 import SearchInput from "./SearchInput";
 import ViewChooser from "./ViewChooser";
 import FilterDropdown from "./FilterDropdown";

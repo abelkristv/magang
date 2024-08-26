@@ -3,10 +3,10 @@ import { useState, useEffect, ReactEventHandler } from 'react';
 import { css } from '@emotion/react';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure the path is correct
-import PrimaryButton from './elementary/Button';
-import CustomSelect from './elementary/CustomSelect'; // Ensure the path is correct
+import PrimaryButton from './Elementary/Button';
+import CustomSelect from './Elementary/CustomSelect'; // Ensure the path is correct
 import { useAuth } from '../helper/AuthProvider';
-import Modal from './elementary/Modal'; // Ensure the path is correct
+import Modal from './Elementary/Modal'; // Ensure the path is correct
 import Student from '../model/Student';
 
 function FormBox() {

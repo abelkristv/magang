@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
-import PrimaryButton from '../components/elementary/Button';
+import PrimaryButton from '../components/Elementary/Button';
 import { useAuth } from '../helper/AuthProvider';
 import User from '../model/User';
 import personIcon from "../assets/icons/person.png"
