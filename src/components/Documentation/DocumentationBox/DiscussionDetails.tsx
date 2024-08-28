@@ -51,7 +51,7 @@ const discussionDetailContent = css`
 const DiscussionDetails: React.FC<DiscussionDetailsProps> = ({ discussionDetails, formatDate }) => {
     return (
         <div css={discussionDetailDiv}>
-            {discussionDetails ? (
+            {discussionDetails && discussionDetails.length > 0 ? (
                 discussionDetails.map((detail, index) => (
                     <div key={index} css={discussionDetailStyle}>
                         <p style={{fontWeight:"500", fontSize:"16px", marginBottom:"5px"}}>{index+1}. {detail.discussionTitle}</p>
@@ -79,7 +79,9 @@ const DiscussionDetails: React.FC<DiscussionDetailsProps> = ({ discussionDetails
                     </div>
                 ))
             ) : (
-                <p>Loading discussion details...</p>
+                <div css={discussionDetailStyle}>
+                    <p style={{fontWeight:"500", fontSize:"16px", marginBottom:"5px"}}>No discussion details found</p>
+                </div>
             )}
         </div>
     );

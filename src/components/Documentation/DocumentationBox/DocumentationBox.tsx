@@ -16,6 +16,7 @@ import ImageGallery from "./ImageGallery";
 import { fetchUser } from "../../../controllers/UserController";
 import Documentation from "../../../model/Documentation";
 import { Button } from "../Add New Documentation/AddNewDocumentationBox.styles";
+import notFoundImage from "../../../assets/not_found.png";
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -65,15 +66,16 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 setUserRole(null);
             }
         };
-
         fetchUserRole();
     }, [userAuth]);
 
     useEffect(() => {
-        const filteredDocs = documentations.filter(doc => {
-            const docDate = new Date(doc.timestamp.seconds * 1000);
-            return docDate.toDateString() === date.toDateString() && (selectedButton === 'All' || doc.type === selectedButton);
-        });
+        const filteredDocs = documentations
+            .filter(doc => {
+                const docDate = new Date(doc.timestamp.seconds * 1000);
+                return docDate.toDateString() === date.toDateString() && (selectedButton === 'All' || doc.type === selectedButton);
+            })
+            .sort((a, b) => b.time.seconds - a.time.seconds);
         setFilteredDocumentations(filteredDocs);
     }, [date, selectedButton, documentations]);
 
@@ -470,18 +472,45 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         flex-direction: column;
         gap: 10px;
         width: 100%;
+        height: 100%;
+        max-height: 395px;
+        height: 505px;
+        overflow-y: auto;
+        scrollbar-width: thin;
 
         .docItem {
             padding: 10px;
             border: 1px solid #dbdbdb;
             border-radius: 5px;
+            box-shadow: 0px 0px 5px 1px #dbdbdb;
             background-color: white;
             text-align: start;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
 
             &:hover {
                 background-color: #f0f0f0;
             }
+
+            .leaderContainer{
+                display: grid;
+                grid-template-columns: 0.05fr 1fr;
+            }
+
+            .footer{
+                display: flex;
+                justify-content: space-between;
+                color: #49A8FF;
+                font-size: 14px;
+                font-style: italic;
+                .footer-time{
+                    color: #ACACAC;
+                    font-weight: 600;
+                }
+            }
+
         }
     `;
 
@@ -492,6 +521,8 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         background-color: white;
         position: relative;
         margin-top: 0px;
+        box-shadow: 0px 0px 5px 1px #dbdbdb;
+        height: 727px;
 
         .decoBox {
             width: 34px;
@@ -598,46 +629,21 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const modalContentStyle = css`
         background: white;
         border-radius: 10px;
-        width: 600px;
+        width: 500px;
         display: flex;
         flex-direction: column;
-
-        .headerp {
-            margin-bottom: 20px;
-            margin-top: 0px;
-            background-color: #F0ECEC;
-            border-radius: 5px;
-            font-size: 20px;
-            padding: 10px;
-        }
-
-        button {
-            padding: 10px;
-            border: none;
-            margin: 10px;
-            width: 40%;
-            border-radius: 5px;
-            background-color: #49A8FF;
-            color: white;
-            font-weight: 600;
-            &:hover {
-                background-color: #62b3fc;
-                cursor: pointer;
-            }
-        }
     `;
 
     const exportModalContentStyle = css`
         display: flex;
-        gap: 40px;
+        justify-content: space-between;
+        
         .leftSide {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            width: 50%;
-        }
-        .rightSide {
-            width: 50%;
+            justify-content: space-between;
+            align-items: start;
+            fontSize: 15px;
         }
 
         font-size: 20px;
@@ -657,11 +663,16 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         height: 50px;
         align-items: center;
         background-color: #F0ECEC;
-
         border-radius: 10px 10px 0px 0px;
 
         .headerp {
-            margin-bottom: 0px;
+            margin-top: 0px;
+            margin-left: 8px;
+            background-color: #F0ECEC;
+            border-radius: 5px;
+            font-size: 20px;
+            padding: 10px;
+            box-sizing: border-box;
         }
     `;
 
@@ -674,11 +685,22 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         font-size: 20px;
         font-weight: bold;
         color: #888 !important;
+        margin-right: 8px;
     `;
 
     const exportButton = css`
-        margin-bottom: 10px;
-        padding: 10px;
+        background-color: #49A8FF;
+        color: white;
+        padding: 10px 20px;
+        height: auto;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 17px;
+        font-weight: 500;
+        &:hover {
+            background-color: #68b5fc;
+        }
     `
 
     const informationStyle = css`
@@ -689,8 +711,8 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     `
 
     const documentationTitleStyle = css`
-        font-size: 21px;
-        font-weight: 500;
+        font-size: 19px;
+        font-weight: 600;
     `
 
     const documentationInfoTitle = css`
@@ -701,6 +723,44 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         color: black;
         font-weight: 450;
     `
+
+    const totalStyle = css`
+        font-size: 25px;
+        font-weight: 600;
+        text-align: start;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 700px;
+        img {
+            height: 300px;
+            width: 300px;
+        }
+        p{
+            margin-top: 10px;
+        }
+    `;
+
+    const popupHeaderStyle = css`
+        font-size: 17px;
+        margin-bottom: 13px;
+    `;
+
+    const inputStyle = css`
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    `;
+
+    const popupTypeStyle = css`
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 190px;
+    `;
 
     const getDotColor = (docType: string) => {
         switch (docType) {
@@ -720,10 +780,10 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         const isActive = date.toDateString() === selectedDate?.toDateString();
         const visibility = isActive ? 'visible' : 'hidden';
     
-        let dotColor = 'gray'; // Default color if no documentation is found
+        let dotColor = 'gray';
     
         if (view === 'month' && docDates.includes(date.toDateString())) {
-            // Find the documentation for the current date
+            // find doc for current date
             const docForDate = documentations.find(doc => new Date(doc.timestamp.seconds * 1000).toDateString() === date.toDateString());
     
             if (docForDate) {
@@ -808,8 +868,8 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                         </div>
                     </div>
                     <div className="box" css={docDetailBoxStyle}>
-                        <div className="decoBox">
-                        </div>
+                        {/* <div className="decoBox">
+                        </div> */}
                         {selectedDocumentation ? (
                             <div>
                                 <p css={documentationTitleStyle} style={{textAlign:"center"}}>{selectedDocumentation.title}</p>
@@ -907,7 +967,10 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                 </div>
                             </div>
                         ) : (
-                            <p>Select a documentation to see details.</p>
+                            <div css={totalStyle}>
+                                <img src={notFoundImage} alt="" />
+                                <p>No documentation selected</p>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -950,17 +1013,20 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                         {filteredDocumentations.length > 0 ? (
                             filteredDocumentations.map(doc => (
                                 <div key={doc.id} className="docItem" onClick={() => handleDocItemClick(doc)}>
-                                    <p style={{fontWeight: "600", fontSize: "20px"}}>{doc.title}</p>
-                                    <p>{doc.nomor_undangan}</p>
-                                    <div className="leaderContainer" style={{display: "flex", alignItems: "center", gap: "20px"}}>
-                                        <Icon icon={"fluent-mdl2:party-leader"} />
-                                        <p>{doc.leader}</p>
+                                    <p style={{fontWeight: "600", fontSize: "15px"}}>{doc.title}</p>
+                                    {/* <p>{doc.nomor_undangan}</p> */}
+                                    <div className="leaderContainer" style={{ gap: "13px", color:"#51587E"  }}>
+                                        <Icon icon={"fluent-mdl2:party-leader"} fontSize={15} fontWeight={100} style={{marginTop:"5px"}}/>
+                                        <p style={{fontSize:"14px"}}>{doc.leader}</p>
                                     </div>
-                                    <p style={{color: "#49A8FF"}}>{doc.type}</p>
+                                    <div className="footer">
+                                        <p>{doc.type}</p>
+                                        <p className="footer-time">{formatTime(doc.timestamp)}</p>
+                                    </div>
                                 </div>
                             ))
                         ) : (
-                            <p>No documentation found for the selected date and type.</p>
+                            <p style={{display:"flex", justifyContent:"center", marginTop:"9rem", fontWeight:"600", fontSize:"18px"}}>No documentation found</p>
                         )}
                     </div>
                 </div>
@@ -969,24 +1035,38 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 <div css={modalStyle}>
                     <div css={modalContentStyle} ref={modalRef}>
                         <div className="modalHeader" css={modalHeaderStyle}>
-                            <p className="headerp">Export to Excel</p>
-                            <button css={closeButtonStyle} onClick={closeExportModal}>x</button>
+                            <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Export to Excel</p>
+                            <Icon icon="mdi:close" onClick={closeExportModal} fontSize={20} color="#51587E" css={closeButtonStyle} />
                         </div>
                         <div className="exportModalContent" css={exportModalContentStyle}>
                             <div className="leftSide">
-                                <p>Period</p>
-                                <div className="periodGrid" css={periodGridStyle}>
-                                    <p>Start</p>
-                                    <input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} />
+                                <p css={popupHeaderStyle}>Period</p>
+                                <div className="periodGrid" style={{display: "flex", alignItems: "center", gap: "10px", fontSize:"15px", justifyContent:"space-between"}}>
+                                    <p style={{width:"40px"}}>Start</p>
+                                    <input 
+                                        type="date" 
+                                        value={exportStartDate}
+                                        onChange={(e) => setExportStartDate(e.target.value)}
+                                        css={inputStyle}
+                                        style={{width:"165px", fontSize:"15px"}}
+                                        required
+                                    />
                                 </div>
-                                <div className="periodGrid" css={periodGridStyle}>
-                                    <p>End</p>
-                                    <input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} />
+                                <div className="periodGrid" style={{display: "flex", alignItems: "center", gap: "10px", fontSize:"15px", justifyContent:"space-between", marginTop:"9px"}}>
+                                    <p style={{width:"40px"}}>End</p>
+                                    <input
+                                        type="date" 
+                                        value={exportEndDate}
+                                        onChange={(e) => setExportEndDate(e.target.value)}
+                                        css={inputStyle}
+                                        style={{width:"165px", fontSize:"15px"}}
+                                        required
+                                    />
                                 </div>
                             </div>
                             <div className="rightSide">
-                                <p>Type</p>
-                                <select value={exportType} onChange={e => setExportType(e.target.value)}>
+                                <p css={popupHeaderStyle}>Type</p>
+                                <select css={popupTypeStyle} value={exportType} onChange={e => setExportType(e.target.value)}>
                                     <option value="All">All</option>
                                     <option value="Meeting">Meeting</option>
                                     <option value="Discussion">Discussion</option>
@@ -994,8 +1074,10 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                 </select>
                             </div>
                         </div>
-                        <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "40px"}}>
-                            <button css={exportButton} onClick={exportToExcel}>Export</button>
+                        <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginBottom:"20px", marginTop:"23px"}}>
+                            <button onClick={exportToExcel} css={exportButton}>
+                                Export
+                            </button>
                         </div>
                     </div>
                 </div>

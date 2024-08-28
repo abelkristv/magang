@@ -113,7 +113,7 @@ const DiscussionResultsTable = ({ results }: DiscussionResultsTableProps) => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={2} style={{ textAlign: 'center' }}>No results found</td>
+                            <td colSpan={2} style={{ border: "2px solid #C2C2C2", borderTop: "none", textAlign:"center" }}>No discussion results found</td>
                         </tr>
                     )}
                 </tbody>

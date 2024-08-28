@@ -131,13 +131,14 @@ const ExportModal = ({ isOpen, onClose, onExport }) => {
         border-radius: 10px 10px 0px 0px;
 
         .headerp {
-            margin-left: 5px;
+            margin-left: 6px;
             margin-bottom: 0px;
         }
     `;
 
     const closeButtonStyle = css`
         cursor: pointer;
+        margin-right: 8px;
     `;
 
     const popupHeaderStyle = css`
