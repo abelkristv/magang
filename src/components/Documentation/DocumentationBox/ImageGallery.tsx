@@ -48,11 +48,20 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [] }) => {
         }
     `;
 
-    const noImagesStyle = css`
-        text-align: center;
-        font-size: 18px;
-        color: #888;
-        margin-left: 20px;
+    // const noImagesStyle = css`
+    //     text-align: center;
+    //     font-size: 18px;
+    //     color: #888;
+    //     margin-left: 20px;
+    // `;
+
+    const discussionDetailStyle = css`
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        border-left: 2px solid #ACACAC;
+        padding: 10px 0px 10px 15px;
+        margin-top: 16px;
     `;
 
     return (
@@ -75,7 +84,9 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [] }) => {
                     </div>
                 </>
             ) : (
-                <p css={noImagesStyle}>No images available</p>
+                <div css={discussionDetailStyle}>
+                    <p style={{fontWeight:"500", fontSize:"16px", marginBottom:"5px"}}>No images found</p>
+                </div>
             )}
         </div>
     );

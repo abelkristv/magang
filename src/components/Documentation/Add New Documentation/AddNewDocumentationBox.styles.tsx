@@ -18,11 +18,16 @@ export const NavSide = styled.div`
 `;
 
 export const Header = styled.div`
-    background-color: #F5F5F5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ebebeb;
     padding: 10px;
+    font-size: 19px;
+    font-weight: 600;
     text-align: center;
     border-radius: 10px 10px 0px 0px;
-    font-size: 20px;
+    height: 25px;
 `;
 
 export const ContentContainer = styled.div`

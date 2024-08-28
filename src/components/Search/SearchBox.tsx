@@ -330,9 +330,8 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
     `;
 
     const totalStyle = css`
-        margin-top: 40px;
         font-size: 25px;
-        font-weight: bold;
+        font-weight: 600;
         text-align: start;
         display: flex;
         flex-direction: column;
@@ -340,8 +339,11 @@ const SearchBox = ({ onSelectStudent }: SearchBoxProps) => {
         justify-content: center;
         height: 700px;
         img {
-            height: 372px;
-            width: 372px;
+            height: 300px;
+            width: 300px;
+        }
+        p{
+            margin-top: 10px;
         }
     `;
 

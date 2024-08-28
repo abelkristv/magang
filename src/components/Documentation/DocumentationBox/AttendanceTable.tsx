@@ -22,7 +22,6 @@ const attendanceTableStyle = css`
     margin-top: 5px;
     border: 2px solid #FFFFFF;
     border-radius: 15px;
-    overflow: hidden;
 
     .no-column {
         width: 5%;
@@ -105,12 +104,18 @@ const AttendanceTable = ({ sortedAttendanceList, handleSort, getSortArrow }: Att
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedAttendanceList.map((attendee, index) => (
-                        <tr key={index}>
-                            <td className="no-column" style={{ borderLeft: "2px solid #C2C2C2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #C2C2C2" : "none", borderTop: "none" }}>{index + 1}</td>
-                            <td style={{ borderRight: "2px solid #C2C2C2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #C2C2C2" : "none", borderTop: "none" }}>{attendee}</td>
+                    {sortedAttendanceList && sortedAttendanceList.length > 0 ? (
+                        sortedAttendanceList.map((attendee, index) => (
+                            <tr key={index}>
+                                <td className="no-column" style={{ borderLeft: "2px solid #C2C2C2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #C2C2C2" : "none", borderTop: "none" }}>{index + 1}</td>
+                                <td style={{ borderRight: "2px solid #C2C2C2", borderBottom: index === sortedAttendanceList.length - 1 ? "2px solid #C2C2C2" : "none", borderTop: "none" }}>{attendee}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={2} style={{ border: "2px solid #C2C2C2", borderTop: "none", textAlign:"center" }}>No attendees found</td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
         </div>
