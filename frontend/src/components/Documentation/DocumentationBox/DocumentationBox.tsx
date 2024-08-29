@@ -17,6 +17,7 @@ import { Button } from "../Add New Documentation/AddNewDocumentationBox.styles";
 import notFoundImage from "../../../assets/not_found.png";
 import { fetchDiscussionDetails, fetchDiscussionsWithDetails } from "../../../controllers/DiscussionDetailController";
 import { useNavigate } from "react-router-dom";
+import JSZip from 'jszip';
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -190,6 +191,27 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         }
     
         return "Unknown Time";
+    };
+    
+    const downloadImages = async () => {
+        if (!selectedDocumentation || !selectedDocumentation.pictures?.length) {
+            console.error("No images to download");
+            return;
+        }
+    
+        const zip = new JSZip();
+    
+        selectedDocumentation.pictures.forEach((imageBase64, index) => {
+            const imgData = imageBase64.split(',')[1]; // Remove the data URI scheme part
+            zip.file(`image_${index + 1}.png`, imgData, { base64: true });
+        });
+    
+        try {
+            const content = await zip.generateAsync({ type: 'blob' });
+            saveAs(content, `${selectedDocumentation.title}_images.zip`);
+        } catch (error) {
+            console.error("Error generating zip file: ", error);
+        }
     };
     
 
@@ -931,7 +953,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                         </Button>
                         <div style={{display:"flex", gap:"13px"}}>
                             <Button onClick={openExportModal} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Export to Excel</Button>
-                            <Button style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Download pictures</Button>
+                            <Button onClick={downloadImages} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Download pictures</Button>
                         </div>
 
                     </div>
