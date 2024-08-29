@@ -37,6 +37,7 @@ import {
     InfoContainer2,
 } from "./StudentDetailBox.styles";
 import { css } from "@emotion/react";
+import styled from "styled-components";
 import { Option } from "fp-ts/lib/Option";
 import { fetchStudentById, updateStudentNotes } from "../../controllers/StudentController";
 import { deleteStudentReport, fetchReports, updateStudentReport } from "../../controllers/ReportController";
@@ -379,6 +380,110 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         background-color: #000000;
     `;
 
+    const ReportItemPlaceholder = styled.div`
+        border-bottom: 1px solid rgba(0,0,0, 0.3);
+        padding: 10px 0 30px 0;
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+        gap: 5px;
+        margin-bottom: 18px;
+        background-color: #f0f0f0;
+        animation: pulse 1.5s infinite;
+
+        .topSide {
+            display: flex;
+            justify-content: space-between;
+            .topLeftSide, .topRightSide {
+                display: flex;
+                gap: 20px;
+                align-items: center;
+            }
+        }
+
+        .infoAndDate {
+            p {
+                width: 50%;
+                height: 14px;
+                background-color: #ddd;
+                border-radius: 4px;
+            }
+        }
+
+        .report-content {
+            width: 100%;
+            height: 87px;
+            background-color: #ddd;
+            border-radius: 5px;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    `;
+
+    const Placeholder = () => (
+        <div style={{marginTop:"17px"}}>
+            <ReportItemPlaceholder>
+                <div className="topSide">
+                    <div className="topLeftSide">
+                        <div className="report-writer" style={{ width: '150px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                        <div style={{ width: '75px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                    </div>
+                    <div className="topRightSide">
+                        <div style={{ width: '50px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                        <div style={{ width: '50px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                    </div>
+                </div>
+                <div className="infoAndDate">
+                    <p></p>
+                </div>
+                <div className="report-content"></div>
+            </ReportItemPlaceholder>
+            <ReportItemPlaceholder>
+                <div className="topSide">
+                    <div className="topLeftSide">
+                        <div className="report-writer" style={{ width: '150px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                        <div style={{ width: '75px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                    </div>
+                    <div className="topRightSide">
+                        <div style={{ width: '50px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                        <div style={{ width: '50px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                    </div>
+                </div>
+                <div className="infoAndDate">
+                    <p></p>
+                </div>
+                <div className="report-content"></div>
+            </ReportItemPlaceholder>
+                <ReportItemPlaceholder>
+                    <div className="topSide">
+                        <div className="topLeftSide">
+                            <div className="report-writer" style={{ width: '150px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                            <div style={{ width: '75px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                        </div>
+                        <div className="topRightSide">
+                            <div style={{ width: '50px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                            <div style={{ width: '50px', height: '20px', backgroundColor: '#ddd', borderRadius: '4px' }}></div>
+                        </div>
+                    </div>
+                    <div className="infoAndDate">
+                        <p></p>
+                    </div>
+                    <div className="report-content"></div>
+                </ReportItemPlaceholder>
+        </div>
+    );
+    
+
     return (
         <Main>
             <NavSide>
@@ -472,7 +577,50 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                             </UserDesc>
                         </>
                     ) : (
-                        <Placeholder>Loading student details...</Placeholder>
+                        <>
+                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "150px", height: "185px", objectFit: "cover" }}></div>
+                            <UserDesc>
+                                <div className="userHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                                    <div style={{ backgroundColor:"white", width: "100%" }}>
+                                        <div className="leftSide" style={{ backgroundColor:"white", display: "flex", alignItems: "center", gap: "9px" }}>
+                                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "18px" }}></div>
+                                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "60px", height: "16px" }}></div>
+                                        </div>
+                                        <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100%", height: "13px", marginTop: "5px" }}></div>
+                                    </div>
+                                </div>
+                                <GreaterInformationContainer>
+                                    <div className="left-side">
+                                        <Information>
+                                            <InfoContainer>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px" }}></div>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px" }}></div>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px" }}></div>
+                                            </InfoContainer>
+                                        </Information>
+                                    </div>
+                                    <div className="right-side" style={{marginLeft:"70px"}}>
+                                        <Information>
+                                            <InfoContainer2>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "120px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px", marginLeft:"100px" }}></div>
+                                            </InfoContainer2>
+                                            <InfoContainer2>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "120px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px", marginLeft:"100px" }}></div>
+                                            </InfoContainer2>
+                                        </Information>
+                                    </div>
+                                </GreaterInformationContainer>
+                            </UserDesc>
+                        </>
                     )}
                 </UserCard>
 
@@ -492,28 +640,39 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                             <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
                                                 <p style={{fontSize: "15px", width: "18%"}}>Start</p>
-                                                <input style={{ padding: "6px", fontSize: "12px", border: "1px solid #ccc", borderRadius: "5px" }} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
+                                                <input style={{
+                                                    padding: "6px",
+                                                    fontSize: "15px",
+                                                    border: "1px solid #ccc",
+                                                    borderRadius: "5px"}} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
                                             </div>
                                             <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
                                                 <p style={{fontSize: "15px", width: "18%"}}>End</p>
-                                                <input style={{ padding: "6px", fontSize: "12px", border: "1px solid #ccc", borderRadius: "5px" }} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
+                                                <input style={{
+                                                    padding: "6px",
+                                                    fontSize: "15px",
+                                                    border: "1px solid #ccc",
+                                                    borderRadius: "5px"}} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
                                             </div>
                                         </div>
                                     </div>
                                     <div>
                                         <p style={{marginBottom: "12px", fontSize: "16px"}}>Sorting</p>
                                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                            <input style={{ padding: "6px", fontSize: "12px", border: "1px solid #ccc", borderRadius: "5px" }} value={filterStartDate} />
+                                            <input style={{        padding: "6px",
+                                                fontSize: "15px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "5px"}} value={filterStartDate} />
                                         </div>
-                                        <Button style={{marginTop:"80px", fontWeight:"500", fontSize:"17px"}} css={dropdownContentButton}>Apply</Button>
+                                        <Button style={{marginTop:"80px", right:"0", fontWeight:"500", fontSize:"17px"}} css={dropdownContentButton}>Apply</Button>
                                     </div>
                                 </DropdownContent>
                             </div>
                         </div>
                         {isFetching ? (
-                            <Placeholder>Loading records...</Placeholder>
+                            <Placeholder></Placeholder>
                         ) : (
-                            <div style={{ overflow: "auto", height: "572px", marginTop: "13px", scrollbarWidth:"none" }}>
+                            <div style={{ overflow: "auto", height: "572px", marginTop: "13px", scrollbarWidth:"thin" }}>
                                 {reports.map((report) => {
                                     const timestamp = new Date(report.timestamp);
                                     const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -625,8 +784,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                             )}
                                             {meetingSchedules[report.id] ? (
                                                 <>
-                                                    <ShowMeetingSchedule onClick={() => handleShowMeetingScheduleClick(report.id)}>
-                                                        <ButtonWhite style={{marginTop: "3px", padding: "8px 14px"}}>
+                                                    <ShowMeetingSchedule>
+                                                        <ButtonWhite onClick={() => handleShowMeetingScheduleClick(report.id)} style={{marginTop: "3px", padding: "8px 14px"}}>
                                                             Show meeting
                                                         </ButtonWhite>
                                                     </ShowMeetingSchedule>
