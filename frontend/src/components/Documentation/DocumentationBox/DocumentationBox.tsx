@@ -98,7 +98,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 const docDate = new Date(doc.timestamp);
                 return docDate.toDateString() === date.toDateString() && (selectedButton === 'All' || doc.type === selectedButton);
             })
-            .sort((a, b) => b.time.seconds - a.time.seconds);
+            // .sort((a, b) => b.time.seconds - a.time.seconds);
         setFilteredDocumentations(filteredDocs);
     }, [date, selectedButton, documentations]);
 
@@ -846,7 +846,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
         if (view === 'month' && docDates.includes(date.toDateString())) {
             // find doc for current date
-            const docForDate = documentations.find(doc => new Date(doc.timestamp.seconds * 1000).toDateString() === date.toDateString());
+            const docForDate = documentations.find(doc => new Date(doc.timestamp).toDateString() === date.toDateString());
     
             if (docForDate) {
                 dotColor = getDotColor(docForDate.type);
