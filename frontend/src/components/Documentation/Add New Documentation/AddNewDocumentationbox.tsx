@@ -314,11 +314,11 @@ const AddNewDocumentationBox: React.FC = () => {
                                 const base64 = reader.result.split(',')[1];
                                 const sizeInBytes = (base64.length * (3/4)) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
             
-                                if (sizeInBytes <= 1 * 1024 * 1024) { // Ensure size is less than 1 MB
+                                // if (sizeInBytes <= 1 * 1024 * 1024) { // Ensure size is less than 1 MB
                                     resolve(reader.result);
-                                } else {
-                                    reject(new Error("Compressed image size exceeds 1 MB."));
-                                }
+                                // } else {
+                                //     reject(new Error("Compressed image size exceeds 1 MB."));
+                                // }
                             } else {
                                 reject(new Error("Failed to convert picture to base64."));
                             }

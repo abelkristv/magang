@@ -579,8 +579,7 @@ app.post('/api/documentation', async (req, res) => {
                 throw new Error("Invalid picture data: file is undefined.");
             }
 
-            const buffer = Buffer.from(picture.base64, 'base64');
-            return buffer.toString('base64');
+            return picture.base64;
         });
 
 
