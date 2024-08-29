@@ -20,7 +20,7 @@ function PrimaryButton({ content, onClick, bg_color, bg_color_hover, color, heig
         background-color: ${bg_color? bg_color : "#149dff"};
         border: none;
         color: ${color? color : "white"};
-        font-weight: bold;
+        font-weight: 500;
         font-size: ${fontSize? fontSize : "20"}px;
         border-radius: ${borderRadius? borderRadius : "15px"};
         height: ${height? height : "200"}px;

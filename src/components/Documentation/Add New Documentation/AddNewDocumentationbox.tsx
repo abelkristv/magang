@@ -401,12 +401,13 @@ const handleAddDocumentation = async () => {
                 <Header>Add a documentation</Header>
                 <ContentSide>
                     <div className="leftSide">
-                        <p style={{ fontSize: "19px" }}>Main</p>
+                        {/* <p style={{ fontSize: "19px" }}>Main</p> */}
                         <HeaderGrid>
                             <TitleContainer>
                                 <div className="inputTitle">
                                     <RequiredLabel>
-                                        Title <span>*</span>
+                                        {/* Title <span>*</span> */}
+                                        Title
                                     </RequiredLabel>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
                                     {titleError && <ErrorText>{titleError}</ErrorText>}
@@ -415,7 +416,8 @@ const handleAddDocumentation = async () => {
                             <DocumentationMeeting>
                                 <div className="inputDoc">
                                     <RequiredLabel>
-                                        Documentation Type <span>*</span>
+                                        {/* Documentation Type <span>*</span> */}
+                                        Documentation Type
                                     </RequiredLabel>
                                     <DropdownComponent
                                         selectedValue={documentationType}
@@ -426,7 +428,8 @@ const handleAddDocumentation = async () => {
                                 </div>
                                 <div className="inputDoc">
                                     <RequiredLabel>
-                                        Meeting Leader <span>*</span>
+                                        {/* Meeting Leader <span>*</span> */}
+                                        Meeting Leader
                                     </RequiredLabel>
                                     <input type="text" value={meetingLeader} onChange={(e) => setMeetingLeader(e.target.value)} />
                                     {meetingLeaderError && <ErrorText>{meetingLeaderError}</ErrorText>}
@@ -434,7 +437,7 @@ const handleAddDocumentation = async () => {
                             </DocumentationMeeting>
                         </HeaderGrid>
                         <div className="leftBottomContainer" >
-                            <p className="header" style={{ marginBottom: "20px", fontSize: "19px" }}>Discussion</p>
+                            {/* <p className="header" style={{ marginBottom: "20px", fontSize: "19px" }}>Discussion</p> */}
                             <div className="discussionItem" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                                 <div className="item">
                                     <p>Details <span style={{ color: "#49A8FF" }}>({totalCounter})</span></p>
@@ -483,17 +486,19 @@ const handleAddDocumentation = async () => {
                     </div>
                     <div className="rightSide">
                         <div className="scheduleContainer">
-                            <p style={{fontSize: "19px"}}>Schedule</p>
+                            {/* <p style={{fontSize: "19px"}}>Schedule</p> */}
                             <ScheduleTopSide>
                                 <div className="typeContainer" style={{ position: "relative", display: "flex", flexDirection: "column", gap: "10px" }}>
                                     <RequiredLabel>
-                                        Type <span>*</span>
+                                        {/* Type <span>*</span> */}
+                                        Type
                                     </RequiredLabel>
                                     <DropdownComponent selectedValue={type} setSelectedValue={setType} options={["Online", "Onsite"]} />
                                 </div>
                                 <TimeContainer>
                                     <RequiredLabel>
-                                        Time <span>*</span>
+                                        {/* Time <span>*</span> */}
+                                        Time
                                     </RequiredLabel>
                                     <input type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />
                                     {timeError && <ErrorText>{timeError}</ErrorText>}
@@ -501,14 +506,15 @@ const handleAddDocumentation = async () => {
                             </ScheduleTopSide>
                             <LocationContainer>
                                 <RequiredLabel>
-                                    Location <span>*</span>
+                                    {/* Location <span>*</span> */}
+                                    Location
                                 </RequiredLabel>
                                 <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
                                 {locationError && <ErrorText>{locationError}</ErrorText>}
                             </LocationContainer>
                             
                         </div>
-                        <p className="header" style={{ marginBottom: "20px", fontSize: "19px", marginTop: "20px" }}>Snapshot</p>
+                        {/* <p className="header" style={{ marginBottom: "20px", fontSize: "19px", marginTop: "20px" }}>Snapshot</p> */}
                         <div className="snapshotItemContainer" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                             <div className="item">
                                 <p>Attendees <span style={{ color: "#49A8FF" }}>({attendees.length})</span></p>

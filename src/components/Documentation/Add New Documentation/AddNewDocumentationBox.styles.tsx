@@ -169,7 +169,8 @@ export const LocationContainer = styled.div`
 
 export const RequiredLabel = styled.label`
     color: #333;
-    font-weight: bold;
+    font-weight: 500;
+    font-size: 17px;
 
     span {
         color: red;
