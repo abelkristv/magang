@@ -70,6 +70,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     }, [userAuth]);
 
     useEffect(() => {
+        console.log("test if conflict or not")
         const filteredDocs = documentations
             .filter(doc => {
                 const docDate = new Date(doc.timestamp.seconds * 1000);
@@ -348,6 +349,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         }
     `;
 
+    
     const calendarStyle = css`
         border: none;
         line-height: 1.125em;
@@ -389,6 +391,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
 
         .react-calendar__tile--active {
             color: white !important;
+            background: none !important;
             display: flex;
             align-items: center;
             text-align: center;
@@ -432,6 +435,8 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             cursor: default;
         }
     `;
+
+
 
 
     const buttonGridStyle = css`
