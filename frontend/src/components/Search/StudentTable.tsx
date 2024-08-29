@@ -41,8 +41,8 @@ const tableStyle = css`
     }
 
     thead th {
-        background-color: #DEDEDE;
-        font-weight: 400;
+        background-color: #C2C2C2;
+        font-weight: 500;
     }
 
     thead th:last-of-type {
@@ -51,10 +51,16 @@ const tableStyle = css`
 
     tbody tr:nth-of-type(odd) {
         background-color: #ffffff;
+        &:hover{
+            background-color: #E2E2E2;
+        }
     }
-
+    
     tbody tr:nth-of-type(even) {
-        background-color: #F0ECEC;
+        background-color: #CFCFCF;
+        &:hover{
+            background-color: #C7C7C7;
+        }
     }
 
     tbody tr:last-of-type td:first-of-type {

@@ -446,7 +446,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
 
                 {isLoading ? (
                     <div className="studentRow" css={studentRow}>
-                        {Array.from({ length: 6 }).map((_, index) => (
+                        {Array.from({ length: 18 }).map((_, index) => (
                             <div key={index} className="placeholder" css={placeholderStyle}>
                                 <div></div>
                                 <p></p>

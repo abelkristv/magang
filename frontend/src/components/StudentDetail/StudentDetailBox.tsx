@@ -42,6 +42,7 @@ import { fetchStudentById, updateStudentNotes } from "../../controllers/StudentC
 import { deleteStudentReport, fetchReports, updateStudentReport } from "../../controllers/ReportController";
 import { Report } from "../../model/Report";
 import { fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
+import styled from "styled-components";
 
 function formatDate(dateString: string): string {
     const [year, month, day] = dateString.split('-');
@@ -378,6 +379,9 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         width: 200px;
         background-color: #000000;
     `;
+    
+
+
 
     return (
         <Main>
@@ -472,7 +476,50 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                             </UserDesc>
                         </>
                     ) : (
-                        <Placeholder>Loading student details...</Placeholder>
+                        <>
+                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "150px", height: "185px", objectFit: "cover" }}></div>
+                            <UserDesc>
+                                <div className="userHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                                    <div style={{ backgroundColor:"white", width: "100%" }}>
+                                        <div className="leftSide" style={{ backgroundColor:"white", display: "flex", alignItems: "center", gap: "9px" }}>
+                                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "18px" }}></div>
+                                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "60px", height: "16px" }}></div>
+                                        </div>
+                                        <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100%", height: "13px", marginTop: "5px" }}></div>
+                                    </div>
+                                </div>
+                                <GreaterInformationContainer>
+                                    <div className="left-side">
+                                        <Information>
+                                            <InfoContainer>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px" }}></div>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px" }}></div>
+                                            </InfoContainer>
+                                            <InfoContainer>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "100px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px" }}></div>
+                                            </InfoContainer>
+                                        </Information>
+                                    </div>
+                                    <div className="right-side" style={{marginLeft:"70px"}}>
+                                        <Information>
+                                            <InfoContainer2>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "120px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px", marginLeft:"100px" }}></div>
+                                            </InfoContainer2>
+                                            <InfoContainer2>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "120px", height: "22px" }}></div>
+                                                <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "50%", height: "16px", marginLeft:"100px" }}></div>
+                                            </InfoContainer2>
+                                        </Information>
+                                    </div>
+                                </GreaterInformationContainer>
+                            </UserDesc>
+                        </>
                     )}
                 </UserCard>
 
@@ -492,28 +539,37 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                             <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
                                                 <p style={{fontSize: "15px", width: "18%"}}>Start</p>
-                                                <input style={{ padding: "6px", fontSize: "12px", border: "1px solid #ccc", borderRadius: "5px" }} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
+                                                <input style={{        padding: "6px",
+                                                    fontSize: "12px",
+                                                    border: "1px solid #ccc",
+                                                    borderRadius: "5px"}} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
                                             </div>
                                             <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
                                                 <p style={{fontSize: "15px", width: "18%"}}>End</p>
-                                                <input style={{ padding: "6px", fontSize: "12px", border: "1px solid #ccc", borderRadius: "5px" }} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
+                                                <input style={{        padding: "6px",
+                                                    fontSize: "12px",
+                                                    border: "1px solid #ccc",
+                                                    borderRadius: "5px"}} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
                                             </div>
                                         </div>
                                     </div>
                                     <div>
                                         <p style={{marginBottom: "12px", fontSize: "16px"}}>Sorting</p>
                                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                            <input style={{ padding: "6px", fontSize: "12px", border: "1px solid #ccc", borderRadius: "5px" }} value={filterStartDate} />
+                                            <input style={{        padding: "6px",
+                                                fontSize: "12px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "5px"}} value={filterStartDate} />
                                         </div>
-                                        <Button style={{marginTop:"80px", fontWeight:"500", fontSize:"17px"}} css={dropdownContentButton}>Apply</Button>
+                                        <Button style={{marginTop:"80px", right:"0", fontWeight:"500", fontSize:"17px"}} css={dropdownContentButton}>Apply</Button>
                                     </div>
                                 </DropdownContent>
                             </div>
                         </div>
                         {isFetching ? (
-                            <Placeholder>Loading records...</Placeholder>
+                            <Placeholder></Placeholder>
                         ) : (
-                            <div style={{ overflow: "auto", height: "572px", marginTop: "13px", scrollbarWidth:"none" }}>
+                            <div style={{ overflow: "auto", height: "572px", marginTop: "13px", scrollbarWidth:"thin" }}>
                                 {reports.map((report) => {
                                     const timestamp = new Date(report.timestamp);
                                     const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -625,8 +681,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                             )}
                                             {meetingSchedules[report.id] ? (
                                                 <>
-                                                    <ShowMeetingSchedule onClick={() => handleShowMeetingScheduleClick(report.id)}>
-                                                        <ButtonWhite style={{marginTop: "3px", padding: "8px 14px"}}>
+                                                    <ShowMeetingSchedule>
+                                                        <ButtonWhite onClick={() => handleShowMeetingScheduleClick(report.id)} style={{marginTop: "3px", padding: "8px 14px"}}>
                                                             Show meeting
                                                         </ButtonWhite>
                                                     </ShowMeetingSchedule>

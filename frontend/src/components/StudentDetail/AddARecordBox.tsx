@@ -80,7 +80,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
             font-weight: 600;
             padding: 5px;
             text-align: center;
-            height: auto;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     `;
 
