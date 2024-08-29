@@ -1,20 +1,23 @@
-import { collection, getDocs } from "firebase/firestore";
 import { Option } from "fp-ts/lib/Option";
-import { db } from "../firebase";
 import { option } from "fp-ts";
 
 export const fetchAllMajors = async (): Promise<Option<Major[]>> => {
-    const majorsCollection = collection(db, "major");
-    const majorSnapshot = await getDocs(majorsCollection);
-    if (majorSnapshot.empty) {
-        return option.none
+    try {
+        const response = await fetch('http://localhost:3001/api/majors');
+
+        if (!response.ok) {
+            throw new Error(`Error fetching majors: ${response.statusText}`);
+        }
+
+        const majors: Major[] = await response.json();
+
+        if (majors.length === 0) {
+            return option.none;
+        }
+
+        return option.some(majors);
+    } catch (error) {
+        console.error('Error fetching majors:', error);
+        return option.none;
     }
-    const majors = majorSnapshot.docs.map(doc => {
-        return {
-            id: doc.id,
-            name: doc.data().name
-        } as Major
-    }
-    );
-    return option.some(majors)
 }

@@ -3,8 +3,6 @@ import { css } from "@emotion/react";
 import Calendar, { CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useEffect, useState, useRef } from 'react';
-import { collection, query, getDocs, where } from "firebase/firestore";
-import { db } from "../../../firebase";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useAuth } from '../../../helper/AuthProvider';
 import ExcelJS from 'exceljs';import { saveAs } from 'file-saver';
@@ -15,6 +13,8 @@ import DiscussionResultsTable from "./DiscussionResultsTable";
 import ImageGallery from "./ImageGallery";
 import { fetchUser } from "../../../controllers/UserController";
 import Documentation from "../../../model/Documentation";
+import { fetchDiscussionDetails, fetchDiscussionsWithDetails } from "../../../controllers/DiscussionDetailController";
+import { useNavigate } from "react-router-dom";
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -40,20 +40,41 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
+    const navigate = useNavigate()
+
     useEffect(() => {
         const fetchData = async () => {
             const documentation = await fetchAllDocumentation();
             if (documentation._tag === "Some") {
                 setDocumentations(documentation.value);
-                const docDates = documentation.value.map((doc: Documentation) => new Date(doc.timestamp.seconds * 1000).toDateString());
+    
+                const docDates = documentation.value.map((doc: Documentation) => {
+                    let docDate: Date;
+    
+                    if (doc.timestamp instanceof Date) {
+                        docDate = doc.timestamp;
+                    } else if (typeof doc.timestamp === 'string') {
+                        docDate = new Date(doc.timestamp);
+                    } else if (doc.timestamp && typeof (doc.timestamp as any).seconds === 'number') {
+                        const firebaseTimestamp = doc.timestamp as { seconds: number, nanoseconds: number };
+                        docDate = new Date(firebaseTimestamp.seconds * 1000);
+                    } else {
+                        console.error('Unknown timestamp format:', doc.timestamp);
+                        return null; 
+                    }
+    
+                    return docDate.toDateString();
+                }).filter(date => date !== null) as string[];
+    
                 setDocDates(docDates);
             } else {
                 setDocumentations([]);
             }
         };
-
+    
         fetchData();
     }, []);
+    
 
     useEffect(() => {
         const fetchUserRole = async () => {
@@ -70,7 +91,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
 
     useEffect(() => {
         const filteredDocs = documentations.filter(doc => {
-            const docDate = new Date(doc.timestamp.seconds * 1000);
+            const docDate = new Date(doc.timestamp);
             return docDate.toDateString() === date.toDateString() && (selectedButton === 'All' || doc.type === selectedButton);
         });
         setFilteredDocumentations(filteredDocs);
@@ -78,14 +99,12 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
 
     useEffect(() => {
         if (selectedDocumentation && activeTab === 'discussion') {
-            const fetchDiscussionDetails = async () => {
-                const q = query(collection(db, "discussionDetails"), where("docID", "==", selectedDocumentation.id));
-                const querySnapshot = await getDocs(q);
-                const details = querySnapshot.docs.map(doc => doc.data());
+            const loadDiscussionDetails = async () => {
+                const details = await fetchDiscussionDetails(selectedDocumentation.id!);
                 setDiscussionDetails(details);
             };
-
-            fetchDiscussionDetails();
+    
+            loadDiscussionDetails();
         }
     }, [selectedDocumentation, activeTab]);
 
@@ -124,15 +143,50 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         setDiscussionDetails([]);
     };
 
-    const formatDate = (timestamp: { seconds: number, nanoseconds: number }) => {
-        const date = new Date(timestamp.seconds * 1000);
-        return date.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const formatDate = (timestamp?: Date | string | any) => {
+        if (!timestamp) {
+            return "Unknown Date";
+        }
+    
+        if (timestamp instanceof Date) {
+            return timestamp.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+    
+        const dateObject = new Date(timestamp);
+        if (!isNaN(dateObject.getTime())) {
+            return dateObject.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+    
+        if (timestamp.seconds) {
+            const dateFromTimestamp = new Date(timestamp.seconds * 1000);
+            return dateFromTimestamp.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+    
+        return "Unknown Date";
     };
-
-    const formatTime = (timestamp: { seconds: number, nanoseconds: number }) => {
-        const date = new Date(timestamp.seconds * 1000);
-        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    
+    const formatTime = (timestamp?: Date | string | any) => {
+        if (!timestamp) {
+            return "Unknown Time";
+        }
+    
+        if (timestamp instanceof Date) {
+            return timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        }
+    
+        const dateObject = new Date(timestamp);
+        if (!isNaN(dateObject.getTime())) {
+            return dateObject.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        }
+    
+        if (timestamp.seconds) {
+            const dateFromTimestamp = new Date(timestamp.seconds * 1000);
+            return dateFromTimestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        }
+    
+        return "Unknown Time";
     };
+    
 
     const handleTabClick = (tab: string) => {
         setActiveTab(tab);
@@ -144,9 +198,25 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const exportToExcel = async () => {
         const startDate = new Date(exportStartDate);
         const endDate = new Date(exportEndDate);
+        startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
         const filteredDocs = documentations.filter(doc => {
-            const docDate = new Date(doc.timestamp.seconds * 1000);
+            let docDate: Date;
+        
+            if (doc.timestamp instanceof Date) {
+                docDate = doc.timestamp;
+            } 
+            else if (doc.timestamp && typeof (doc.timestamp as any).seconds === 'number') {
+                const firebaseTimestamp = doc.timestamp as { seconds: number, nanoseconds: number };
+                docDate = new Date(firebaseTimestamp.seconds * 1000);
+            } 
+            else if (typeof doc.timestamp === 'string') {
+                docDate = new Date(doc.timestamp);
+            } 
+            else {
+                console.error('Unknown timestamp format:', doc.timestamp);
+                return false; 
+            }
             return docDate >= startDate && docDate <= endDate && (exportType === 'All' || doc.type === exportType);
         });
         
@@ -175,22 +245,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             'Attendance List'
         ];
     
-        const data = await Promise.all(filteredDocs.map(async (doc) => {
-            const q = query(collection(db, "discussionDetails"), where("docID", "==", doc.id));
-            const querySnapshot = await getDocs(q);
-            const details = querySnapshot.docs.map(detail => detail.data());
-    
-            return {
-                title: doc.title,
-                leader: doc.leader,
-                place: doc.place,
-                date: formatDate(doc.timestamp),
-                time: formatTime(doc.timestamp),
-                type: doc.type,
-                discussionDetails: details.map(detail => detail.discussionTitle).join(', '),
-                attendanceList: doc.attendanceList || [],
-            };
-        }));
+        const data = await fetchDiscussionsWithDetails(filteredDocs)
     
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Documentation');
@@ -237,7 +292,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 }
                 worksheet.getCell(`G${rowIndex}`).value = discussionDetails[0];
             } else if (discussionDetails.length > 1) {
-                discussionDetails.forEach((detail, i) => {
+                discussionDetails.forEach((detail: string | number | boolean | Date | ExcelJS.CellErrorValue | ExcelJS.CellRichTextValue | ExcelJS.CellHyperlinkValue | ExcelJS.CellFormulaValue | ExcelJS.CellSharedFormulaValue | null | undefined, i: number) => {
                     worksheet.getCell(`G${rowIndex + i}`).value = detail;
                 });
             } else {
@@ -245,7 +300,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             }
         
             if (attendanceList.length > 1) {
-                attendanceList.forEach((attendee, i) => {
+                attendanceList.forEach((attendee: string | number | boolean | Date | ExcelJS.CellErrorValue | ExcelJS.CellRichTextValue | ExcelJS.CellHyperlinkValue | ExcelJS.CellFormulaValue | ExcelJS.CellSharedFormulaValue | null | undefined, i: number) => {
                     worksheet.getCell(`H${rowIndex + i}`).value = attendee;
                 });
             } else {
@@ -635,7 +690,10 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             <div className="contentBox" css={contentBoxStyle}>
                 <div className="leftSide">
                     <div className="buttonContainer" css={buttonContainerStyle}>
-                        <button onClick={() => setGlobalActiveTab('Add New Documentation')}>Add New Documentation</button>
+                        <button onClick={() => {
+                            setGlobalActiveTab('Add New Documentation')
+                            navigate("/workspaces/add-new-documentation")
+                        }}>Add New Documentation</button>
                         <div className="rightSide">
                             <button onClick={openExportModal}>Export to Excel</button>
                             {/* <button onClick={openExportModal}>Export Pictures</button> */}

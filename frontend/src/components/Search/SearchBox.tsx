@@ -6,8 +6,6 @@ import { useAuth } from "../../helper/AuthProvider";
 import User from "../../model/User";
 import { fetchUser } from "../../controllers/UserController";
 import { fetchAllStudents } from "../../controllers/StudentController";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../firebase";
 import notFoundImage from "../../assets/not_found.png";
 import MainBox from "../Elementary/MainBox";
 import SearchInput from "./SearchInput";
@@ -19,6 +17,8 @@ import SearchHistory from "./SearchHistory";
 import { SearchState, FilterOptions } from "./Interfaces";
 import { fetchAllCompanies } from "../../controllers/CompanyController";
 import { fetchAllMajors } from "../../controllers/MajorController";
+import { fetchPeriods } from "../../controllers/PeriodController";
+import { fetchTotalReportsByStudent } from "../../controllers/ReportController";
 
 interface SearchBoxProps {
     onSelectStudent: (studentId: string | null) => void;
@@ -32,7 +32,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const [_companies, setCompanies] = useState<Company[]>([]);
     const [_majors, setMajors] = useState<Major[]>([]);
     const [_periods, setPeriods] = useState<string[]>([]);
-    const [totalComments, setTotalComments] = useState<{ [key: string]: number }>({});
+    const [comments, setComments] = useState<{ [key: string]: number }>({});
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const userAuth = useAuth();
 
@@ -68,19 +68,21 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     useEffect(() => {
         onSelectStudent(null);
 
-        const fetchPeriods = async () => {
-            const periodsCollection = collection(db, "period");
-            const periodSnapshot = await getDocs(periodsCollection);
-            const periodList = periodSnapshot.docs.map(doc => doc.data().name as string);
-            setPeriods(periodList);
-            setFilterOptions(prev => ({
-                ...prev,
-                periods: periodList,
-            }));
-            setTempFilterOptions(prev => ({
-                ...prev,
-                periods: periodList,
-            }));
+        const fetchPeriodsData = async () => {
+            try {
+                const periodList = await fetchPeriods();
+                setPeriods(periodList);
+                setFilterOptions(prev => ({
+                    ...prev,
+                    periods: periodList,
+                }));
+                setTempFilterOptions(prev => ({
+                    ...prev,
+                    periods: periodList,
+                }));
+            } catch (error) {
+                console.error("Failed to fetch periods:", error);
+            }
         };
 
         const fetchData = async () => {
@@ -105,7 +107,8 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 } else {
                     setStudents(fetchedStudents);
                     setFilteredStudents(fetchedStudents);
-                    fetchTotalComments(fetchedStudents);
+                    const totalComments = await fetchTotalReportsByStudent(fetchedStudents); // Using fetchTotalReports here
+                    setComments(totalComments);
                 }
 
                 const fetchedCompanies: Company[] = await fetchAllCompanies()
@@ -144,7 +147,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
             setIsLoading(false);
         };
 
-        fetchPeriods();
+        fetchPeriodsData();
         fetchData();
     }, [userAuth, onSelectStudent]);
 
@@ -153,33 +156,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
             setFilteredStudents([]);
         }
     }, [searchState.searchQuery, students]);
-
-    const fetchTotalComments = async (students: Student[]) => {
-        const newTotalComments: { [key: string]: number } = {};
-
-        for (const student of students) {
-            const studentReportsCollection = collection(db, "studentReport");
-            const studentReportsQuery = query(studentReportsCollection, where("studentName", "==", student.name));
-            const studentReportsSnapshot = await getDocs(studentReportsQuery);
-
-            // Extract all report IDs related to the student
-            const reportIds = studentReportsSnapshot.docs.map(doc => doc.id);
-
-            if (reportIds.length > 0) {
-                const commentsCollection = collection(db, "studentReportComment");
-                const commentsQuery = query(commentsCollection, where("reportID", "in", reportIds));
-                const commentsSnapshot = await getDocs(commentsQuery);
-
-                // Count the number of comments for this student
-                newTotalComments[student.name] = commentsSnapshot.size;
-            } else {
-                // If there are no reports, set the total comments to 0
-                newTotalComments[student.name] = 0;
-            }
-        }
-
-        setTotalComments(newTotalComments);
-    };
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchState(prevState => ({
@@ -223,7 +199,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 return 0;
             });
         }
-        
 
         setFilteredStudents(filtered);
 
@@ -260,7 +235,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         }));
         handleSearch();
     };
-    
 
     const handleTempPeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setTempFilterOptions(prevState => ({
@@ -406,7 +380,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                                 key={student.iden} 
                                 student={student} 
                                 onClick={() => onSelectStudent(student.iden)} 
-                                totalComments={totalComments[student.name] || 0} 
+                                totalComments={comments[student.name] || 0}  // Using comments for total reports
                                 isLoading={isLoading} 
                             />
                         ))}
@@ -414,7 +388,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 ) : (
                     <StudentTable
                         students={filteredStudents}
-                        totalComments={totalComments}
+                        totalComments={comments}  // Using comments for total reports
                         sortField={searchState.sortField}
                         sortOrder={searchState.sortOrder}
                         handleSort={handleSort}

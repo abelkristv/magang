@@ -1,8 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { useEffect, useState, ChangeEvent } from 'react';
-import { collection, query, getDocs, addDoc, where } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
-import { db } from "../../../firebase";
 import { useAuth } from '../../../helper/AuthProvider';
 import { fetchUser } from '../../../controllers/UserController';
 import User from "../../../model/User";
@@ -13,6 +10,10 @@ import ResultsModal from "./Modal/ResultsModal";
 import PicturesModal from "./Modal/PicturesModal";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { Button, ContentContainer, ContentSide, DocumentationMeeting, ErrorText, Header, HeaderGrid, LocationContainer, MainContainer, NavSide, RequiredLabel, ScheduleTopSide, TimeContainer, TitleContainer } from "./AddNewDocumentationBox.styles";
+import { addDocumentation, fetchAllDocumentation } from '../../../controllers/DocumentationController';
+import Documentation from '../../../model/Documentation';
+import Compressor from 'compressorjs';
+import { fetchDiscussionDetails } from '../../../controllers/DiscussionDetailController';
 
 interface DiscussionDetail {
     discussionTitle: string;
@@ -90,9 +91,14 @@ const AddNewDocumentationBox: React.FC = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const q = query(collection(db, "documentation"));
-            const querySnapshot = await getDocs(q);
-            const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const docsCollection = await fetchAllDocumentation();
+            let docs: Documentation[];
+            if (docsCollection._tag == "None") {
+                console.log("Failed to fetch documentation");
+                docs = []
+            } else {
+                docs = docsCollection.value;
+            }
             setDocumentations(docs);
         };
 
@@ -121,16 +127,14 @@ const AddNewDocumentationBox: React.FC = () => {
     }, [date, selectedButton, documentations]);
 
     useEffect(() => {
-        if (selectedDocumentation && activeTab === 'discussion') {
-            const fetchDiscussionDetails = async () => {
-                const q = query(collection(db, "discussionDetails"), where("docID", "==", selectedDocumentation.id));
-                const querySnapshot = await getDocs(q);
-                const details = querySnapshot.docs.map(doc => doc.data() as DiscussionDetail);
+        const loadDiscussionDetails = async () => {
+            if (selectedDocumentation && activeTab === 'discussion') {
+                const details = await fetchDiscussionDetails(selectedDocumentation.id!);
                 setDiscussionDetails(details);
-            };
+            }
+        };
 
-            fetchDiscussionDetails();
-        }
+        loadDiscussionDetails();
     }, [selectedDocumentation, activeTab]);
 
     const openAttendeeModal = () => setIsAttendeeModalOpen(true);
@@ -220,7 +224,7 @@ const AddNewDocumentationBox: React.FC = () => {
         setTotalCounter(totalCounter - 1);
     };
 
-    const storage = getStorage();
+    // const storage = getStorage();
 
     const validateInputs = () => {
         let valid = true;
@@ -274,91 +278,106 @@ const AddNewDocumentationBox: React.FC = () => {
     };
     
     
-const handleAddDocumentation = async () => {
-    if (!validateInputs()) {
-        return;
-    }
-
-    try {
-        const parsedTime = new Date(time);
-
-        if (!user || !user.email) {
-            throw new Error("User is not defined or user email is missing");
+    const handleAddDocumentation = async () => {
+        if (!validateInputs()) {
+            return;
         }
-
-        const pictureUrls = await Promise.all(
-            pictures.map(async (picture) => {
-                let fileName = picture.file.name;
-                // const storageRef = ref(storage, `images/${fileName}`);
-
-                const existingFiles = await listAll(ref(storage, 'images'));
-                const existingFileNames = existingFiles.items.map(item => item.name);
-
-                let count = 1;
-                while (existingFileNames.includes(fileName)) {
-                    const nameWithoutExtension = picture.file.name.replace(/\.[^/.]+$/, "");
-                    const extension = picture.file.name.split('.').pop();
-                    fileName = `${nameWithoutExtension}_${count}.${extension}`;
-                    count++;
-                }
-
-                const newStorageRef = ref(storage, `images/${fileName}`);
-                const snapshot = await uploadBytes(newStorageRef, picture.file);
-                return getDownloadURL(snapshot.ref);
-            })
-        );
-
-        const docRef = await addDoc(collection(db, "documentation"), {
-            title,
-            nomor_undangan: invitationNumber,
-            description,
-            leader: meetingLeader,
-            place: location,
-            time: parsedTime,
-            attendanceList: attendees,
-            results,
-            pictures: pictureUrls,
-            type: documentationType,
-            writer: user.email,
-            timestamp: parsedTime,
-        });
-
-        await Promise.all(
-            modalDiscussionDetails.map(async (detail) => {
-                await addDoc(collection(db, "discussionDetails"), {
-                    discussionTitle: detail.discussionTitle,
-                    personResponsible: detail.personResponsible,
-                    furtherActions: detail.furtherActions,
-                    deadline: new Date(detail.deadline),
-                    docID: docRef.id,
+    
+        try {
+            // Convert images to base64 strings
+            
+            const compressImage = (file: any) => {
+                return new Promise((resolve, reject) => {
+                    new Compressor(file, {
+                        quality: 0.6, // Adjust quality to ensure the size is below 1 MB
+                        maxWidth: 1920, // Optionally set max width to reduce size
+                        maxHeight: 1080, // Optionally set max height to reduce size
+                        success(result) {
+                            resolve(result);
+                        },
+                        error(err) {
+                            reject(err);
+                        },
+                    });
                 });
-            })
-        );
-
-        alert("Documentation and discussion details added successfully!");
-
-        // Reset all form fields
-        setTitle("");
-        setInvitationNumber("");
-        setDescription("");
-        setDocumentationType("");
-        setMeetingLeader("");
-        setDiscussionTitle("");
-        setPersonResponsible("");
-        setFurtherActions("");
-        setDeadline("");
-        setLocation("");
-        setTime("");
-        setAttendees([]);
-        setModalDiscussionDetails([]);
-        setTotalCounter(0);
-        setResults([]);
-        setPictures([]);
-    } catch (error) {
-        console.error("Error adding documentation: ", error);
-        alert("Failed to add documentation. Please try again.");
-    }
-};
+            };
+            
+            const picturesBase64 = await Promise.all(
+                pictures.map(async (picture) => {
+                    const compressedFile: any = await compressImage(picture.file);
+                    
+                    return new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(compressedFile);
+                        reader.onload = () => {
+                            if (typeof reader.result === "string") {
+                                const base64 = reader.result.split(',')[1];
+                                const sizeInBytes = (base64.length * (3/4)) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
+            
+                                if (sizeInBytes <= 1 * 1024 * 1024) { // Ensure size is less than 1 MB
+                                    resolve(reader.result);
+                                } else {
+                                    reject(new Error("Compressed image size exceeds 1 MB."));
+                                }
+                            } else {
+                                reject(new Error("Failed to convert picture to base64."));
+                            }
+                        };
+                        reader.onerror = (error) => reject(error);
+                    });
+                })
+            );
+            
+            console.log("Pictures array:", picturesBase64);
+    
+            // Call the addDocumentation function that communicates with the backend API
+            const result = await addDocumentation(
+                user,
+                title,
+                invitationNumber,
+                description,
+                meetingLeader,
+                location,
+                time,
+                attendees,
+                results,
+                picturesBase64.map((base64, index) => ({
+                    fileName: pictures[index].file.name,
+                    base64,
+                })),
+                documentationType,
+                modalDiscussionDetails
+            );
+    
+            if (result.success) {
+                alert(result.message);
+    
+                // Reset all form fields after successful submission
+                setTitle("");
+                setInvitationNumber("");
+                setDescription("");
+                setDocumentationType("");
+                setMeetingLeader("");
+                setDiscussionTitle("");
+                setPersonResponsible("");
+                setFurtherActions("");
+                setDeadline("");
+                setLocation("");
+                setTime("");
+                setAttendees([]);
+                setModalDiscussionDetails([]);
+                setTotalCounter(0);
+                setResults([]);
+                setPictures([]);
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error("Error handling documentation addition: ", error);
+            alert("Failed to add documentation. Please try again.");
+        }
+    };
+    
     
     const handleAddResult = () => {
         if (newResult.trim() !== "") {

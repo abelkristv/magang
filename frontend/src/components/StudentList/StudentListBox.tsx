@@ -7,9 +7,9 @@ import { fetchUser } from "../../controllers/UserController";
 import { fetchAllStudents } from "../../controllers/StudentController";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { css } from "@emotion/react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
 import { fetchAllCompanies } from "../../controllers/CompanyController";
+import { fetchAllMajors } from "../../controllers/MajorController";
+import { fetchPeriods } from "../../controllers/PeriodController";
 
 interface StudentListBoxProps {
     onSelectStudent: (studentId: string | null) => void;
@@ -80,22 +80,24 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
 
     useEffect(() => {
         const fetchMajors = async () => {
-            const majorsCollection = collection(db, "major");
-            const majorSnapshot = await getDocs(majorsCollection);
-            const majorList = majorSnapshot.docs.map(doc => doc.data().name as string);
-            setMajors(majorList);
+            const majorListCollection = await fetchAllMajors();
+            if (majorListCollection._tag == 'Some') {
+                setMajors(majorListCollection.value.map(major => major.name))
+            }
         };
         fetchMajors();
     }, []);
 
     useEffect(() => {
-        const fetchPeriods = async () => {
-            const periodsCollection = collection(db, "period");
-            const periodSnapshot = await getDocs(periodsCollection);
-            const periodList = periodSnapshot.docs.map(doc => doc.data().name as string);
-            setPeriods(periodList);
+        const loadPeriods = async () => {
+            try {
+                const periodList = await fetchPeriods();
+                setPeriods(periodList);
+            } catch (error) {
+                console.error("Error loading periods:", error);
+            }
         };
-        fetchPeriods();
+        loadPeriods();
     }, []);
 
     useEffect(() => {

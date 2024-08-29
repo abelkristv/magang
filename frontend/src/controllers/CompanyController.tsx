@@ -1,20 +1,32 @@
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
-import { Option } from "fp-ts/lib/Option";
 import { option } from "fp-ts";
+import { Option } from "fp-ts/lib/Option";
+
 
 export const fetchAllCompanies = async (): Promise<Option<Company[]>> => {
-    const querySnapshot = await getDocs(collection(db, "company"));
-    if (querySnapshot.empty) {
+    try {
+        const response = await fetch('http://localhost:3001/api/companies');
+
+        if (!response.ok) {
+            throw new Error(`Error fetching companies: ${response.statusText}`);
+        }
+
+        const companies: any[] = await response.json();
+        console.log(companies)
+
+        if (companies.length === 0) {
+            return option.none;
+        }
+
+        const formattedCompanies: Company[] = companies.map(company => ({
+            id: company.id,
+            company_address: company.companyAddress,
+            company_detail: company.companyDetail,
+            company_name: company.companyName,
+        }));
+
+        return option.some(formattedCompanies);
+    } catch (error) {
+        console.error('Error fetching companies:', error);
         return option.none;
     }
-    const studentsData = querySnapshot.docs.map(doc => {
-        // const data = doc.data();
-        const idt = doc.id;
-        return {
-            id: idt,
-            ...doc.data()
-        } as Company;
-    });
-    return option.some(studentsData)
 }

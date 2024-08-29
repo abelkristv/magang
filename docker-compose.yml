@@ -4,26 +4,50 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.dev # Use a separate Dockerfile for development
+      dockerfile: Dockerfile.dev 
     ports:
-      - "3000:5173" # Change this to match the port Vite uses in development
+      - "3030:5173"
     volumes:
       - ./frontend:/app
     environment:
-      - CHOKIDAR_USEPOLLING=true # Necessary for some environments to detect file changes
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend  # Wait for the backend to be ready before starting
+      - db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://abel:hehe@db:5432/documentation_enrichment
     depends_on:
       - db
 
   db:
-    image: postgres:13
+    image: postgres
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: abel
+      POSTGRES_PASSWORD: hehe
+      POSTGRES_DB: documentation_enrichment
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
 
 volumes:
   db_data:

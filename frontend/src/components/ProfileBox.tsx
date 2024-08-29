@@ -3,10 +3,11 @@ import { css } from "@emotion/react";
 import { useAuth } from "../helper/AuthProvider";
 import { useEffect, useState } from "react";
 import User from "../model/User";
-import { fetchUser } from "../controllers/UserController";
+import { fetchUserAndCompanies } from "../controllers/UserController";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { getApp } from "firebase/app";
+import { match, Option } from "fp-ts/lib/Option";
+import { fetchAllMajors } from "../controllers/MajorController";
+import { fetchRecordsAndDocumentation } from "../controllers/ReportController";
 
 interface ProfileBoxProps {
     setTodayReportsCount: (count: number) => void;
@@ -41,13 +42,13 @@ interface Documentation {
 
 const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     const userAuth = useAuth();
-    const [user, setUser] = useState<User | undefined>();
+    const [user, setUser] = useState<User>({} as User);
     const [companyAddress, setCompanyAddress] = useState<string | undefined>();
     const [allRecords, setAllRecords] = useState<Record[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Record[]>([]);
     const [_documentations, setDocumentations] = useState<Documentation[]>([]);
     const [isEditing, setIsEditing] = useState(false);
-    const [editableUser, setEditableUser] = useState<User | undefined>();
+    const [editableUser, setEditableUser] = useState<User>({} as User);
     const [isLoading, setIsLoading] = useState(true);
 
     const [majors, setMajors] = useState<string[]>([]);
@@ -58,98 +59,49 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            const fetchedUser = await fetchUser(userAuth?.currentUser?.email!)
-                .then(user => user._tag === "Some" ? user.value : { id: "null" } as User);
-
-            if (fetchedUser.id === "null") {
-                console.log("User not found");
-                setIsLoading(false);
-                return;
+    
+            const { userFetched, companyAddress } = await fetchUserAndCompanies(userAuth?.currentUser?.email);
+            if (userFetched) {
+                console.log("Fetched user: ", userFetched);
+                setUser(userFetched);
+                setEditableUser(userFetched);  // Set the editableUser state here
+                setCompanyAddress(companyAddress);
+    
+                const { records, documentations } = await fetchRecordsAndDocumentation(userFetched);
+                setAllRecords(records);
+                setFilteredRecords(records);
+                setDocumentations(documentations);
+    
+                setTodayReportsCount(records.length);
             }
-
-            setUser(fetchedUser);
-            setEditableUser(fetchedUser);
-
-            if (fetchedUser?.company_name) {
-                const app = getApp();
-                const db = getFirestore(app);
-                const companyRef = collection(db, "company");
-                const q = query(companyRef, where("company_name", "==", fetchedUser.company_name));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    const companyData = querySnapshot.docs[0].data();
-                    setCompanyAddress(companyData.company_address);
-                }
-            }
-
-            if (fetchedUser?.email) {
-                const app = getApp();
-                const db = getFirestore(app);
-                const studentReportRef = collection(db, "studentReport");
-
-                const reportQuery = query(
-                    studentReportRef,
-                    where("type", "==", "Urgent")
-                );
-
-                const reportSnapshot = await getDocs(reportQuery);
-                console.log("Report snapshot size:", reportSnapshot.size);
-
-                const studentDataDict: { [key: string]: any } = {};
-
-                const fetchedRecords = await Promise.all(reportSnapshot.docs.map(async doc => {
-                    const record = doc.data() as Record;
-                    console.log("Record:", record);
-
-                    let studentData;
-                    if (studentDataDict[record.studentName]) {
-                        studentData = studentDataDict[record.studentName];
-                    } else {
-                        const studentQuery = query(collection(db, "student"), where("name", "==", record.studentName));
-                        const studentSnapshot = await getDocs(studentQuery);
-                        studentData = studentSnapshot.docs[0]?.data();
-                        studentDataDict[record.studentName] = studentData;
-                    }
-
-                    const meetingQuery = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", doc.id));
-                    const meetingSnapshot = await getDocs(meetingQuery);
-                    const meetingData = meetingSnapshot.docs.map(meetingDoc => meetingDoc.data());
-
-                    return {
-                        ...record,
-                        studentData,
-                        imageUrl: studentData?.image_url || null,
-                        major: studentData?.major || null,
-                        meetings: meetingData
-                    };
-                }));
-
-                setAllRecords(fetchedRecords);
-                setFilteredRecords(fetchedRecords);
-
-                const documentationRef = collection(db, "documentation");
-                const docQuery = query(documentationRef, where("writer", "==", fetchedUser.email));
-                const docSnapshot = await getDocs(docQuery);
-                const fetchedDocs = docSnapshot.docs.map(doc => doc.data() as Documentation);
-                setDocumentations(fetchedDocs);
-
-                setTodayReportsCount(reportSnapshot.size);
-            }
+    
             setIsLoading(false);
         };
-
+    
         fetchData();
     }, [setTodayReportsCount, userAuth?.currentUser?.email]);
+    
+    useEffect(() => {
+        console.log("Editable user (updated): ", editableUser); // This will log the updated state
+        setIsLoading(false)
+    }, [editableUser]);
+    
 
     useEffect(() => {
         const fetchMajors = async () => {
-            const app = getApp();
-            const db = getFirestore(app);
-            const majorsCollection = collection(db, "major");
-            const majorSnapshot = await getDocs(majorsCollection);
-            const majorList = majorSnapshot.docs.map(doc => doc.data().name as string);
-            setMajors(majorList);
+            const result: Option<Major[]> = await fetchAllMajors();
+
+            match(
+                () => {
+                    console.error("No majors found");
+                },
+                (majorsList: Major[]) => {
+                    const majorNames = majorsList.map((major) => major.name);
+                    setMajors(majorNames);
+                }
+            )(result);
         };
+
         fetchMajors();
     }, []);
 
@@ -159,13 +111,15 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setEditableUser(prevState => prevState ? { ...prevState, [name]: value } : undefined);
+    
+        setEditableUser(prevState => {
+            if (prevState) {
+                return { ...prevState, [name]: value };
+            }
+            console.error('Editable user is undefined');
+            return prevState;
+        });
     };
-
-    // const handleSubmit = () => {
-    //     setUser(editableUser);
-    //     setIsEditing(false);
-    // };
 
     const handleMajorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setTempSelectedMajor(event.target.value);
@@ -512,7 +466,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                         </div>
                     </div>
                 </div>
-            ) : (
+            ) : editableUser && (
                 <div className="navSide" css={navSide}>
                     <p css={headerTop}>Profile</p>
                     <div className="contentSide" css={contentSide}>
@@ -520,7 +474,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                             <img src={user?.image_url} alt="" />
                             <div className="userDesc" css={userDescStyle}>
                                 <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1px" }}>
-                                    <p style={{ fontWeight: "600", fontSize: "18px" }}>{editableUser?.name}</p>
+                                    <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
                                     {isEditing ? (
                                         <Icon icon={"mingcute:check-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
                                     ) : (

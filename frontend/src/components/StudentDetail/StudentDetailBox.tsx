@@ -2,10 +2,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../helper/AuthProvider";
 import { Icon } from "@iconify/react";
-import { collection, doc, getDoc, getDocs, query, where, addDoc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore";
-import { db } from "../../firebase";
 import Student from "../../model/Student";
-import { fetchUser } from "../../controllers/UserController";
+import { fetchUser, fetchUserNames } from "../../controllers/UserController";
 import ExcelJS from 'exceljs';
 import User from "../../model/User";
 import Modal from "./Modal";
@@ -37,11 +35,14 @@ import {
     ExpandedCard,
     Placeholder,
     InfoContainer2,
-    // DropdownFilterOption,
 } from "./StudentDetailBox.styles";
 import { css } from "@emotion/react";
+import { Option } from "fp-ts/lib/Option";
+import { fetchStudentById, updateStudentNotes } from "../../controllers/StudentController";
+import { deleteStudentReport, fetchReports, updateStudentReport } from "../../controllers/ReportController";
+import { Report } from "../../model/Report";
+import { fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
 
-// Helper function to format dates
 function formatDate(dateString: string): string {
     const [year, month, day] = dateString.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -52,7 +53,7 @@ function formatDate(dateString: string): string {
 const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const userAuth = useAuth();
     const [student, setStudent] = useState<Student | null>(null);
-    const [reports, setReports] = useState<any[]>([]);
+    const [reports, setReports] = useState<Report[]>([] as Report[]);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
@@ -88,105 +89,78 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
 
     useEffect(() => {
         const fetchStudent = async () => {
-            try {
-                const studentDoc = await getDoc(doc(collection(db, "student"), studentId));
-                if (studentDoc.exists()) {
-                    const data = studentDoc.data();
-                    setStudent({
-                        iden: studentDoc.id,
-                        name: data.name,
-                        nim: data.nim,
-                        tempat_magang: data.tempat_magang,
-                        semester: data.semester,
-                        email: data.email,
-                        phone: data.phone,
-                        image_url: data.image_url,
-                        status: data.status,
-                        major: data.major,
-                        faculty_supervisor: data.faculty_supervisor,
-                        site_supervisor: data.site_supervisor,
-                        notes: data.notes
-                    } as Student);
-                    setEditedNotes(data.notes || ""); // Initialize editedNotes
-                } else {
-                    console.error("No such student!");
-                }
-            } catch (error) {
-                console.error("Error fetching student:", error);
+            const studentOption: Option<Student> = await fetchStudentById(studentId);
+            if (studentOption._tag === "Some") {
+                const studentData = studentOption.value;
+                setStudent(studentData);
+                setEditedNotes(studentData.notes || ""); 
+            } else {
+                console.error("No such student!");
             }
         };
         fetchStudent();
     }, [studentId]);
 
-    const fetchReports = async () => {
-        if (student && student.name) {
-            let reportsQuery = query(collection(db, "studentReport"), where("studentName", "==", student.name));
+    // useEffect(() => {
+    //     const fetchReportsData = async () => {
+    //         if (student && student.name) {
+    //             const reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
+    //             setReports(reportList);
+    //             await checkMeetingSchedules(reportList.map(report => report.id));
+    //             await fetchUserNames(reportList);
+    //             setIsFetching(false);
+    //         }
+    //     };
+    //     fetchReportsData();
+    // }, [student, filterStartDate, filterEndDate]);
 
-            if (filterStartDate) {
-                reportsQuery = query(reportsQuery, where("timestamp", ">=", new Date(filterStartDate)));
-            }
-            if (filterEndDate) {
-                reportsQuery = query(reportsQuery, where("timestamp", "<=", new Date(filterEndDate)));
-            }
+    // const checkMeetingSchedules = async (reportIds: string[]) => {
+    //     const schedules: { [key: string]: any } = {};
+    //     for (const reportId of reportIds) {
+    //         const q = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", reportId));
+    //         const querySnapshot = await getDocs(q);
+    //         if (!querySnapshot.empty) {
+    //             const meetingData = querySnapshot.docs[0].data();
 
-            const reportSnapshot = await getDocs(reportsQuery);
-            const reportList = reportSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+    //             const reportDoc = await getDoc(doc(db, "studentReport", meetingData.studentReport_id));
+    //             if (reportDoc.exists()) {
+    //                 const writerEmail = reportDoc.data().writer;
 
-            setReports(reportList);
-            await checkMeetingSchedules(reportList.map(report => report.id));
-            await fetchUserNames(reportList);
+    //                 const userQuery = query(collection(db, "user"), where("email", "==", writerEmail));
+    //                 const userSnapshot = await getDocs(userQuery);
+    //                 if (!userSnapshot.empty) {
+    //                     const userData = userSnapshot.docs[0].data();
+    //                     meetingData.writer = userData.name;
+    //                 } else {
+    //                     meetingData.writer = "Unknown User";
+    //                 }
+    //             } else {
+    //                 meetingData.writer = "Unknown";
+    //             }
 
-            setIsFetching(false);
-        }
-    };
-
-    const fetchUserNames = async (reports: any[]) => {
-        const uniqueEmails = [...new Set(reports.map(report => report.data.writer))];
-        const emailToNameMap: { [key: string]: string } = {};
-
-        for (const email of uniqueEmails) {
-            const userDoc = await getDocs(query(collection(db, "user"), where("email", "==", email)));
-            if (!userDoc.empty) {
-                const userData = userDoc.docs[0].data();
-                emailToNameMap[email] = userData.name;
-            }
-        }
-
-        setUserEmailsToNames(emailToNameMap);
-    };
-
-    const checkMeetingSchedules = async (reportIds: string[]) => {
-        const schedules: { [key: string]: any } = {};
-        for (const reportId of reportIds) {
-            const q = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", reportId));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const meetingData = querySnapshot.docs[0].data();
-
-                const reportDoc = await getDoc(doc(db, "studentReport", meetingData.studentReport_id));
-                if (reportDoc.exists()) {
-                    const writerEmail = reportDoc.data().writer;
-
-                    const userQuery = query(collection(db, "user"), where("email", "==", writerEmail));
-                    const userSnapshot = await getDocs(userQuery);
-                    if (!userSnapshot.empty) {
-                        const userData = userSnapshot.docs[0].data();
-                        meetingData.writer = userData.name;
-                    } else {
-                        meetingData.writer = "Unknown User";
-                    }
-                } else {
-                    meetingData.writer = "Unknown";
-                }
-
-                schedules[reportId] = meetingData;
-            }
-        }
-        setMeetingSchedules(schedules);
-    };
+    //             schedules[reportId] = meetingData;
+    //         }
+    //     }
+    //     setMeetingSchedules(schedules);
+    // };
 
     useEffect(() => {
-        fetchReports();
+        const fetchReportsData = async () => {
+            if (student && student.name) {
+                const reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
+                setReports(reportList);
+    
+                const emailToNameMap = await fetchUserNames(reportList);
+                setUserEmailsToNames(emailToNameMap);
+
+                const schedules = await fetchMeetingSchedules(reportList.map(report => report.id));
+                setMeetingSchedules(schedules);
+    
+                // await checkMeetingSchedules(reportList.map(report => report.id));
+                setIsFetching(false);
+            }
+        };
+        fetchReportsData();
     }, [student, filterStartDate, filterEndDate]);
 
     const handleDropdownClick = () => {
@@ -211,24 +185,10 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         meetingType: string;
         studentReportId: string;
     }) => {
-        const newMeeting = {
-            date: data.date,
-            description: data.description,
-            studentReport_id: data.studentReportId,
-            timeStart: data.timeStart,
-            timeEnd: data.timeEnd,
-            place: data.place,
-            type: data.meetingType, // Add the meeting type here
-            createdAt: Timestamp.now(), // Add the creation timestamp here
-        };
-
         try {
-            await addDoc(collection(db, "meetingSchedule"), newMeeting);
-            alert("Meeting scheduled successfully!");
-            await checkMeetingSchedules(Object.keys(meetingSchedules));
+            const updatedSchedules = await scheduleMeeting(data, meetingSchedules);
+            setMeetingSchedules(updatedSchedules);
         } catch (error) {
-            console.error("Error scheduling meeting: ", error);
-            alert("Failed to schedule meeting. Please try again.");
         }
     };
 
@@ -239,14 +199,10 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const handleDeleteReport = async (reportId: string) => {
         try {
             setDeletingReportId(reportId);
-
-            await deleteDoc(doc(db, "studentReport", reportId));
-            setReports(reports.filter(report => report.id !== reportId));
-
-            alert("Report deleted successfully!");
+            const updatedReports = await deleteStudentReport(reportId, reports);
+            setReports(updatedReports);
         } catch (error) {
-            console.error("Error deleting report:", error);
-            alert("Failed to delete report. Please try again.");
+            // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
         } finally {
             setDeletingReportId(null);
         }
@@ -268,34 +224,11 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const handleSaveEditReport = async (reportId: string) => {
         try {
             setIsUpdating(true);
-
-            const updatedTimestamp = Timestamp.now();
-
-            await updateDoc(doc(db, "studentReport", reportId), {
-                report: editedContent,
-                type: editedType,
-                timestamp: updatedTimestamp,
-            });
-
-            setReports(reports.map(report => 
-                report.id === reportId
-                    ? {
-                        ...report,
-                        data: {
-                            ...report.data,
-                            report: editedContent,
-                            type: editedType,
-                            timestamp: updatedTimestamp,
-                        }
-                    }
-                    : report
-            ));
-
+            const updatedReports = await updateStudentReport(reportId, editedContent, editedType, reports);
+            setReports(updatedReports);
             setEditingReportId(null);
-            alert("Report updated successfully!");
         } catch (error) {
-            console.error("Error updating report: ", error);
-            alert("Failed to update report. Please try again.");
+            // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
         } finally {
             setIsUpdating(false);
         }
@@ -303,7 +236,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
 
     const exportToExcel = async (startDate: string, endDate: string) => {
         const filteredReports = reports.filter(report => {
-            const reportDate = new Date(report.data.timestamp.seconds * 1000);
+            const reportDate = new Date(report.timestamp);
             return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
         });
 
@@ -323,9 +256,9 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         ];
 
         const data = filteredReports.map(report => ({
-            Writer: report.data.writer,
-            Report: report.data.report,
-            Timestamp: new Date(report.data.timestamp.seconds * 1000).toLocaleString(),
+            Writer: report.writer,
+            Report: report.report,
+            Timestamp: new Date(report.timestamp).toLocaleString(),
         }));
 
         const workbook = new ExcelJS.Workbook();
@@ -381,22 +314,16 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     };
 
     const handleRecordAdded = () => {
-        fetchReports();
+        // fetchReports();
     };
 
     const handleEditNotesClick = async () => {
         if (isEditingNotes) {
-            // Save the edited notes to Firestore
-            if (student) {
-                try {
-                    const studentDocRef = doc(db, "student", studentId);
-                    await updateDoc(studentDocRef, { notes: editedNotes });
-                    setStudent({ ...student, notes: editedNotes });
-                    alert("Notes updated successfully!");
-                } catch (error) {
-                    console.error("Error updating notes: ", error);
-                    alert("Failed to update notes. Please try again.");
-                }
+            try {
+                const updatedStudent = await updateStudentNotes(studentId, editedNotes, student);
+                setStudent(updatedStudent);
+            } catch (error) {
+                // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
             }
         }
         setIsEditingNotes(!isEditingNotes);
@@ -588,7 +515,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                         ) : (
                             <div style={{ overflow: "auto", height: "572px", marginTop: "13px", scrollbarWidth:"none" }}>
                                 {reports.map((report) => {
-                                    const timestamp = new Date(report.data.timestamp.seconds * 1000);
+                                    const timestamp = new Date(report.timestamp);
                                     const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
                                     const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
@@ -596,7 +523,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                         <ReportItem key={report.id}>
                                             <div className="topSide">
                                                 <div className="topLeftSide">
-                                                    <p className="report-writer" style={{ fontSize: '17px', fontWeight: "500" }}>{userEmailsToNames[report.data.writer] || report.data.writer}</p>
+                                                    <p className="report-writer" style={{ fontSize: '17px', fontWeight: "500" }}>{userEmailsToNames[report.writer] || report.writer}</p>
                                                     {editingReportId === report.id ? (
                                                         <p
                                                             onClick={handleCycleType}
@@ -616,7 +543,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                     ) : (
                                                         <p
                                                             style={{
-                                                                backgroundColor: report.data.type === 'Report' ? '#A024FF' : report.data.type === 'Urgent' ? 'red' : 'orange',
+                                                                backgroundColor: report.type === 'Report' ? '#A024FF' : report.type === 'Urgent' ? 'red' : 'orange',
                                                                 color: 'white',
                                                                 padding: '2px',
                                                                 borderRadius: '8px',
@@ -625,7 +552,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                                 fontWeight: "600",
                                                             }}
                                                         >
-                                                            {report.data.type}
+                                                            {report.type}
                                                         </p>
                                                     )}
                                                 </div>
@@ -658,7 +585,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                                 icon={"material-symbols:edit"}
                                                                 fontSize={24}
                                                                 style={{ cursor: 'pointer' }}
-                                                                onClick={() => handleEditReport(report.id, report.data.report, report.data.type)}
+                                                                onClick={() => handleEditReport(report.id, report.report, report.type)}
                                                             />
                                                             <Icon
                                                                 icon={"ic:baseline-delete"}
@@ -676,7 +603,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                     color: "#51587E",
                                                     fontSize: "14px",
                                                     marginBottom: "5px"
-                                                }}>By {report.data.person} - {formattedTime}, {formattedDate}</p>
+                                                }}>By {report.person} - {formattedTime}, {formattedDate}</p>
                                             </div>
                                             {editingReportId === report.id ? (
                                                 <textarea
@@ -694,7 +621,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                     }}
                                                 />
                                             ) : (
-                                                <p className="report-content" style={{color:'#5F6368', fontSize:"16px"}}>{report.data.report}</p>
+                                                <p className="report-content" style={{color:'#5F6368', fontSize:"16px"}}>{report.report}</p>
                                             )}
                                             {meetingSchedules[report.id] ? (
                                                 <>
