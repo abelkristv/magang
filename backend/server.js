@@ -460,7 +460,7 @@ app.post('/api/discussions-with-details', async (req, res) => {
                 },
             },
             include: {
-                discussionDetails: true,
+                DiscussionDetail: true,
             },
         });
 
@@ -471,7 +471,7 @@ app.post('/api/discussions-with-details', async (req, res) => {
             date: doc.timestamp.toISOString().split('T')[0],
             time: doc.timestamp.toISOString().split('T')[1].split('.')[0], 
             type: doc.type,
-            discussionDetails: doc.discussionDetails.map(detail => detail.discussionTitle).join(', '),
+            discussionDetails: Array.isArray(doc.discussionDetails) ? doc.discussionDetails.map(detail => detail.discussionTitle).join(', ') : '',
             attendanceList: doc.attendanceList || [],
         }));
 
