@@ -258,10 +258,57 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     };
 
     const handleApplyFilters = () => {
-        setFilterOptions(tempFilterOptions);
-        handleSearch();
+        setFilterOptions(prev => {
+            const updatedOptions = { ...prev, ...tempFilterOptions };
+            handleSearchWithOptions(updatedOptions); // Apply search with updated filter options
+            return updatedOptions;
+        });
         toggleDropdown();
     };
+    
+    const handleSearchWithOptions = (options: FilterOptions) => {
+        let filtered = students;
+        
+        if (searchState.searchQuery.trim() !== "") {
+            filtered = students.filter(student =>
+                student.name.toLowerCase().includes(searchState.searchQuery.toLowerCase()) ||
+                student.nim.toLowerCase().includes(searchState.searchQuery.toLowerCase()) ||
+                student.email.toLowerCase().includes(searchState.searchQuery.toLowerCase())
+            );
+        }
+    
+        if (options.selectedPeriod) {
+            filtered = filtered.filter(student => student.period === options.selectedPeriod);
+        }
+    
+        if (options.selectedCompany) {
+            filtered = filtered.filter(student => student.tempat_magang === options.selectedCompany);
+        }
+    
+        if (options.selectedMajor) {
+            filtered = filtered.filter(student => student.major === options.selectedMajor);
+        }
+    
+        if (searchState.sortField) {
+            filtered.sort((a, b) => {
+                const sortField = searchState.sortField as keyof Student;
+                if (a[sortField] < b[sortField]) {
+                    return searchState.sortOrder === "asc" ? -1 : 1;
+                }
+                if (a[sortField] > b[sortField]) {
+                    return searchState.sortOrder === "asc" ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+    
+        setFilteredStudents(filtered);
+    
+        if (!searchHistory.includes(searchState.searchQuery)) {
+            setSearchHistory([searchState.searchQuery, ...searchHistory].slice(0, 5));
+        }
+    };
+    
 
     const handleSearchFocus = () => {
         setSearchState(prevState => ({
