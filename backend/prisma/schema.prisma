@@ -1,0 +1,134 @@
+model Documentation {
+  id             String   @id @default(uuid())
+  attendanceList String[]
+  description    String?
+  // discussionDetails String[]   
+  leader         String
+  nomorUndangan  String?
+  pictures       String[]
+  place          String
+  results        String[]
+  time           String
+  timestamp      DateTime
+  title          String
+  type           String
+  writer         String
+
+  DiscussionDetail DiscussionDetail[]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id                String            @id @default(uuid())
+  name              String
+  nim               String
+  semester          String
+  tempatMagang      String
+  email             String
+  phone             String
+  imageUrl          String
+  status            String
+  facultySupervisor String
+  siteSupervisor    String
+  major             String
+  notes             String?
+  period            String
+  studentReports    StudentReport[]
+  // MeetingSchedule   MeetingSchedule[]
+}
+
+model StudentReport {
+  id          String                 @id @default(uuid())
+  hasRead     Boolean?
+  person      String
+  report      String
+  sentiment   String
+  studentName String
+  timestamp   DateTime
+  type        String
+  writer      String?
+  comments    StudentReportComment[]
+  Student     Student?               @relation(fields: [studentId], references: [id])
+  studentId   String?
+
+  @@map("StudentReport")
+  MeetingSchedule MeetingSchedule[]
+}
+
+model Company {
+  id                 String @id @default(uuid())
+  companyAddress     String
+  companyDescription String
+  companyDetail      String
+  companyName        String
+}
+
+model Major {
+  id   String @id @default(uuid())
+  name String
+}
+
+model Period {
+  id   String @id @default(uuid())
+  name String
+}
+
+model StudentReportComment {
+  id       String  @id @default(uuid())
+  comment  String
+  hasRead  Boolean
+  reportID String
+  writer   String
+
+  report StudentReport @relation(fields: [reportID], references: [id], onDelete: Cascade)
+
+  @@map("StudentReportComment")
+}
+
+model User {
+  id             String  @id @default(uuid())
+  companyAddress String?
+  companyName    String
+  email          String  @unique
+  imageUrl       String
+  name           String
+  phoneNumber    String?
+  role           String
+}
+
+model MeetingSchedule {
+  id              String          @id @default(uuid())
+  createdAt       DateTime        @default(now())
+  date            String
+  description     String?
+  place           String
+  studentReportId String
+  subject         String?
+  timeStart       String?
+  timeEnd         String?
+  type            String
+
+  studentReport StudentReport @relation(fields: [studentReportId], references: [id], onDelete: Cascade)
+
+  @@map("MeetingSchedule")
+}
+model DiscussionDetail {
+  id                 String      @id @default(uuid())
+  deadline           DateTime
+  discussionTitle    String
+  furtherActions     String
+  personResponsible  String
+  docId              String
+  documentation      Documentation @relation(fields: [docId], references: [id], onDelete: Cascade)
+
+  @@map("DiscussionDetail")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
