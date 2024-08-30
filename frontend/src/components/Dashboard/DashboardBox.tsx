@@ -2,6 +2,7 @@
 import { css } from "@emotion/react";
 import dashboardDocum from "../../assets/dashboard_docum.png";
 import MainBox from "../Elementary/MainBox";
+import { useNavigate } from "react-router-dom";
 
 
 interface DashboardBoxProps {
@@ -80,6 +81,8 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
         }
     `;
 
+    const navigate = useNavigate()
+
     return (
         <MainBox navText="Dashboard">
             <div className="documentationBox" css={documentationBoxStyle}>
@@ -91,16 +94,14 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
             </div>
             <div className="bottomBox" css={bottomBoxStyle}>
                 <div className="companyBox" css={companyBox}>
-                    <h1>Company</h1>
-                    <p>For companies, you can see all of your students in the <u>student list page</u> and add <u>comments</u> according to their performance and behaviour.
-                    Please be <u>appropriate</u> when using the feature.</p>
-                    <button className="buttonStyle" css={buttonStyle} onClick={() => setActiveTab('Student List')}>Go to Student List {">>"}</button>
+                    <h1>Student Records</h1>
+                    <p>You can see all of the enrichment students in the student list page and add records about them, either it is from the student, company, or yourself.</p>
+                    <button className="buttonStyle" css={buttonStyle} onClick={() => {navigate("/workspaces/student-list");setActiveTab('Student List')}}>Go to Student List {">>"}</button>
                 </div>
                 <div className="enrichmentBox" css={companyBox}>
-                    <h1>Enrichment</h1>
-                    <p>For the enrichment team, other than comments, you can schedule a <u>meeting</u> to it to respond.
-                    You can also use the <u>documentation page</u> to <u>log past events</u> in the enrichment team.</p>
-                    <button className="buttonStyle" css={buttonStyle} onClick={() => setActiveTab('Documentation')}>Go to Documentation {">>"}</button>
+                    <h1>Enrichment Activities</h1>
+                    <p>If any enrichment activities, such as meetings, discussions, or evaluations, were to happen, use the documentation page to log those past events.</p>
+                    <button className="buttonStyle" css={buttonStyle} onClick={() => {navigate("/workspaces/documentation");setActiveTab('Documentation')}}>Go to Documentation {">>"}</button>
                 </div>
             </div>
         </MainBox>
