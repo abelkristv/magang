@@ -229,7 +229,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         endDate.setHours(23, 59, 59, 999);
         const filteredDocs = documentations.filter(doc => {
             let docDate: Date;
-        
+    
             if (doc.timestamp instanceof Date) {
                 docDate = doc.timestamp;
             } 
@@ -246,7 +246,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             }
             return docDate >= startDate && docDate <= endDate && (exportType === 'All' || doc.type === exportType);
         });
-        
+    
         const meetingCount = filteredDocs.filter(doc => doc.type === 'Meeting').length;
         const discussionCount = filteredDocs.filter(doc => doc.type === 'Discussion').length;
         const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
@@ -272,7 +272,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             'Attendance List'
         ];
     
-        const data = await fetchDiscussionsWithDetails(filteredDocs)
+        const data = await fetchDiscussionsWithDetails(filteredDocs);
     
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Documentation');
@@ -295,39 +295,39 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             const rowIndex = worksheet.lastRow!.number + 1;
             const attendanceList = doc.attendanceList;
             const discussionDetails = doc.discussionDetails.split(', '); // Assuming discussionDetails are comma-separated
-        
+    
             const numRows = Math.max(attendanceList.length, discussionDetails.length, 1);
-        
+    
             const columnsToMerge = ['A', 'B', 'C', 'D', 'E', 'F'];
-        
+    
             columnsToMerge.forEach((col) => {
                 if (!worksheet.getCell(`${col}${rowIndex}`).isMerged) {
                     worksheet.mergeCells(`${col}${rowIndex}:${col}${rowIndex + numRows - 1}`);
                 }
             });
-        
+    
             worksheet.getCell(`A${rowIndex}`).value = doc.title;
             worksheet.getCell(`B${rowIndex}`).value = doc.leader;
             worksheet.getCell(`C${rowIndex}`).value = doc.place;
             worksheet.getCell(`D${rowIndex}`).value = doc.date;
             worksheet.getCell(`E${rowIndex}`).value = doc.time;
             worksheet.getCell(`F${rowIndex}`).value = doc.type;
-        
+    
             if (discussionDetails.length === 1) {
                 if (!worksheet.getCell(`G${rowIndex}`).isMerged) {
                     worksheet.mergeCells(`G${rowIndex}:G${rowIndex + numRows - 1}`);
                 }
                 worksheet.getCell(`G${rowIndex}`).value = discussionDetails[0];
             } else if (discussionDetails.length > 1) {
-                discussionDetails.forEach((detail: string | number | boolean | Date | ExcelJS.CellErrorValue | ExcelJS.CellRichTextValue | ExcelJS.CellHyperlinkValue | ExcelJS.CellFormulaValue | ExcelJS.CellSharedFormulaValue | null | undefined, i: number) => {
+                discussionDetails.forEach((detail: string, i: number) => {
                     worksheet.getCell(`G${rowIndex + i}`).value = detail;
                 });
             } else {
                 worksheet.getCell(`G${rowIndex}`).value = '';
             }
-        
+    
             if (attendanceList.length > 1) {
-                attendanceList.forEach((attendee: string | number | boolean | Date | ExcelJS.CellErrorValue | ExcelJS.CellRichTextValue | ExcelJS.CellHyperlinkValue | ExcelJS.CellFormulaValue | ExcelJS.CellSharedFormulaValue | null | undefined, i: number) => {
+                attendanceList.forEach((attendee: string, i: number) => {
                     worksheet.getCell(`H${rowIndex + i}`).value = attendee;
                 });
             } else {
@@ -336,7 +336,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 }
                 worksheet.getCell(`H${rowIndex}`).value = attendanceList[0] || '';
             }
-        
+    
             for (let i = rowIndex; i < rowIndex + numRows; i++) {
                 worksheet.getRow(i).eachCell((cell) => {
                     cell.border = {
@@ -347,18 +347,21 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                     };
                 });
             }
-        });                        
+        });
     
-        worksheet.columns = [
-            { key: 'title', width: 30 },
-            { key: 'leader', width: 20 },
-            { key: 'place', width: 20 },
-            { key: 'date', width: 30 },
-            { key: 'time', width: 15 },
-            { key: 'type', width: 15 },
-            { key: 'discussion_details', width: 30 },
-            { key: 'attendance_list', width: 30 },
-        ];
+        worksheet.columns.forEach(column => {
+            if (column && typeof column.eachCell === 'function') { 
+                let maxLength = 0;
+                column.eachCell({ includeEmpty: true }, cell => {
+                    const cellLength = cell.value ? cell.value.toString().length : 10;
+                    if (cellLength > maxLength) {
+                        maxLength = cellLength;
+                    }
+                });
+                column.width = maxLength < 10 ? 10 : maxLength;
+            }
+        });
+        
     
         const buffer = await workbook.xlsx.writeBuffer();
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'documentation.xlsx');
