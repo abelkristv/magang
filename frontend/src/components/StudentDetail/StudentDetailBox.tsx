@@ -206,29 +206,37 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         const reportCount = filteredReports.length;
     
         const summaryData = [
-            ['Student Performance and Behaviour Documentation', '', '', ''],
-            ['Start Date', startDate, '', ''],
-            ['End Date', endDate, '', ''],
-            ['Report Count', reportCount.toString(), '', ''],
+            ['Student Performance and Behaviour Documentation', '', '', '', ''],
+            ['Start Date', startDate, '', '', ''],
+            ['End Date', endDate, '', '', ''],
+            ['Report Count', reportCount.toString(), '', '', ''],
         ];
     
+        // Updated headers to include "Type" and "Person"
         const headers = [
             'Writer',
             'Report',
             'Timestamp',
+            'Type',
+            'Person',
         ];
     
+        // Include type and person in the data map
         const data = filteredReports.map(report => ({
             Writer: report.writer,
             Report: report.report,
             Timestamp: new Date(report.timestamp).toLocaleString(),
+            Type: report.type,
+            Person: report.person,
         }));
     
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Reports');
     
+        // Add summary data
         worksheet.addRows(summaryData);
     
+        // Define and style header row
         const headerRow = worksheet.addRow(headers);
         headerRow.eachCell((cell) => {
             cell.font = { bold: true };
@@ -241,6 +249,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             };
         });
     
+        // Add data rows
         data.forEach((rowData) => {
             const row = worksheet.addRow(Object.values(rowData));
             row.eachCell((cell) => {
@@ -253,15 +262,19 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             });
         });
     
+        // Set column widths for better readability
         worksheet.columns = [
             { key: 'Writer', width: 20 },
             { key: 'Report', width: 30 },
             { key: 'Timestamp', width: 20 },
+            { key: 'Type', width: 15 },
+            { key: 'Person', width: 15 },
         ];
     
+        // Export the file
         const buffer = await workbook.xlsx.writeBuffer();
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StudentReports.xlsx');
-    };
+    };    
     
 
     const handleExportModalClose = () => {
