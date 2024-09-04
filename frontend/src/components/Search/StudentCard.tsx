@@ -94,7 +94,7 @@ const StudentCard = ({ student, totalComments, onClick, isLoading }: StudentCard
                 </div>
                 <div className="buttonContainer" css={buttonContainerStyle}>
                     <p style={{fontSize: "13px"}}>Total Comments: </p>
-                    <span style={{ marginLeft: "10px", display: "flex", justifyContent: "center", alignItems: "center", fontWeight: "bold", backgroundColor: "#49A8FF", color: "white", padding: "10px", textAlign: "center", width: "36px", height: "36px", borderRadius: "5px", boxSizing: "border-box", fontSize: "18px" }}>
+                    <span style={{ marginLeft: "10px", display: "flex", justifyContent: "center", alignItems: "center", fontWeight: "400", backgroundColor: "#49A8FF", color: "white", padding: "10px", textAlign: "center", width: "36px", height: "36px", borderRadius: "5px", boxSizing: "border-box", fontSize: "18px" }}>
                         <p style={{margin: "0px"}}>{totalComments}</p>
                     </span>
                 </div>
