@@ -13,6 +13,7 @@ import StudentDetailBox from '../components/StudentDetail/StudentDetailBox';
 import AddNewDocumentationBox from '../components/Documentation/Add New Documentation/AddNewDocumentationbox';
 import { useAuth } from '../helper/AuthProvider';
 import { Route, Routes, Navigate } from 'react-router-dom';
+import { fetchUrgentStudentReports } from '../controllers/ReportController';
 
 const WorkSpace = () => {
     const [activeTab, setActiveTab] = useState<string>("Dashboard");
@@ -21,24 +22,12 @@ const WorkSpace = () => {
     const userAuth = useAuth();
 
     useEffect(() => {
-        const fetchUrgentReportsCount = async () => {
-            if (userAuth?.currentUser?.email) {
-                const app = getApp();
-                const db = getFirestore(app);
-                const studentReportRef = collection(db, "studentReport");
-
-                const reportQuery = query(
-                    studentReportRef,
-                    where("type", "==", "Urgent")
-                );
-
-                const reportSnapshot = await getDocs(reportQuery);
-
-                setUrgentReportsCount(reportSnapshot.size);
-            }
-        };
-
-        fetchUrgentReportsCount();
+        const fetchReportSize = async () => {
+            const reports = await fetchUrgentStudentReports()
+            setUrgentReportsCount(reports.length)
+        }
+        fetchReportSize()
+        // fetchUrgentReportsCount();
     }, [activeTab, userAuth]);
 
     const mainStyle = css`

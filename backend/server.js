@@ -71,7 +71,7 @@ app.get('/api/reports', async (req, res) => {
         const reports = await prisma.studentReport.findMany({
             where: conditions,
         });
-        console.log(reports)
+        // console.log(reports)
 
         res.json(reports);
     } catch (error) {
@@ -651,8 +651,40 @@ app.post('/send-email', (req, res) => {
         res.status(200).send('Email sent: ' + info.response);
     });
 });
-  
+
+app.post('/api/reports', async (req, res) => {
+    const { hasRead, type, person, report, studentName, timestamp, writer } = req.body;
+
+    // Validate the required fields
+    if (!report || !studentName || !type || !person || !writer) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // Create the new student report in the database
+        const newReport = await prisma.studentReport.create({
+            data: {
+                hasRead,
+                type,
+                person,
+                report,
+                sentiment:"neutral",
+                studentName,
+                timestamp: new Date(timestamp), // Ensure the timestamp is properly handled
+                writer,
+            },
+        });
+
+        // Return a success message along with the new report
+        res.status(201).json({ message: 'Student report added successfully', newReport });
+    } catch (error) {
+        console.error('Error adding report:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+

@@ -88,7 +88,7 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
         }
     `;
 
-    const navigate = useNavigate()
+    // const navigate = useNavigate()
 
     return (
         <MainBox navText="Dashboard">
