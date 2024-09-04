@@ -629,13 +629,14 @@ app.post('/api/documentation', async (req, res) => {
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: "abel.kristanto1@gmail.com",
+      pass: "aepu evqr kqly ruvk"
     }
 });
 
 app.post('/send-email', (req, res) => {
     const { to, subject, text } = req.body;
+    console.log(req.body)
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -646,6 +647,7 @@ app.post('/send-email', (req, res) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
+            console.log(error)
             return res.status(500).send(error.toString());
         }
         res.status(200).send('Email sent: ' + info.response);

@@ -165,9 +165,39 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         try {
             const updatedSchedules = await scheduleMeeting(data, meetingSchedules);
             setMeetingSchedules(updatedSchedules);
+
+            // Construct email details
+            const emailDetails = {
+                to: student?.email,
+                subject: "Meeting Scheduled",
+                text: `A new meeting has been scheduled:
+                Date: ${data.date}
+                Time: ${data.timeStart} - ${data.timeEnd}
+                Place: ${data.place}
+                Description: ${data.description}`
+            };
+
+            // Send the email via the API
+            const response = await fetch('http://localhost:3001/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(emailDetails),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to send email: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('Email sent:', result);
+
         } catch (error) {
+            console.error('Error scheduling meeting or sending email:', error);
         }
     };
+
 
     const handleShowMeetingScheduleClick = (reportId: string) => {
         setExpandedReportId(reportId === expandedReportId ? null : reportId);
