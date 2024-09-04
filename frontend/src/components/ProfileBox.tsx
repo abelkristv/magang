@@ -9,6 +9,8 @@ import { match, Option } from "fp-ts/lib/Option";
 import { fetchAllMajors } from "../controllers/MajorController";
 import { fetchRecordsAndDocumentation } from "../controllers/ReportController";
 import notFoundImage from "../assets/not_found.png";
+import { fetchAllCompanies } from "../controllers/CompanyController";
+import { fetchPeriods } from "../controllers/PeriodController";
 
 interface ProfileBoxProps {
     setTodayReportsCount: (count: number) => void;
@@ -53,7 +55,11 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [majors, setMajors] = useState<string[]>([]);
+    const [companies, setCompanies] = useState<string[]>([]); // New state for companies
+    const [periods, setPeriods] = useState<string[]>([]); // New state for periods
     const [selectedMajor, setSelectedMajor] = useState<string>("");
+    const [selectedCompany, setSelectedCompany] = useState<string>(""); // New state for selected company
+    const [selectedPeriod, setSelectedPeriod] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [tempSelectedMajor, setTempSelectedMajor] = useState<string>("");
 
@@ -81,6 +87,24 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     
         fetchData();
     }, [setTodayReportsCount, userAuth?.currentUser?.email]);
+
+    useEffect(() => {
+        const fetchFilters = async () => {
+            const majorResult: Option<any[]> = await fetchAllMajors();
+            match(
+                () => console.error("No majors found"),
+                (majorsList: any[]) => setMajors(majorsList.map((major) => major.name))
+            )(majorResult);
+
+            const companyResult = await fetchAllCompanies().then(company => company._tag == "Some" ? company.value : {} as Company[]); // Fetch companies
+            setCompanies(companyResult.map((company: Company) => company.company_name));
+
+            const periodResult = await fetchPeriods(); // Fetch periods
+            setPeriods(periodResult.map((period: string) => period));
+        };
+
+        fetchFilters();
+    }, []);
     
     useEffect(() => {
         // console.log("Editable user (updated): ", editableUser); // This will log the updated state
@@ -106,10 +130,45 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         fetchMajors();
     }, []);
 
-    const handleEditClick = () => {
-        setIsEditing(!isEditing);
+    const handleEditClick = async () => {
+        if (isEditing) {
+            if (editableUser) {
+                try {
+                    if (!editableUser.image_url && user.image_url) {
+                        editableUser.image_url = user.image_url;
+                    }
+    
+                    const response = await fetch(`http://localhost:3001/api/user/${editableUser.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(editableUser),
+                    });
+                    const fetchedUser = await response.json();
+                    const updatedUser: User = {
+                        id: fetchedUser.id,
+                        email: fetchedUser.email,
+                        image_url: fetchedUser.imageUrl,
+                        company_name: fetchedUser.companyName,
+                        name: fetchedUser.name,
+                        role: fetchedUser.role,
+                        phone_number: fetchedUser.phoneNumber
+                    }
+                    setUser(updatedUser);
+                    setEditableUser(updatedUser);
+                    setIsEditing(false);
+                } catch (error) {
+                    console.error('Failed to update user:', error);
+                    alert('Error saving changes, please try again');
+                }
+            }
+        } else {
+            setIsEditing(true);
+        }
     };
-
+    
+    
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
     
@@ -127,18 +186,24 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     };
 
     const handleApplyFilters = () => {
-        setSelectedMajor(tempSelectedMajor);
+        let filtered = allRecords;
+
+        if (tempSelectedMajor) filtered = filtered.filter(record => record.major === tempSelectedMajor);
+        if (selectedCompany) filtered = filtered.filter(record => record.studentData.tempatMagang === selectedCompany);
+        // if (selectedPeriod) filtered = filtered.filter(record => record.period === selectedPeriod);
+
+        setFilteredRecords(filtered);
         setIsDropdownOpen(false);
-        if (tempSelectedMajor) {
-            const filtered = allRecords.filter(record => record.major === tempSelectedMajor);
-            setFilteredRecords(filtered);
-        } else {
-            setFilteredRecords(allRecords);
-        }
     };
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleFilterChange = (filterType: string, value: string) => {
+        if (filterType === "major") setTempSelectedMajor(value);
+        if (filterType === "company") setSelectedCompany(value);
+        if (filterType === "period") setSelectedPeriod(value);
     };
 
     const mainStyle = css`
@@ -464,25 +529,6 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                 <div className="line"></div>
                             </div>
                         </div>
-                        <div className="bottomContent" css={bottomContentStyle}>
-                            <div className="bottomContainer">
-                                <div className="heading fixTextWeight">
-                                    <p>Unresolved Urgent Student Records</p>
-                                </div>
-                                <div className="recentlyAddedRecordsContainer" css={recentlyAddedRecordsContainerStyle}>
-                                    <div className="placeholder" css={placeholderStyle}>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                    </div>
-                                    <div className="placeholder" css={placeholderStyle}>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             ) : editableUser && (
@@ -493,7 +539,17 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                             <img src={user?.image_url} alt="" />
                             <div className="userDesc" css={userDescStyle}>
                                 <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1px" }}>
-                                    <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={editableUser?.name}
+                                            onChange={handleChange}
+                                            css={editInputStyle}
+                                        />
+                                    ) : (
+                                        <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
+                                    )}
                                     {isEditing ? (
                                         <Icon icon={"mingcute:check-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
                                     ) : (
@@ -561,12 +617,30 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                     {isDropdownOpen &&
                                         <div className="dropdown-content" css={dropdownContentStyle}>
                                             <p>Major</p>
-                                            <select value={tempSelectedMajor} onChange={handleMajorChange}>
+                                            <select value={tempSelectedMajor} onChange={(e) => handleFilterChange("major", e.target.value)}>
                                                 <option value="">All</option>
                                                 {majors.map((major, index) => (
                                                     <option key={index} value={major}>{`${major}`}</option>
                                                 ))}
                                             </select>
+
+                                            {/* Company Filter */}
+                                            <p>Company</p>
+                                            <select value={selectedCompany} onChange={(e) => handleFilterChange("company", e.target.value)}>
+                                                <option value="">All</option>
+                                                {companies.map((company, index) => (
+                                                    <option key={index} value={company}>{`${company}`}</option>
+                                                ))}
+                                            </select>
+
+                                            {/* Period Filter */}
+                                            {/* <p>Period</p>
+                                            <select value={selectedPeriod} onChange={(e) => handleFilterChange("period", e.target.value)}>
+                                                <option value="">All</option>
+                                                {periods.map((period, index) => (
+                                                    <option key={index} value={period}>{`${period}`}</option>
+                                                ))}
+                                            </select> */}
 
                                             <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", marginTop: "30px" }}>
                                                 <button onClick={handleApplyFilters} style={{ backgroundColor: "#49A8FF" }}>Apply</button>

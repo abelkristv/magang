@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 
 dotenv.config();
 
@@ -70,7 +71,7 @@ app.get('/api/reports', async (req, res) => {
         const reports = await prisma.studentReport.findMany({
             where: conditions,
         });
-        console.log(reports)
+        // console.log(reports)
 
         res.json(reports);
     } catch (error) {
@@ -625,8 +626,89 @@ app.post('/api/documentation', async (req, res) => {
     }
 });
 
-// Increase the limit
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: "abel.kristanto1@gmail.com",
+      pass: "aepu evqr kqly ruvk"
+    }
+});
+
+app.post('/send-email', (req, res) => {
+    const { to, subject, text } = req.body;
+    console.log(req.body)
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: to,
+        subject: subject,
+        text: text
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error)
+            return res.status(500).send(error.toString());
+        }
+        res.status(200).send('Email sent: ' + info.response);
+    });
+});
+
+app.post('/api/reports', async (req, res) => {
+    const { hasRead, type, person, report, studentName, timestamp, writer } = req.body;
+
+    // Validate the required fields
+    if (!report || !studentName || !type || !person || !writer) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // Create the new student report in the database
+        const newReport = await prisma.studentReport.create({
+            data: {
+                hasRead,
+                type,
+                person,
+                report,
+                sentiment:"neutral",
+                studentName,
+                timestamp: new Date(timestamp), // Ensure the timestamp is properly handled
+                writer,
+            },
+        });
+
+        // Return a success message along with the new report
+        res.status(201).json({ message: 'Student report added successfully', newReport });
+    } catch (error) {
+        console.error('Error adding report:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.put('/api/user/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, email, phoneNumber } = req.body;
+
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: id },
+            data: {
+                name,
+                email,
+                phoneNumber,
+            },
+        });
+
+        res.json(updatedUser);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+

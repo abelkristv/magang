@@ -71,10 +71,16 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const [editedContent, setEditedContent] = useState<string>("");
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [editedType, setEditedType] = useState<string>("");
+    const [sortOrder, setSortOrder] = useState<string>("latest");  // Default to "latest"
+
 
     // State variables for editing notes
     const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
     const [editedNotes, setEditedNotes] = useState<string>("");
+
+    const [filterType, setFilterType] = useState<string>("");  // for filtering by type
+    const [filterPerson, setFilterPerson] = useState<string>("");  // for filtering by person
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -102,67 +108,37 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         fetchStudent();
     }, [studentId]);
 
-    // useEffect(() => {
-    //     const fetchReportsData = async () => {
-    //         if (student && student.name) {
-    //             const reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
-    //             setReports(reportList);
-    //             await checkMeetingSchedules(reportList.map(report => report.id));
-    //             await fetchUserNames(reportList);
-    //             setIsFetching(false);
-    //         }
-    //     };
-    //     fetchReportsData();
-    // }, [student, filterStartDate, filterEndDate]);
-
-    // const checkMeetingSchedules = async (reportIds: string[]) => {
-    //     const schedules: { [key: string]: any } = {};
-    //     for (const reportId of reportIds) {
-    //         const q = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", reportId));
-    //         const querySnapshot = await getDocs(q);
-    //         if (!querySnapshot.empty) {
-    //             const meetingData = querySnapshot.docs[0].data();
-
-    //             const reportDoc = await getDoc(doc(db, "studentReport", meetingData.studentReport_id));
-    //             if (reportDoc.exists()) {
-    //                 const writerEmail = reportDoc.data().writer;
-
-    //                 const userQuery = query(collection(db, "user"), where("email", "==", writerEmail));
-    //                 const userSnapshot = await getDocs(userQuery);
-    //                 if (!userSnapshot.empty) {
-    //                     const userData = userSnapshot.docs[0].data();
-    //                     meetingData.writer = userData.name;
-    //                 } else {
-    //                     meetingData.writer = "Unknown User";
-    //                 }
-    //             } else {
-    //                 meetingData.writer = "Unknown";
-    //             }
-
-    //             schedules[reportId] = meetingData;
-    //         }
-    //     }
-    //     setMeetingSchedules(schedules);
-    // };
-
     useEffect(() => {
         const fetchReportsData = async () => {
             if (student && student.name) {
-                const reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
-                setReports(reportList);
+                let reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
+                
+                // Apply type and person filters
+                const filteredByType = filterType ? reportList.filter(report => report.type === filterType) : reportList;
+                const filteredReports = filterPerson ? filteredByType.filter(report => report.person === filterPerson) : filteredByType;
     
-                const emailToNameMap = await fetchUserNames(reportList);
+                // Sort reports by latest or earliest
+                const sortedReports = filteredReports.sort((a, b) => {
+                    const dateA = new Date(a.timestamp);
+                    const dateB = new Date(b.timestamp);
+                    return sortOrder === "latest" ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
+                });
+    
+                setReports(sortedReports);
+    
+                const emailToNameMap = await fetchUserNames(sortedReports);
                 setUserEmailsToNames(emailToNameMap);
-
-                const schedules = await fetchMeetingSchedules(reportList.map(report => report.id));
+    
+                const schedules = await fetchMeetingSchedules(sortedReports.map(report => report.id));
                 setMeetingSchedules(schedules);
     
-                // await checkMeetingSchedules(reportList.map(report => report.id));
                 setIsFetching(false);
             }
         };
         fetchReportsData();
-    }, [student, filterStartDate, filterEndDate]);
+    }, [student, filterStartDate, filterEndDate, filterType, filterPerson, sortOrder]);
+    
+    
 
     const handleDropdownClick = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -189,9 +165,39 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         try {
             const updatedSchedules = await scheduleMeeting(data, meetingSchedules);
             setMeetingSchedules(updatedSchedules);
+
+            // Construct email details
+            const emailDetails = {
+                to: student?.email,
+                subject: "Meeting Scheduled",
+                text: `A new meeting has been scheduled:
+                Date: ${data.date}
+                Time: ${data.timeStart} - ${data.timeEnd}
+                Place: ${data.place}
+                Description: ${data.description}`
+            };
+
+            // Send the email via the API
+            const response = await fetch('http://localhost:3001/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(emailDetails),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to send email: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('Email sent:', result);
+
         } catch (error) {
+            console.error('Error scheduling meeting or sending email:', error);
         }
     };
+
 
     const handleShowMeetingScheduleClick = (reportId: string) => {
         setExpandedReportId(reportId === expandedReportId ? null : reportId);
@@ -203,7 +209,6 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             const updatedReports = await deleteStudentReport(reportId, reports);
             setReports(updatedReports);
         } catch (error) {
-            // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
         } finally {
             setDeletingReportId(null);
         }
@@ -240,38 +245,47 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     };
 
     const exportToExcel = async (startDate: string, endDate: string) => {
+        const start = new Date(new Date(startDate).setHours(0, 0, 0, 0));
+        const end = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+    
         const filteredReports = reports.filter(report => {
             const reportDate = new Date(report.timestamp);
-            return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
+            return reportDate >= start && reportDate <= end;
         });
-
+    
         const reportCount = filteredReports.length;
-
+    
         const summaryData = [
-            ['Student Performance and Behaviour Documentation', '', '', ''],
-            ['Start Date', startDate, '', ''],
-            ['End Date', endDate, '', ''],
-            ['Report Count', reportCount.toString(), '', ''],
+            ['Student Performance and Behaviour Documentation', '', '', '', ''],
+            ['Start Date', startDate, '', '', ''],
+            ['End Date', endDate, '', '', ''],
+            ['Report Count', reportCount.toString(), '', '', ''],
         ];
-
+    
+        // Updated headers to include "Type" and "Person"
         const headers = [
             'Writer',
             'Report',
             'Timestamp',
+            'Type',
+            'Person',
         ];
-
+    
+        // Include type and person in the data map
         const data = filteredReports.map(report => ({
             Writer: report.writer,
             Report: report.report,
             Timestamp: new Date(report.timestamp).toLocaleString(),
+            Type: report.type,
+            Person: report.person,
         }));
-
+    
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Reports');
-
+    
         // Add summary data
         worksheet.addRows(summaryData);
-
+    
         // Define and style header row
         const headerRow = worksheet.addRow(headers);
         headerRow.eachCell((cell) => {
@@ -284,7 +298,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 right: { style: 'thin' },
             };
         });
-
+    
         // Add data rows
         data.forEach((rowData) => {
             const row = worksheet.addRow(Object.values(rowData));
@@ -297,18 +311,21 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 };
             });
         });
-
+    
         // Set column widths for better readability
         worksheet.columns = [
             { key: 'Writer', width: 20 },
             { key: 'Report', width: 30 },
             { key: 'Timestamp', width: 20 },
+            { key: 'Type', width: 15 },
+            { key: 'Person', width: 15 },
         ];
-
+    
         // Export the file
         const buffer = await workbook.xlsx.writeBuffer();
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StudentReports.xlsx');
-    };
+    };    
+    
 
     const handleExportModalClose = () => {
         setIsExportModalOpen(false);
@@ -662,15 +679,75 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <p style={{marginBottom: "12px", fontSize: "16px"}}>Sorting</p>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                            <input style={{        padding: "6px",
-                                                fontSize: "15px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "5px"}} value={filterStartDate} />
+                                    <div className="rightSide">
+                                        <div className="type">
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Type</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={filterType}
+                                                    onChange={(e) => setFilterType(e.target.value)}
+                                                >
+                                                    <option value="">All Types</option>
+                                                    <option value="Urgent">Urgent</option>
+                                                    <option value="Report">Report</option>
+                                                    <option value="Complaint">Complaint</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <Button style={{marginTop:"80px", right:"0", fontWeight:"500", fontSize:"17px", borderRadius:"8px", width:"auto", padding:"10px 20px", marginLeft:"110px"}} css={dropdownContentButton}>Apply</Button>
+                                        <div className="person" style={{marginTop: "20px"}}>
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Person</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={filterPerson}
+                                                    onChange={(e) => setFilterPerson(e.target.value)}
+                                                >
+                                                    <option value="Student">Student</option>
+                                                    <option value="Enrichment">Enrichment</option>
+                                                    <option value="Company">Company</option>
+                                                    {/* {Object.keys(userEmailsToNames).map((personEmail) => (
+                                                        <option key={personEmail} value={personEmail}>
+                                                            {userEmailsToNames[personEmail]}
+                                                        </option>
+                                                    ))} */}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="sorting" style={{ marginTop: "20px" }}>
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={sortOrder}
+                                                    onChange={(e) => setSortOrder(e.target.value)}
+                                                >
+                                                    <option value="latest">Latest</option>
+                                                    <option value="earliest">Earliest</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 </DropdownContent>
                             </div>

@@ -83,4 +83,14 @@ export const fetchUserAndCompanies = async (email: string | undefined) => {
     return { userFetched: fetchedUser, companyAddress };
 };
 
+export const updateUser = async (updatedUser: User) => {
+    try {
+        const response = await axios.put(`/api/user/${updatedUser.id}`, updatedUser);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating user:', error);
+        throw new Error('Failed to update user');
+    }
+};
+
 export {fetchUser, fetchUserNames}

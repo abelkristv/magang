@@ -1,11 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import React, { useState } from "react";
 import { css } from "@emotion/react";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebase";
 import { useAuth } from "../../helper/AuthProvider";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import SuccessPopup from "../Elementary/SuccessPopup";
+import { addStudentReport } from "../../controllers/ReportController";
 
 interface AddRecordBoxProps {
     studentName: string;
@@ -35,24 +34,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         setIsPersonDropdownOpen(false);
     };
 
+    
     const handleAddRecord = async () => {
-        if (description.trim() === "") {
-            setError("Description cannot be empty.");
-            return;
-        }
-
-        const newRecord = {
-            hasRead: false,
-            type: selectedType,
-            person: selectedPerson,
-            report: description,
-            studentName: studentName,
-            timestamp: new Date(),
-            writer: userAuth?.currentUser.email,
-        };
-
         try {
-            await addDoc(collection(db, "studentReport"), newRecord);
+            await addStudentReport(studentName, description, selectedType, selectedPerson, userAuth!.currentUser.email);
             setIsVisible(true);
             setTimeout(() => {
                 setIsVisible(false);
@@ -62,8 +47,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
             setSelectedPerson("Student");
             onRecordAdded();
         } catch (error) {
-            console.error("Error adding document: ", error);
-            alert("Failed to add record. Please try again.");
+            console.error("Error adding record: ", error);
         }
     };
 

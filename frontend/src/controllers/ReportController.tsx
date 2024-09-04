@@ -168,3 +168,45 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
         throw error;
     }
 };
+
+export const addStudentReport = async (
+    studentName: string, 
+    description: string, 
+    selectedType: string, 
+    selectedPerson: string, 
+    writer: string
+): Promise<void> => {
+    if (description.trim() === "") {
+        throw new Error("Description cannot be empty.");
+    }
+
+    const newRecord = {
+        hasRead: false,
+        type: selectedType,
+        person: selectedPerson,
+        report: description,
+        studentName: studentName,
+        timestamp: new Date(),
+        writer,
+    };
+
+    try {
+        const response = await fetch('http://localhost:3001/api/reports', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newRecord),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error adding report: ${response.statusText}`);
+        }
+
+        alert('The new student record has been successfully added');
+    } catch (error) {
+        console.error("Error adding document: ", error);
+        alert("Failed to add record. Please try again.");
+        throw error;
+    }
+};
