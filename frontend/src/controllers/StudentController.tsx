@@ -133,11 +133,11 @@ export const updateStudentNotes = async (
 
         const updatedStudent = await response.json();
 
-        alert("Notes updated successfully!");
+        // alert("Notes updated successfully!");
         return { ...student, notes: updatedStudent.notes };
     } catch (error) {
         console.error("Error updating notes:", error);
-        alert("Failed to update notes. Please try again.");
+        // alert("Failed to update notes. Please try again.");
         throw error;
     }
 };

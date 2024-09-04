@@ -21,7 +21,7 @@ import { fetchPeriods } from "../../controllers/PeriodController";
 import { fetchTotalReportsByStudent } from "../../controllers/ReportController";
 
 interface SearchBoxProps {
-    onSelectStudent: (studentId: string | null) => void;
+    onSelectStudent: (studentId: string | null | Student[]) => void;
 }
 
 const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
@@ -291,7 +291,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const searchContainerStyle = css`
         display: flex;
         align-items: center;
-        gap: 65px;
+        justify-content: space-between;
         margin-top: 30px;
         position: relative;
     `;
@@ -388,12 +388,21 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                         ))}
                     </div>
                 ) : (
+                    // <StudentTable
+                    //     students={filteredStudents}
+                    //     totalComments={comments}  // Using comments for total reports
+                    //     sortField={searchState.sortField}
+                    //     sortOrder={searchState.sortOrder}
+                    //     handleSort={handleSort}
+                    //     onClick={() => onSelectStudent(filteredStudents)}
+                    // />
                     <StudentTable
                         students={filteredStudents}
-                        totalComments={comments}  // Using comments for total reports
+                        totalComments={comments}
                         sortField={searchState.sortField}
                         sortOrder={searchState.sortOrder}
                         handleSort={handleSort}
+                        onClick={(studentId) => onSelectStudent(studentId)}
                     />
                 )
             ) : (

@@ -61,7 +61,7 @@ const PicturesModal: React.FC<PicturesModalProps> = ({
     const modalContentStyle = css`
         background: white;
         border-radius: 10px;
-        width: 557px;
+        width: 900px;
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -71,11 +71,18 @@ const PicturesModal: React.FC<PicturesModalProps> = ({
     const modalHeaderStyle = css`
         display: flex;
         justify-content: space-between;
-        padding: 10px;
-        padding-right: 20px;
-        padding-left: 20px;
+        padding-right: 10px;
         align-items: center;
         background-color: #F0ECEC;
+        border-radius: 10px 10px 0px 0px;
+        height: 50px;
+
+        .headerp {
+            margin-left: 19px;
+            margin-bottom: 0px;
+            font-weight: 600;
+            font-size: 18px;
+        }
     `;
 
     const modalFormStyle = css`
@@ -97,9 +104,11 @@ const PicturesModal: React.FC<PicturesModalProps> = ({
     `;
 
     const modalBoxStyle = css`
-        height: 200px;
+        max-height: 500px;
         overflow-y: auto;
+        scrollbar-width: thin;
         border: 1px solid #ACACAC;
+        border-radius: 5px;
         display: flex;
         flex-direction: column;
     `;
@@ -108,41 +117,43 @@ const PicturesModal: React.FC<PicturesModalProps> = ({
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-        padding: 10px;
+        padding: 0px;
     `;
 
     const pictureGridItemStyle = css`
-        position: relative;
-        width: 100%;
-        height: 150px;
         border-radius: 5px;
         overflow: hidden;
+        position: relative;
     `;
 
     const deleteIconStyle = css`
         position: absolute;
-        top: 5px;
-        right: 5px;
         cursor: pointer;
-        background-color: rgba(255, 255, 255, 0.7);
+        top: 10px;
+        right: 10px;
+        background-color: white;
+        box-shadow: 1px 1px 4px 1px #dbdbdb;
         border-radius: 50%;
         padding: 2px;
         &:hover {
-            background-color: rgba(255, 255, 255, 1);
+            // background-color: rgba(255, 255, 255, 1);
         }
     `;
 
     const addButtonStyle = css`
         background-color: #49A8FF;
         color: white;
+        padding: 10px 20px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        height: auto;
         border: none;
         border-radius: 5px;
-        padding: 10px 20px;
         cursor: pointer;
-        font-size: 15px;
-
+        font-size: 17px;
+        font-weight: 500;
         &:hover {
-            background-color: #62b3fc;
+            background-color: #68b5fc;
         }
     `;
 
@@ -155,44 +166,75 @@ const PicturesModal: React.FC<PicturesModalProps> = ({
         color: #888;
     `;
 
+    const inputContainerStyle = css`
+        display: flex;
+        align-items: center;
+        border: 1px solid #ACACAC;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        height: 40px;
+        position: relative;
+    `;
+
+    const hiddenFileInputStyle = css`
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    `;
+
+    const browseButtonStyle = css`
+        background-color: #F0ECEC;
+        border-radius: 0 5px 5px 0;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        margin-left: 775px;
+        font-size: 15px;
+    `;
+
+    const pictureDivStyle = css`
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        margin: 0px 20px;
+        p{
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+    `;
+
     return (
         isPicturesModalOpen && (
             <div css={modalStyle}>
                 <div css={modalContentStyle} ref={picturesModalRef}>
                     <div className="modalHeader" css={modalHeaderStyle}>
-                        <p className="headerp">List of Picture</p>
-                        <button css={closeButtonStyle} onClick={closePicturesModal}>x</button>
+                        <p className="headerp">List of Pictures</p>
+                        <Icon icon="mdi:close" onClick={closePicturesModal} fontSize={25} color="#51587E" css={closeButtonStyle} /> 
+
                     </div>
-                    <div className="inputContainer" style={{ position: "relative", height: "60px", border: "1px solid #ACACAC", margin: "20px", boxSizing: "border-box", display: "flex", alignItems: "center" }}>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePictureChange}
-                            style={{
-                                position: "absolute",
-                                width: "100%",
-                                height: "100%",
-                                boxSizing: "border-box",
-                                top: 0, left: 0, opacity: 0, zIndex: 2, cursor: "pointer",
-                            }}
-                        />
-                        <div className="labelContainer" style={{ position: "absolute", right: "0px", display: "flex", padding: "10px", boxSizing: "border-box", backgroundColor: "#F0ECEC", alignItems: "center", height: "100%", zIndex: 1, cursor: "pointer" }}>
-                            <label
-                                htmlFor="input"
-                                style={{
-                                    borderRadius: "5px",
-                                    cursor: "pointer",
-                                    display: "inline-block"
-                                }}
-                            >
-                                Browse
-                            </label>
+
+                    <div css={pictureDivStyle}>
+                        <p>Picture</p>
+                        <div css={inputContainerStyle}>
+                            <input
+                                id="hiddenFileInput"
+                                type="file"
+                                accept="image/*"
+                                css={hiddenFileInputStyle}
+                                onChange={handlePictureChange}
+                            />
+                            {fileName && (
+                                <div style={{position:"absolute", marginLeft:"10px", fontSize:"15px"}}>
+                                    {fileName}
+                                </div>
+                            )}
+                            <div css={browseButtonStyle}>Browse</div>
                         </div>
-                        {fileName && (
-                            <div style={{ marginLeft: "10px", padding: "10px", boxSizing: "border-box", zIndex: 1 }}>
-                                {fileName}
-                            </div>
-                        )}
                     </div>
 
                     <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", paddingRight: "20px", boxSizing: "border-box" }}>
@@ -205,7 +247,7 @@ const PicturesModal: React.FC<PicturesModalProps> = ({
                             <div className="pictureGridContainer" css={pictureGridContainerStyle}>
                                 {pictures.map((picture, index) => (
                                     <div key={index} className="pictureGridItem" css={pictureGridItemStyle}>
-                                        <img src={picture.url} alt={`Picture ${index + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "5px" }} />
+                                        <img src={picture.url} alt={`Picture ${index + 1}`} style={{ width: "100%", height: "auto", borderRadius: "5px" }} />
                                         <Icon
                                             icon="mdi:delete"
                                             color="#51587E"

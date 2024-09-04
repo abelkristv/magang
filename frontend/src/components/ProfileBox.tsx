@@ -8,6 +8,7 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import { match, Option } from "fp-ts/lib/Option";
 import { fetchAllMajors } from "../controllers/MajorController";
 import { fetchRecordsAndDocumentation } from "../controllers/ReportController";
+import notFoundImage from "../assets/not_found.png";
 
 interface ProfileBoxProps {
     setTodayReportsCount: (count: number) => void;
@@ -431,6 +432,24 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         font-size: 16px !important;
     `;
 
+    const totalStyle = css`
+        font-size: 25px;
+        font-weight: 600;
+        text-align: start;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 700px;
+        img {
+            height: 300px;
+            width: 300px;
+        }
+        p{
+            margin-top: 10px;
+        }
+    `;
+
     return (
         <main className="mainStyle" css={mainStyle}>
             {isLoading ? (
@@ -558,7 +577,10 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                             </div>
                             <div className="recentlyAddedRecordsContainer" css={recentlyAddedRecordsContainerStyle}>
                                 {filteredRecords.length === 0 ? (
-                                    <p>No Record Written Today</p>
+                                    <div css={totalStyle}>
+                                        <img src={notFoundImage} alt="No Student Found" />
+                                        <p>No Urgent Student Records Found</p>
+                                    </div>
                                 ) : (
                                     filteredRecords.map((record, index) => {
                                         // const { time, date } = formatDate(record.timestamp);

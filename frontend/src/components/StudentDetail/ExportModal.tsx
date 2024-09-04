@@ -35,16 +35,21 @@ const ExportModal: FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
     }, [isOpen, onClose]);
 
     const validateDates = (): boolean => {
+        if(!startDate || !endDate){
+            setError('Please fill in the dates');
+            return false;
+        }
+
         const start = new Date(startDate);
         const end = new Date(endDate);
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (end < start) {
-            setError('The end date cannot be earlier than the start date.');
+            setError('The end date cannot be earlier than the start date');
             return false;
         } else if (diffDays > 31) {
-            setError('The end date must be within one month from the start date.');
+            setError('The maximum range is one month');
             return false;
         }
 
@@ -156,6 +161,7 @@ const ExportModal: FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
         color: red;
         font-size: 13px;
         text-align: center;
+        margin-bottom: 1.5rem;
     `;
 
     return (
@@ -176,7 +182,7 @@ const ExportModal: FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
                                 onChange={(e) => setStartDate(e.target.value)}
                                 css={inputStyle}
                                 style={{width:"14.3rem", fontSize:"15px"}}
-                                required
+                                // required
                             />
                         </div>
                         <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%", fontSize:"15px"}}>
@@ -187,11 +193,11 @@ const ExportModal: FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
                                 onChange={(e) => setEndDate(e.target.value)}
                                 css={inputStyle}
                                 style={{width:"14.3rem", fontSize:"15px"}}
-                                required
+                                // required
                             />
                         </div>
                     </div>
-                    <div style={{marginTop: "2.2rem", display:"flex", flexDirection:"column", alignItems:"center"}}>
+                    <div style={{marginTop: "0.9rem", display:"flex", flexDirection:"column", alignItems:"center"}}>
                         {error && <p css={errorStyle}>{error}</p>}
                         <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
                             <button type="submit" css={buttonStyle}>

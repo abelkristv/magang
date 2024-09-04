@@ -492,13 +492,15 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         <Main>
             <NavSide>
                 <p style={{ fontWeight: "300" }}>Student Detail</p>
-                <Filter>
+                {/* <Filter>
                     <p>Period: </p>
                     <select css={periodFilterStyle}>
                         <option value="">All</option>
                         <option>Odd Semester 23.10</option>
                     </select>
-                </Filter>
+                </Filter> */}
+                <br></br>
+                <br></br>
             </NavSide>
             <ContentSide>
                 <UserCard>
@@ -668,7 +670,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                 border: "1px solid #ccc",
                                                 borderRadius: "5px"}} value={filterStartDate} />
                                         </div>
-                                        <Button style={{marginTop:"80px", right:"0", fontWeight:"500", fontSize:"17px"}} css={dropdownContentButton}>Apply</Button>
+                                        <Button style={{marginTop:"80px", right:"0", fontWeight:"500", fontSize:"17px", borderRadius:"8px", width:"auto", padding:"10px 20px", marginLeft:"110px"}} css={dropdownContentButton}>Apply</Button>
                                     </div>
                                 </DropdownContent>
                             </div>

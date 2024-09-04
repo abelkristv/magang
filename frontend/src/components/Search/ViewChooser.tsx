@@ -15,7 +15,7 @@ const viewChooserStyle = css`
 const checkbox = css`
     display: flex;
     align-items: center;
-    font-size: 17px;
+    font-size: 16px;
     gap: 5px;
 
     input {

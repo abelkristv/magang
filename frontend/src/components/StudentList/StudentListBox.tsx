@@ -10,6 +10,7 @@ import { css } from "@emotion/react";
 import { fetchAllCompanies } from "../../controllers/CompanyController";
 import { fetchAllMajors } from "../../controllers/MajorController";
 import { fetchPeriods } from "../../controllers/PeriodController";
+import notFoundImage from "../../assets/not_found.png";
 
 interface StudentListBoxProps {
     onSelectStudent: (studentId: string | null) => void;
@@ -394,6 +395,25 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
         text-align: start;
     `;
 
+    const notFoundStyle = css`
+        font-size: 25px;
+        font-weight: 600;
+        text-align: start;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 700px;
+        margin-top: 10px;
+        img {
+            height: 300px;
+            width: 300px;
+        }
+        p{
+            margin-top: 10px;
+        }
+    `;
+
     return (
         <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
@@ -405,7 +425,7 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                         Total: {filteredStudents.length}
                     </div>
                     <div className="filterView" css={filterViewStyle}>
-                        <p style={{fontSize:"15px"}} >Filter By: </p>
+                        <p style={{fontSize:"15px"}} >Filter by: </p>
                         <div className="dropdown" css={dropdownStyle} onClick={toggleDropdown}>
                             <p>All Students</p>
                             <Icon style={{fontSize:"10px"}} icon={"weui:arrow-filled"} rotate={45} />
@@ -457,19 +477,29 @@ const StudentListBox = ({ onSelectStudent }: StudentListBoxProps) => {
                     </div>
                 ) : (
                     isGridView ? (
-                        <div className="studentRow" css={studentRow}>
-                            {filteredStudents.map(student => (
-                                <div key={student.iden} className="card" css={cardStyle} onClick={() => onSelectStudent(student.iden)}>
-                                    <img src={student.image_url} alt={student.name} />
-                                    <div className="student-description" css={cardStudentDescription}>
-                                        <div className="text">
-                                            <p style={{ fontSize: "18px", fontWeight: "500" }}>{student.name}</p>
-                                            <p style={{ color: "#49A8FF", fontSize: "16px" }}>{student.nim}</p>
-                                            <p style={{ fontSize: "13px", fontWeight: "500" }}>{student.major}</p>
+                        <div className="studentRow">
+                            {filteredStudents ? (
+                                <div css={studentRow}>
+                                    {filteredStudents.map(student => (
+                                        <div key={student.iden} className="card" css={cardStyle} onClick={() => onSelectStudent(student.iden)}>
+                                            <img src={student.image_url} alt={student.name} />
+                                            <div className="student-description" css={cardStudentDescription}>
+                                                <div className="text">
+                                                    <p style={{ fontSize: "18px", fontWeight: "500" }}>{student.name}</p>
+                                                    <p style={{ color: "#49A8FF", fontSize: "16px" }}>{student.nim}</p>
+                                                    <p style={{ fontSize: "13px", fontWeight: "500" }}>{student.major}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
+                            ) : (
+                                <div css={notFoundStyle}>
+                                    <img src={notFoundImage} alt="No Student Found" />
+                                    <p>No Student Found</p>
+                                </div>
+                            )}
+                            
                         </div>
                     ) : (
                         <table css={tableStyle}>

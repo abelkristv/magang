@@ -144,11 +144,8 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
     try {
         // Fetch records and documentation from the backend API
         const response = await fetch(
-<<<<<<< HEAD
             `/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
-=======
-            `http://localhost:3001/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
->>>>>>> 838633be5187363237015e64613038bf60158983
+            // `http://localhost:3001/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
         );
 
         if (!response.ok) {

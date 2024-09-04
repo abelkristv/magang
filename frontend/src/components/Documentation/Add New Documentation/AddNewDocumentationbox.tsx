@@ -15,6 +15,7 @@ import Documentation from '../../../model/Documentation';
 import Compressor from 'compressorjs';
 import { fetchDiscussionDetails } from '../../../controllers/DiscussionDetailController';
 import { css } from '@emotion/react';
+import SuccessPopup from '../../Elementary/SuccessPopup';
 
 interface DiscussionDetail {
     discussionTitle: string;
@@ -351,8 +352,12 @@ const AddNewDocumentationBox: React.FC = () => {
             );
     
             if (result.success) {
-                alert(result.message);
-    
+                // alert(result.message);
+                setIsVisible(true);
+                setTimeout(() => {
+                    setIsVisible(false);
+                }, 5000);
+                
                 // Reset all form fields after successful submission
                 setTitle("");
                 setInvitationNumber("");
@@ -378,7 +383,6 @@ const AddNewDocumentationBox: React.FC = () => {
             alert("Failed to add documentation. Please try again.");
         }
     };
-    
     
     const handleAddResult = () => {
         if (newResult.trim() !== "") {
@@ -421,6 +425,7 @@ const AddNewDocumentationBox: React.FC = () => {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 18px;
+        margin-top: 33px;
         
         .item {
             width: 100%;
@@ -443,6 +448,9 @@ const AddNewDocumentationBox: React.FC = () => {
         gap: 10px;
     `;
 
+    // success popup
+    const [isVisible, setIsVisible] = useState(false);
+
     return (
         <MainContainer>
             <NavSide>
@@ -461,7 +469,7 @@ const AddNewDocumentationBox: React.FC = () => {
                                         Title
                                     </RequiredLabel>
                                     <input css={addDocInputText} type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-                                    {titleError && <ErrorText>{titleError}</ErrorText>}
+                                    {titleError ? <ErrorText>{titleError}</ErrorText> : <></>}
                                 </div>
                             </TitleContainer>
                             <DocumentationMeeting>
@@ -578,7 +586,7 @@ const AddNewDocumentationBox: React.FC = () => {
                             
                         </div>
                         {/* <p className="header" style={{ marginBottom: "20px", fontSize: "19px", marginTop: "20px" }}>Snapshot</p> */}
-                        <div className="snapshotItemContainer" css={discussionItemStyle} style={{marginTop:"20px"}}>
+                        <div className="snapshotItemContainer" css={discussionItemStyle} style={{marginTop:"35px"}}>
                             <div className="item">
                                 <p>Attendees <span style={{ color: "#49A8FF" }}>({attendees.length})</span></p>
                                 <Button onClick={openAttendeeModal}>See or Add more</Button>
@@ -596,6 +604,9 @@ const AddNewDocumentationBox: React.FC = () => {
                 </div>
                 
             </ContentContainer>
+            
+            <SuccessPopup message='The new documentation has been successfully added' isVisible={isVisible} />
+
             <AttendeeModal
                 isAttendeeModalOpen={isAttendeeModalOpen}
                 closeAttendeeModal={closeAttendeeModal}

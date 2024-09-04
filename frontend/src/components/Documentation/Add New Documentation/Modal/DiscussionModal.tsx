@@ -74,10 +74,9 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
     const discussionModalContentStyle = css`
         background: white;
         border-radius: 10px;
-        width: 700px;
+        width: 830px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
         border-radius: 10px;
 
         .headerp {
@@ -110,13 +109,13 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
 
     const inputGrid = css`
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1.5fr 1.5fr;
+        grid-template-rows: 1.5fr 1.5fr;
         gap: 20px;
 
         input {
             margin: 0px;
-            height: 30px;
+            height: 26px;
             border-radius: 5px;
             border: 1px solid #ACACAC;
         }
@@ -125,23 +124,33 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
             display: flex;
             flex-direction: column;
             gap: 5px;
+            p{
+                font-size: 17px;
+            }
         }
     `;
 
     const discussionCardStyle = css`
-        border: 1px solid #ebebeb;
+        border: 1px solid #ccc;
         border-radius: 5px;
-        padding: 10px;
-        margin-top: 10px;
+        padding: 15px;
         background-color: white;
+
+        .topSide{
+            margin-left: 7px;
+        }
 
         .itemAction {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 0.45fr 1fr;
+            margin-top: 9px;
+            margin-left: 7px;
+            align-items: start;
             .leftSide {
                 display: flex;
                 gap: 10px;
                 align-items: center;
+                color: #51587E;
             }
             .rightSide {
                 display: flex;
@@ -152,10 +161,21 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
         }
     `;
 
+    const discussionCardContainer = css`
+        max-height: 420px;
+        height: auto;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    `;
+
     const addDiscussionButtonContainerStyle = css`
         display: flex;
         justify-content: end;
-
+        margin-top: 30px;
+        margin-bottom: 22px;
     `;
 
     const closeButtonStyle = css`
@@ -165,6 +185,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
         font-size: 20px;
         font-weight: bold;
         color: #888;
+        margin-right: 10px;
     `;
 
     const iconStyle = css`
@@ -177,25 +198,40 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
         display: flex;
         justify-content: space-between;
         padding-right: 10px;
-        background-color: #ebebeb;
+        align-items: center;
+        background-color: #F0ECEC;
         border-radius: 10px 10px 0px 0px;
-    `
+
+        .headerp {
+            margin-left: 12px;
+            margin-bottom: 0px;
+            font-weight: 600;
+        }
+    `;
 
     const buttonStyle = css`
-        padding: 10px;
         background-color: #49A8FF;
         color: white;
-        width: 100px;
+        padding: 10px 20px;
+        height: auto;
         border: none;
         border-radius: 5px;
-        margin-top: 10px;
-        font-size: 15px;
         cursor: pointer;
-
+        font-size: 17px;
+        font-weight: 500;
         &:hover {
-            background-color: #62b3fc;
-    }
-`;
+            background-color: #68b5fc;
+        }
+    `;
+
+    const inputStyle = css`
+        padding: 10px;
+        font-size: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        height: 46px;
+    `;
+
 
     return (
         isDiscussionModalOpen && (
@@ -203,68 +239,91 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
                 <div css={discussionModalContentStyle} ref={discussionModalRef}>
                     <div className="modalHeader" css={modalHeaderStyle}>
                         <p className="headerp">List Of Discussion Details</p>
-                        <button css={closeButtonStyle} onClick={closeDiscussionModal}>x</button>
+                        <Icon icon="mdi:close" onClick={closeDiscussionModal} fontSize={25} color="#51587E" css={closeButtonStyle} /> 
                     </div>
                     <form css={modalFormStyle}>
                         <div className="inputGrid" css={inputGrid}>
                             <div className="input">
                                 <p>Key Objective</p>
-                                <input type="text" value={discussionTitle} onChange={(e) => setDiscussionTitle(e.target.value)} />
+                                <input
+                                    css={inputStyle}
+                                    type="text"
+                                    value={discussionTitle}
+                                    onChange={(e) => setDiscussionTitle(e.target.value)}
+                                />
                             </div>
                             <div className="input">
                                 <p>Person Responsible</p>
-                                <input type="text" value={personResponsible} onChange={(e) => setPersonResponsible(e.target.value)} />
+                                <input
+                                    css={inputStyle}
+                                    type="text"
+                                    value={personResponsible}
+                                    onChange={(e) => setPersonResponsible(e.target.value)}
+                                />
                             </div>
                             <div className="input">
                                 <p>Further Actions</p>
-                                <input type="text" value={furtherActions} onChange={(e) => setFurtherActions(e.target.value)} />
+                                <input
+                                    css={inputStyle}
+                                    type="text"
+                                    value={furtherActions}
+                                    onChange={(e) => setFurtherActions(e.target.value)}
+                                />
                             </div>
                             <div className="input">
                                 <p>Deadline</p>
-                                <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+                                <input
+                                    css={inputStyle}
+                                    type="date"
+                                    value={deadline}
+                                    onChange={(e) => setDeadline(e.target.value)}
+                                />
                             </div>
                         </div>
                         
                         <div className="buttonContainer" css={addDiscussionButtonContainerStyle}>
-                            <button css={buttonStyle} type="button" onClick={handleAddDiscussionDetail}>
+                            <button type="button" css={buttonStyle} onClick={handleAddDiscussionDetail}>
                                 {isEditing ? 'Update' : 'Add'}
                             </button>
                         </div>
-                        {modalDiscussionDetails.map((detail, index) => (
-                            <div key={index} css={discussionCardStyle}>
-                                <div className="topSide" style={{ display: "flex", justifyContent: "space-between" }}>
-                                    <div className="leftSide">
-                                        <p style={{ marginBottom: "20px", fontSize: "17px" }}>{detail.discussionTitle}</p>
+
+                        <div css={discussionCardContainer}>
+                            {modalDiscussionDetails.map((detail, index) => (
+                                <div key={index} css={discussionCardStyle}>
+                                    <div className="topSide" style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <div className="leftSide">
+                                            <p style={{ marginBottom: "5px", fontSize: "17px" }}>{index+1}. {detail.discussionTitle}</p>
+                                        </div>
+                                        <div className="rightSide" style={{ display: "flex", gap: "10px" }}>
+                                            <Icon css={iconStyle} fontSize={24} color="#51587E" icon={"material-symbols:edit"} onClick={() => handleEditDiscussionDetail(index)} />
+                                            <Icon css={iconStyle} fontSize={24} color="#51587E" icon={"material-symbols:delete"} onClick={() => handleDeleteDiscussionDetail(index)} />
+                                        </div>
                                     </div>
-                                    <div className="rightSide" style={{ display: "flex", gap: "10px" }}>
-                                        <Icon css={iconStyle} fontSize={24} color="#51587E" icon={"material-symbols:edit"} onClick={() => handleEditDiscussionDetail(index)} />
-                                        <Icon css={iconStyle} fontSize={24} color="#51587E" icon={"material-symbols:delete"} onClick={() => handleDeleteDiscussionDetail(index)} />
+                                    
+                                    <div className="itemAction">
+                                        <div className="leftSide">
+                                            <Icon icon={"fluent-mdl2:set-action"} fontSize={20} />
+                                            <p>Further Actions</p>
+                                        </div>
+                                        <p>{detail.furtherActions}</p>
+                                    </div>
+                                    <div className="itemAction">
+                                        <div className="leftSide">
+                                            <Icon icon={"material-symbols:avg-time"} fontSize={20} />
+                                            <p>Deadline</p>
+                                        </div>
+                                        <p>{detail.deadline}</p>
+                                    </div>
+                                    <div className="itemAction">
+                                        <div className="leftSide">
+                                            <Icon icon={"icon-park-outline:people"} fontSize={20} />
+                                            <p>Person Responsible</p>
+                                        </div>
+                                        <p>{detail.personResponsible}</p>
                                     </div>
                                 </div>
-                                
-                                <div className="itemAction">
-                                    <div className="leftSide">
-                                        <Icon icon={"fluent-mdl2:set-action"} />
-                                        <p>Further Actions</p>
-                                    </div>
-                                    <p>{detail.furtherActions}</p>
-                                </div>
-                                <div className="itemAction">
-                                    <div className="leftSide">
-                                        <Icon icon={"material-symbols:avg-time"} />
-                                        <p>Deadline</p>
-                                    </div>
-                                    <p>{detail.deadline}</p>
-                                </div>
-                                <div className="itemAction">
-                                    <div className="leftSide">
-                                        <Icon icon={"material-symbols:avg-time"} />
-                                        <p>Person Responsible</p>
-                                    </div>
-                                    <p>{detail.personResponsible}</p>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </form>
                 </div>
             </div>
