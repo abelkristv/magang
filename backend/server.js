@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 
 dotenv.config();
 
@@ -625,7 +626,32 @@ app.post('/api/documentation', async (req, res) => {
     }
 });
 
-// Increase the limit
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+});
+
+app.post('/send-email', (req, res) => {
+    const { to, subject, text } = req.body;
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: to,
+        subject: subject,
+        text: text
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.status(200).send('Email sent: ' + info.response);
+    });
+});
+  
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
