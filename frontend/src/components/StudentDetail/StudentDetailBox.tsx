@@ -102,49 +102,6 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         fetchStudent();
     }, [studentId]);
 
-    // useEffect(() => {
-    //     const fetchReportsData = async () => {
-    //         if (student && student.name) {
-    //             const reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
-    //             setReports(reportList);
-    //             await checkMeetingSchedules(reportList.map(report => report.id));
-    //             await fetchUserNames(reportList);
-    //             setIsFetching(false);
-    //         }
-    //     };
-    //     fetchReportsData();
-    // }, [student, filterStartDate, filterEndDate]);
-
-    // const checkMeetingSchedules = async (reportIds: string[]) => {
-    //     const schedules: { [key: string]: any } = {};
-    //     for (const reportId of reportIds) {
-    //         const q = query(collection(db, "meetingSchedule"), where("studentReport_id", "==", reportId));
-    //         const querySnapshot = await getDocs(q);
-    //         if (!querySnapshot.empty) {
-    //             const meetingData = querySnapshot.docs[0].data();
-
-    //             const reportDoc = await getDoc(doc(db, "studentReport", meetingData.studentReport_id));
-    //             if (reportDoc.exists()) {
-    //                 const writerEmail = reportDoc.data().writer;
-
-    //                 const userQuery = query(collection(db, "user"), where("email", "==", writerEmail));
-    //                 const userSnapshot = await getDocs(userQuery);
-    //                 if (!userSnapshot.empty) {
-    //                     const userData = userSnapshot.docs[0].data();
-    //                     meetingData.writer = userData.name;
-    //                 } else {
-    //                     meetingData.writer = "Unknown User";
-    //                 }
-    //             } else {
-    //                 meetingData.writer = "Unknown";
-    //             }
-
-    //             schedules[reportId] = meetingData;
-    //         }
-    //     }
-    //     setMeetingSchedules(schedules);
-    // };
-
     useEffect(() => {
         const fetchReportsData = async () => {
             if (student && student.name) {
@@ -157,7 +114,6 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 const schedules = await fetchMeetingSchedules(reportList.map(report => report.id));
                 setMeetingSchedules(schedules);
     
-                // await checkMeetingSchedules(reportList.map(report => report.id));
                 setIsFetching(false);
             }
         };
@@ -203,7 +159,6 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             const updatedReports = await deleteStudentReport(reportId, reports);
             setReports(updatedReports);
         } catch (error) {
-            // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
         } finally {
             setDeletingReportId(null);
         }
@@ -240,39 +195,40 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     };
 
     const exportToExcel = async (startDate: string, endDate: string) => {
+        const start = new Date(new Date(startDate).setHours(0, 0, 0, 0));
+        const end = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+    
         const filteredReports = reports.filter(report => {
             const reportDate = new Date(report.timestamp);
-            return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
+            return reportDate >= start && reportDate <= end;
         });
-
+    
         const reportCount = filteredReports.length;
-
+    
         const summaryData = [
             ['Student Performance and Behaviour Documentation', '', '', ''],
             ['Start Date', startDate, '', ''],
             ['End Date', endDate, '', ''],
             ['Report Count', reportCount.toString(), '', ''],
         ];
-
+    
         const headers = [
             'Writer',
             'Report',
             'Timestamp',
         ];
-
+    
         const data = filteredReports.map(report => ({
             Writer: report.writer,
             Report: report.report,
             Timestamp: new Date(report.timestamp).toLocaleString(),
         }));
-
+    
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Reports');
-
-        // Add summary data
+    
         worksheet.addRows(summaryData);
-
-        // Define and style header row
+    
         const headerRow = worksheet.addRow(headers);
         headerRow.eachCell((cell) => {
             cell.font = { bold: true };
@@ -284,8 +240,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 right: { style: 'thin' },
             };
         });
-
-        // Add data rows
+    
         data.forEach((rowData) => {
             const row = worksheet.addRow(Object.values(rowData));
             row.eachCell((cell) => {
@@ -297,18 +252,17 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 };
             });
         });
-
-        // Set column widths for better readability
+    
         worksheet.columns = [
             { key: 'Writer', width: 20 },
             { key: 'Report', width: 30 },
             { key: 'Timestamp', width: 20 },
         ];
-
-        // Export the file
+    
         const buffer = await workbook.xlsx.writeBuffer();
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StudentReports.xlsx');
     };
+    
 
     const handleExportModalClose = () => {
         setIsExportModalOpen(false);
