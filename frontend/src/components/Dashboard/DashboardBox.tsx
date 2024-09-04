@@ -88,6 +88,8 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
         }
     `;
 
+    const navigate = useNavigate()
+
     return (
         <MainBox navText="Dashboard">
             <div className="documentationBox" css={documentationBoxStyle}>

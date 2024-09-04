@@ -25,11 +25,11 @@ interface Record {
     report: string;
     person: string;
     studentData: {
-        image_url?: string;
+        imageUrl?: string;
         nim?: string;
-        tempat_magang?: string;
-        faculty_supervisor?: string;
-        site_supervisor?: string;
+        tempatMagang?: string;
+        facultySupervisor?: string;
+        siteSupervisor?: string;
         major?: string;
     };
     imageUrl?: string;
@@ -63,9 +63,9 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     
             const { userFetched, companyAddress } = await fetchUserAndCompanies(userAuth?.currentUser?.email);
             if (userFetched) {
-                console.log("Fetched user: ", userFetched);
+                // console.log("Fetched user: ", userFetched);
                 setUser(userFetched);
-                setEditableUser(userFetched);  // Set the editableUser state here
+                setEditableUser(userFetched);
                 setCompanyAddress(companyAddress);
     
                 const { records, documentations } = await fetchRecordsAndDocumentation(userFetched);
@@ -83,7 +83,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     }, [setTodayReportsCount, userAuth?.currentUser?.email]);
     
     useEffect(() => {
-        console.log("Editable user (updated): ", editableUser); // This will log the updated state
+        // console.log("Editable user (updated): ", editableUser); // This will log the updated state
         setIsLoading(false)
     }, [editableUser]);
     
@@ -584,6 +584,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                 ) : (
                                     filteredRecords.map((record, index) => {
                                         // const { time, date } = formatDate(record.timestamp);
+                                        console.log("record : " , record)
                                         const timestamp = new Date(record.timestamp.seconds * 1000);
                                         const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
                                         const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
@@ -621,7 +622,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                                     }}>
                                                                         <Icon icon={"ph:building-bold"} fontSize={20} color="#51587E" />
                                                                         <p style={{ fontSize: "15px", color: "#51587E" }}>Organization Name</p>
-                                                                        <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.tempat_magang}</p>
+                                                                        <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.tempatMagang}</p>
                                                                     </div>
                                                                     <div className="studentInfoContent" style={{
                                                                         display: "grid",
@@ -630,7 +631,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                                     }}>
                                                                         <Icon icon={"material-symbols:supervisor-account"} fontSize={20} color="#51587E" />
                                                                         <p style={{ fontSize: "15px", color: "#51587E" }}>Faculty Supervisor</p>
-                                                                        <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.faculty_supervisor}</p>
+                                                                        <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.facultySupervisor}</p>
                                                                     </div>
                                                                     <div className="studentInfoContent" style={{
                                                                         display: "grid",
@@ -639,7 +640,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                                     }}>
                                                                         <Icon icon={"ic:outline-people"} fontSize={20} color="#51587E" />
                                                                         <p style={{ fontSize: "15px", color: "#51587E" }}>Site Supervisor</p>
-                                                                        <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.site_supervisor}</p>
+                                                                        <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.siteSupervisor}</p>
                                                                     </div>
                                                                 </div>
                                                             </div>

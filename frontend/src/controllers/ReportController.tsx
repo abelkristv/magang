@@ -144,8 +144,7 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
     try {
         // Fetch records and documentation from the backend API
         const response = await fetch(
-            `/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
-            // `http://localhost:3001/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
+            `http://localhost:3001/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
         );
 
         if (!response.ok) {
@@ -166,6 +165,6 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
         return { records: fetchedRecords, documentations: data.documentations };
     } catch (error) {
         console.error('Error fetching records and documentation:', error);
-        throw error; // Optionally rethrow the error to handle it elsewhere
+        throw error;
     }
 };
