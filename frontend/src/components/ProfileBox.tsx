@@ -9,6 +9,8 @@ import { match, Option } from "fp-ts/lib/Option";
 import { fetchAllMajors } from "../controllers/MajorController";
 import { fetchRecordsAndDocumentation } from "../controllers/ReportController";
 import notFoundImage from "../assets/not_found.png";
+import { fetchAllCompanies } from "../controllers/CompanyController";
+import { fetchPeriods } from "../controllers/PeriodController";
 
 interface ProfileBoxProps {
     setTodayReportsCount: (count: number) => void;
@@ -53,7 +55,11 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [majors, setMajors] = useState<string[]>([]);
+    const [companies, setCompanies] = useState<string[]>([]); // New state for companies
+    const [periods, setPeriods] = useState<string[]>([]); // New state for periods
     const [selectedMajor, setSelectedMajor] = useState<string>("");
+    const [selectedCompany, setSelectedCompany] = useState<string>(""); // New state for selected company
+    const [selectedPeriod, setSelectedPeriod] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [tempSelectedMajor, setTempSelectedMajor] = useState<string>("");
 
@@ -81,6 +87,24 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     
         fetchData();
     }, [setTodayReportsCount, userAuth?.currentUser?.email]);
+
+    useEffect(() => {
+        const fetchFilters = async () => {
+            const majorResult: Option<any[]> = await fetchAllMajors();
+            match(
+                () => console.error("No majors found"),
+                (majorsList: any[]) => setMajors(majorsList.map((major) => major.name))
+            )(majorResult);
+
+            const companyResult = await fetchAllCompanies().then(company => company._tag == "Some" ? company.value : {} as Company[]); // Fetch companies
+            setCompanies(companyResult.map((company: Company) => company.company_name));
+
+            const periodResult = await fetchPeriods(); // Fetch periods
+            setPeriods(periodResult.map((period: string) => period));
+        };
+
+        fetchFilters();
+    }, []);
     
     useEffect(() => {
         // console.log("Editable user (updated): ", editableUser); // This will log the updated state
@@ -162,18 +186,24 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     };
 
     const handleApplyFilters = () => {
-        setSelectedMajor(tempSelectedMajor);
+        let filtered = allRecords;
+
+        if (tempSelectedMajor) filtered = filtered.filter(record => record.major === tempSelectedMajor);
+        if (selectedCompany) filtered = filtered.filter(record => record.studentData.tempatMagang === selectedCompany);
+        // if (selectedPeriod) filtered = filtered.filter(record => record.period === selectedPeriod);
+
+        setFilteredRecords(filtered);
         setIsDropdownOpen(false);
-        if (tempSelectedMajor) {
-            const filtered = allRecords.filter(record => record.major === tempSelectedMajor);
-            setFilteredRecords(filtered);
-        } else {
-            setFilteredRecords(allRecords);
-        }
     };
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleFilterChange = (filterType: string, value: string) => {
+        if (filterType === "major") setTempSelectedMajor(value);
+        if (filterType === "company") setSelectedCompany(value);
+        if (filterType === "period") setSelectedPeriod(value);
     };
 
     const mainStyle = css`
@@ -492,7 +522,12 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                     <div css={loadingWidth}>
                         <p css={headerTop}>Profile</p>
                         <div className="contentSide" css={contentSide}>
-                            {/* Loading Placeholder */}
+                            <div className="placeholder" css={placeholderStyle}>
+                                <div className="circle"></div>
+                                <div className="line"></div>
+                                <div className="line"></div>
+                                <div className="line"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,10 +617,28 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                     {isDropdownOpen &&
                                         <div className="dropdown-content" css={dropdownContentStyle}>
                                             <p>Major</p>
-                                            <select value={tempSelectedMajor} onChange={handleMajorChange}>
+                                            <select value={tempSelectedMajor} onChange={(e) => handleFilterChange("major", e.target.value)}>
                                                 <option value="">All</option>
                                                 {majors.map((major, index) => (
                                                     <option key={index} value={major}>{`${major}`}</option>
+                                                ))}
+                                            </select>
+
+                                            {/* Company Filter */}
+                                            <p>Company</p>
+                                            <select value={selectedCompany} onChange={(e) => handleFilterChange("company", e.target.value)}>
+                                                <option value="">All</option>
+                                                {companies.map((company, index) => (
+                                                    <option key={index} value={company}>{`${company}`}</option>
+                                                ))}
+                                            </select>
+
+                                            {/* Period Filter */}
+                                            <p>Period</p>
+                                            <select value={selectedPeriod} onChange={(e) => handleFilterChange("period", e.target.value)}>
+                                                <option value="">All</option>
+                                                {periods.map((period, index) => (
+                                                    <option key={index} value={period}>{`${period}`}</option>
                                                 ))}
                                             </select>
 
