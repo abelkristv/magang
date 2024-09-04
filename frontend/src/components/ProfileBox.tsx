@@ -634,13 +634,13 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                             </select>
 
                                             {/* Period Filter */}
-                                            <p>Period</p>
+                                            {/* <p>Period</p>
                                             <select value={selectedPeriod} onChange={(e) => handleFilterChange("period", e.target.value)}>
                                                 <option value="">All</option>
                                                 {periods.map((period, index) => (
                                                     <option key={index} value={period}>{`${period}`}</option>
                                                 ))}
-                                            </select>
+                                            </select> */}
 
                                             <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", marginTop: "30px" }}>
                                                 <button onClick={handleApplyFilters} style={{ backgroundColor: "#49A8FF" }}>Apply</button>

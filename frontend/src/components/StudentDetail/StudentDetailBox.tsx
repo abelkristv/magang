@@ -71,10 +71,16 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const [editedContent, setEditedContent] = useState<string>("");
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [editedType, setEditedType] = useState<string>("");
+    const [sortOrder, setSortOrder] = useState<string>("latest");  // Default to "latest"
+
 
     // State variables for editing notes
     const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
     const [editedNotes, setEditedNotes] = useState<string>("");
+
+    const [filterType, setFilterType] = useState<string>("");  // for filtering by type
+    const [filterPerson, setFilterPerson] = useState<string>("");  // for filtering by person
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -105,20 +111,34 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     useEffect(() => {
         const fetchReportsData = async () => {
             if (student && student.name) {
-                const reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
-                setReports(reportList);
+                let reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
+                
+                // Apply type and person filters
+                const filteredByType = filterType ? reportList.filter(report => report.type === filterType) : reportList;
+                const filteredReports = filterPerson ? filteredByType.filter(report => report.person === filterPerson) : filteredByType;
     
-                const emailToNameMap = await fetchUserNames(reportList);
+                // Sort reports by latest or earliest
+                const sortedReports = filteredReports.sort((a, b) => {
+                    const dateA = new Date(a.timestamp);
+                    const dateB = new Date(b.timestamp);
+                    return sortOrder === "latest" ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
+                });
+    
+                setReports(sortedReports);
+    
+                const emailToNameMap = await fetchUserNames(sortedReports);
                 setUserEmailsToNames(emailToNameMap);
-
-                const schedules = await fetchMeetingSchedules(reportList.map(report => report.id));
+    
+                const schedules = await fetchMeetingSchedules(sortedReports.map(report => report.id));
                 setMeetingSchedules(schedules);
     
                 setIsFetching(false);
             }
         };
         fetchReportsData();
-    }, [student, filterStartDate, filterEndDate]);
+    }, [student, filterStartDate, filterEndDate, filterType, filterPerson, sortOrder]);
+    
+    
 
     const handleDropdownClick = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -629,15 +649,75 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <p style={{marginBottom: "12px", fontSize: "16px"}}>Sorting</p>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                            <input style={{        padding: "6px",
-                                                fontSize: "15px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "5px"}} value={filterStartDate} />
+                                    <div className="rightSide">
+                                        <div className="type">
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Type</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={filterType}
+                                                    onChange={(e) => setFilterType(e.target.value)}
+                                                >
+                                                    <option value="">All Types</option>
+                                                    <option value="Urgent">Urgent</option>
+                                                    <option value="Report">Report</option>
+                                                    <option value="Complaint">Complaint</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <Button style={{marginTop:"80px", right:"0", fontWeight:"500", fontSize:"17px", borderRadius:"8px", width:"auto", padding:"10px 20px", marginLeft:"110px"}} css={dropdownContentButton}>Apply</Button>
+                                        <div className="person" style={{marginTop: "20px"}}>
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Person</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={filterPerson}
+                                                    onChange={(e) => setFilterPerson(e.target.value)}
+                                                >
+                                                    <option value="Student">Student</option>
+                                                    <option value="Enrichment">Enrichment</option>
+                                                    <option value="Company">Company</option>
+                                                    {/* {Object.keys(userEmailsToNames).map((personEmail) => (
+                                                        <option key={personEmail} value={personEmail}>
+                                                            {userEmailsToNames[personEmail]}
+                                                        </option>
+                                                    ))} */}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="sorting" style={{ marginTop: "20px" }}>
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={sortOrder}
+                                                    onChange={(e) => setSortOrder(e.target.value)}
+                                                >
+                                                    <option value="latest">Latest</option>
+                                                    <option value="earliest">Earliest</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 </DropdownContent>
                             </div>
