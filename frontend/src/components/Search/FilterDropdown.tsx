@@ -110,7 +110,7 @@ const FilterDropdown = ({
 
     return (
         <div className="filterView" css={filterViewStyle}>
-            <p>Filter by: </p>
+            <p style={{fontSize:"15px"}}>Filter by: </p>
             <div className="dropdown" css={dropdownStyle} onClick={toggleDropdown}>
                 <p>All Students</p>
                 <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} />

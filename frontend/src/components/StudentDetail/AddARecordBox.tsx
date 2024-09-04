@@ -5,6 +5,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useAuth } from "../../helper/AuthProvider";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import SuccessPopup from "../Elementary/SuccessPopup";
 
 interface AddRecordBoxProps {
     studentName: string;
@@ -52,7 +53,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
 
         try {
             await addDoc(collection(db, "studentReport"), newRecord);
-            alert("Record added successfully!");
+            setIsVisible(true);
+            setTimeout(() => {
+                setIsVisible(false);
+            }, 5000);
             setDescription("");
             setSelectedType("Report");
             setSelectedPerson("Student");
@@ -181,8 +185,11 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
 
     const errorStyle = css`
         color: red;
-        margin-bottom: 4px;
+        margin-top: 4px;
+        margin-bottom: 10px;
     `;
+
+    const [isVisible, setIsVisible] = useState(false);
 
     return (
         <div className="add-a-record-box" css={addRecordBoxStyle}>
@@ -197,7 +204,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                         outline: "none",
                         fontSize: "15px",
                         width: "100%",
-                        height: "13.3rem",
+                        height: "11rem",
                         resize: "none",
                         boxSizing: "border-box",
                         fontFamily: "inherit",
@@ -208,6 +215,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                     value={description}
                     onChange={handleDescriptionChange}
                 />
+                {error && <p css={errorStyle} style={{fontSize:"14px"}}>{error}</p>}
                 <div className="dropdown-section" css={dropdownSectionStyle}>
                     <div className="type-dropdown" css={dropdownStyle}>
                     <p style={{marginBottom: "5px", fontSize:"17px"}}>Type</p>
@@ -251,9 +259,9 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                     </div>
                 </div>
                 <div css={buttonContainerStyle}>
-                    {error && <p css={errorStyle} style={{fontSize:"13px"}}>{error}</p>}
                     <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>
                 </div>
+                <SuccessPopup message='The new student record has been successfully added' isVisible={isVisible} />
             </div>
         </div>
     );

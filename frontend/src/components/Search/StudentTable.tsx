@@ -8,6 +8,7 @@ interface StudentTableProps {
     sortField: keyof Student | null;
     sortOrder: "asc" | "desc";
     handleSort: (field: keyof Student) => void;
+    onClick?: (studentId: string) => void;
 }
 
 
@@ -91,7 +92,7 @@ const getSortArrow = (field: keyof Student, sortField: keyof Student | null, sor
     return '▼'; // Default position is down
 };
 
-const StudentTable: React.FC<StudentTableProps> = ({ students, sortField, sortOrder, handleSort }) => {
+const StudentTable: React.FC<StudentTableProps> = ({ students, sortField, sortOrder, handleSort, onClick }) => {
     return (
         <table css={tableStyle}>
             <thead>
@@ -110,7 +111,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, sortField, sortOr
             </thead>
             <tbody>
                 {students.map((student, index) => (
-                    <tr key={student.iden}>
+                    <tr key={student.iden} onClick={() => onClick?.(student.iden)}>
                         <td className="no-column" style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{index + 1}</td>
                         <td className="name-column" style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{student.name}</td>
                         <td className="nim-column" style={{ borderBottom: index === students.length - 1 ? "2px solid #F2F2F2" : "none", borderTop: "none" }}>{student.nim}</td>

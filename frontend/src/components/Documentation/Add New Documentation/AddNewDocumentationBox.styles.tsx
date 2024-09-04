@@ -111,6 +111,7 @@ export const DocumentationMeeting = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
+    margin-top: 12px;
     
     .inputDoc {
         width: 100%;
@@ -174,7 +175,7 @@ export const LocationContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 20px;
+    margin-top: 31px;
 
     input {
         height: 47px;

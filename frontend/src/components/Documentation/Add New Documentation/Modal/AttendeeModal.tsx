@@ -60,7 +60,7 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
     const modalContentStyle = css`
         background: white;
         border-radius: 10px;
-        width: 557px;
+        width: 630px;
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -70,11 +70,18 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
     const modalHeaderStyle = css`
         display: flex;
         justify-content: space-between;
-        padding-right: 20px;
+        padding-right: 10px;
         align-items: center;
-        padding: 10px;
-        padding-left: 20px;
         background-color: #F0ECEC;
+        border-radius: 10px 10px 0px 0px;
+        height: 50px;
+
+        .headerp {
+            margin-left: 19px;
+            margin-bottom: 0px;
+            font-weight: 600;
+            font-size: 18px;
+        }
     `;
 
     const modalFormStyle = css`
@@ -96,20 +103,21 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
     `;
 
     const modalBoxStyle = css`
-        height: 200px;
+        max-height: 460px;
         overflow-y: auto;
-        border: 1px solid #ACACAC;
+        scrollbar-width: thin;
+        border: 1px solid #eee;
         display: flex;
         flex-direction: column;
+        justify-content: start;
 
         .attendeeInputContainer {
             display: flex;
-            align-items: center;
             input {
                 flex-grow: 1;
             }
             .removeIcon {
-                margin-right: 10px;
+                text-alignment: end;
                 cursor: pointer;
                 visibility: hidden;
             }
@@ -142,13 +150,15 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
         padding-left: 20px;
         padding-right: 20px;
         box-sizing: border-box;
+        margin-top: 10px;
 
         input {
             flex-grow: 1;
-            height: 35px;
+            font-size: 15px;
             border-radius: 5px;
             border: 1px solid gray;
             padding: 10px;
+            height: 26px;
         }
 
         button {
@@ -169,14 +179,15 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
     const addButtonStyle = css`
         background-color: #49A8FF;
         color: white;
+        padding: 10px 20px;
+        height: auto;
         border: none;
         border-radius: 5px;
-        padding: 10px 20px;
         cursor: pointer;
-        font-size: 15px;
-
+        font-size: 17px;
+        font-weight: 500;
         &:hover {
-            background-color: #62b3fc;
+            background-color: #68b5fc;
         }
     `;
 
@@ -187,12 +198,47 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
         font-size: 20px;
         font-weight: bold;
         color: #888;
+        margin-right: 9px;
     `;
 
     const attendeeInputContainerStyle = css`
-        input {
-            outline: none;
-            border: none;
+        display: flex;
+        align-items: flex-start; /* Aligns items at the top */
+        gap: 10px;
+        padding: 10px 30px;
+        word-break: break-word; /* Ensures long strings break onto the next line */
+        width: 100%;
+        box-sizing: border-box;
+        
+        p {
+            margin: 0;
+        }
+
+        .index {
+            font-size: 16px;
+            min-width: 30px; /* Ensures a fixed width for the number column */
+            text-align: start;
+            flex-shrink: 0;
+        }
+
+        .resultText {
+            font-size: 16px;
+            flex-grow: 1;
+            overflow: hidden;
+            text-align: start; /* Center align for single-line text */
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+        }
+
+        .removeIcon {
+            flex-shrink: 0;
+            cursor: pointer;
+            visibility: hidden; /* Hide by default */
+            align-self: start; /* Vertically center the delete icon */
+            margin-left: auto;
+        }
+
+        &:hover .removeIcon {
+            visibility: visible; /* Show the icon on hover */
         }
     `;
 
@@ -202,18 +248,19 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
                 <div css={modalContentStyle} ref={attendeeModalRef}>
                     <div className="modalHeader" css={modalHeaderStyle}>
                         <p className="headerp">List Of Attendee</p>
-                        <button css={closeButtonStyle} onClick={closeAttendeeModal}>x</button>
+                        <Icon icon="mdi:close" onClick={closeAttendeeModal} fontSize={25} color="#51587E" css={closeButtonStyle} /> 
+
                     </div>
                     <div className="inputAndButtonContainer" css={inputAndButtonContainerStyle}>
                         <p>Attendee</p>
                         <input
                             type="text"
-                            placeholder="New Attendee"
                             value={newAttendee}
                             onChange={(e) => setNewAttendee(e.target.value)}
                         />
                     </div>
-                    <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", paddingRight: "20px", boxSizing: "border-box" }}>
+                    <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", paddingRight: "20px", boxSizing: "border-box", marginTop: "30px",
+        marginBottom:"7px" }}>
                         <button type="button" css={addButtonStyle} onClick={handleAddAttendee}>
                             Add
                         </button>
@@ -222,15 +269,8 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
                         <div className="modalBox" css={modalBoxStyle}>
                             {attendees.map((attendee, index) => (
                                 <div key={index} className="attendeeInputContainer" css={attendeeInputContainerStyle}>
-                                    <div className="inputNumContainer" style={{ display: "grid", width: "100%", minHeight: "47px", gridTemplateColumns: "0.1fr 1fr 1fr", paddingLeft: "10px", alignItems: "center" }}>
-                                        <p style={{fontSize: "17px"}}>{index + 1}</p>
-                                        <input
-                                            style={{fontSize: "17px"}}
-                                            placeholder={`Attendee ${index + 1}`}
-                                            value={attendee}
-                                            onChange={(e) => handleAttendeeChange(index, e)}
-                                        />
-                                    </div>
+                                    <p className="index">{index + 1}</p>
+                                    <p className="resultText">{attendee}</p>
                                     <Icon
                                         icon="mdi:delete"
                                         color="#51587E"

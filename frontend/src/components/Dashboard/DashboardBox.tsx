@@ -10,6 +10,9 @@ interface DashboardBoxProps {
 }
 
 const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
+
+    const navigate = useNavigate();
+
     const documentationBoxStyle = css`
         display: flex;
         margin-top: 30px;
@@ -24,13 +27,13 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
         width: 50%;
 
         h2 {
-            font-size: 50px;
-            margin-bottom: 20px;
+            font-size: 40px;
+            margin-bottom: 15px;
             font-weight: 600;
         }
 
         p {
-            font-size: 20px;
+            font-size: 18px;
         }
     `;
 
@@ -43,13 +46,14 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
 
     const companyBox = css`
         box-shadow: 0px 0px 11.7px 1px rgba(0, 0, 0, 0.25);
-        padding: 20px;
+        padding: 30px 20px;
         box-sizing: border-box;
         border-radius: 5px;
         display: flex;
         width: 646px;
+        height: 310px;
         flex-direction: column;
-        gap: 30px;
+        gap: 15px;
         align-items: center;
 
         button {
@@ -57,12 +61,13 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
         }
 
         h1 {
-            font-size: 50px;
+            font-size: 40px;
             font-weight: 600;
         }
 
         p {
-            font-size: 20px;
+            font-size: 18px;
+            width: 550px;
         }
     `;
 
@@ -71,9 +76,11 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
         color: white;
         border-radius: 10px;
         border: none;
-        font-weight: bold;
+        font-weight: 500;
         font-size: 17px;
         background-color: #49A8FF;
+        margin-top: 30px;
+        width: 230px;
 
         &:hover {
             background-color: #70bbff;
@@ -95,13 +102,23 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
             <div className="bottomBox" css={bottomBoxStyle}>
                 <div className="companyBox" css={companyBox}>
                     <h1>Student Records</h1>
-                    <p>You can see all of the enrichment students in the student list page and add records about them, either it is from the student, company, or yourself.</p>
-                    <button className="buttonStyle" css={buttonStyle} onClick={() => {navigate("/workspaces/student-list");setActiveTab('Student List')}}>Go to Student List {">>"}</button>
+                    <p>You can see all of the enrichment students in the <u>student list page</u> and add <u>records</u> about them, either it is from the student, company, or yourself.</p>
+                    <div style={{display:"flex", alignItems:"center"}} onClick={() => {
+                        setActiveTab("Student List");
+                        navigate('/workspaces/student-list');
+                    }} css={buttonStyle}>
+                        <p className="buttonStyle">Go to Student List {">>"}</p>
+                    </div>
                 </div>
                 <div className="enrichmentBox" css={companyBox}>
                     <h1>Enrichment Activities</h1>
-                    <p>If any enrichment activities, such as meetings, discussions, or evaluations, were to happen, use the documentation page to log those past events.</p>
-                    <button className="buttonStyle" css={buttonStyle} onClick={() => {navigate("/workspaces/documentation");setActiveTab('Documentation')}}>Go to Documentation {">>"}</button>
+                    <p>If any enrichment activities, such as meetings, discussions, or evaluations, were to happen, use the <u>documentation page</u> to log those past events.</p>
+                    <div style={{display:"flex", alignItems:"center"}} onClick={() => {
+                        setActiveTab("Documentation");
+                        navigate('/workspaces/documentation');
+                    }} css={buttonStyle}>
+                        <p className="buttonStyle">Go to Documentation {">>"}</p>
+                    </div>
                 </div>
             </div>
         </MainBox>
