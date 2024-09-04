@@ -683,6 +683,28 @@ app.post('/api/reports', async (req, res) => {
     }
 });
 
+app.put('/api/user/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, email, phoneNumber } = req.body;
+
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: id },
+            data: {
+                name,
+                email,
+                phoneNumber,
+            },
+        });
+
+        res.json(updatedUser);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

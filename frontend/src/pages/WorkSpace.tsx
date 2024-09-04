@@ -1,7 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { useState, useEffect } from 'react';
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { getApp } from "firebase/app";
 import { css } from '@emotion/react';
 import Sidebar from '../components/Sidebar';
 import DashboardBox from '../components/Dashboard/DashboardBox';

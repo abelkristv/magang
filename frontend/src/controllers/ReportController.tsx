@@ -169,8 +169,6 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
     }
 };
 
-// In your API file
-
 export const addStudentReport = async (
     studentName: string, 
     description: string, 

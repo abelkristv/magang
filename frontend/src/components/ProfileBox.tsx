@@ -106,10 +106,45 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         fetchMajors();
     }, []);
 
-    const handleEditClick = () => {
-        setIsEditing(!isEditing);
+    const handleEditClick = async () => {
+        if (isEditing) {
+            if (editableUser) {
+                try {
+                    if (!editableUser.image_url && user.image_url) {
+                        editableUser.image_url = user.image_url;
+                    }
+    
+                    const response = await fetch(`http://localhost:3001/api/user/${editableUser.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(editableUser),
+                    });
+                    const fetchedUser = await response.json();
+                    const updatedUser: User = {
+                        id: fetchedUser.id,
+                        email: fetchedUser.email,
+                        image_url: fetchedUser.imageUrl,
+                        company_name: fetchedUser.companyName,
+                        name: fetchedUser.name,
+                        role: fetchedUser.role,
+                        phone_number: fetchedUser.phoneNumber
+                    }
+                    setUser(updatedUser);
+                    setEditableUser(updatedUser);
+                    setIsEditing(false);
+                } catch (error) {
+                    console.error('Failed to update user:', error);
+                    alert('Error saving changes, please try again');
+                }
+            }
+        } else {
+            setIsEditing(true);
+        }
     };
-
+    
+    
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
     
@@ -457,31 +492,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                     <div css={loadingWidth}>
                         <p css={headerTop}>Profile</p>
                         <div className="contentSide" css={contentSide}>
-                            <div className="placeholder" css={placeholderStyle}>
-                                <div className="circle"></div>
-                                <div className="line"></div>
-                                <div className="line"></div>
-                                <div className="line"></div>
-                            </div>
-                        </div>
-                        <div className="bottomContent" css={bottomContentStyle}>
-                            <div className="bottomContainer">
-                                <div className="heading fixTextWeight">
-                                    <p>Unresolved Urgent Student Records</p>
-                                </div>
-                                <div className="recentlyAddedRecordsContainer" css={recentlyAddedRecordsContainerStyle}>
-                                    <div className="placeholder" css={placeholderStyle}>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                    </div>
-                                    <div className="placeholder" css={placeholderStyle}>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                        <div className="line"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Loading Placeholder */}
                         </div>
                     </div>
                 </div>
@@ -493,7 +504,17 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                             <img src={user?.image_url} alt="" />
                             <div className="userDesc" css={userDescStyle}>
                                 <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1px" }}>
-                                    <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={editableUser?.name}
+                                            onChange={handleChange}
+                                            css={editInputStyle}
+                                        />
+                                    ) : (
+                                        <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
+                                    )}
                                     {isEditing ? (
                                         <Icon icon={"mingcute:check-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
                                     ) : (
