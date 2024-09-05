@@ -1,5 +1,3 @@
-import { collection, getDocs, query, Timestamp, where } from "firebase/firestore";
-import { db } from "../firebase"; // Adjust the path based on your project structure
 import Documentation from "../model/Documentation";
 import DiscussionDetail from "../model/DiscussionDetail";
 
@@ -7,7 +5,7 @@ import DiscussionDetail from "../model/DiscussionDetail";
 
 export const fetchDiscussionDetails = async (docID: string): Promise<DiscussionDetail[]> => {
     try {
-        const response = await fetch(`http://localhost:3001/api/discussion-details/${docID}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussion-details/${docID}`);
 
         if (!response.ok) {
             throw new Error('Failed to fetch discussion details');
@@ -36,7 +34,7 @@ export const fetchDiscussionsWithDetails = async (filteredDocs: Documentation[])
     const docIds = filteredDocs.map(doc => doc.id);
 
     try {
-        const response = await fetch('http://localhost:3001/api/discussions-with-details', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussions-with-details`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

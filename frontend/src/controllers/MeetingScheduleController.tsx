@@ -1,12 +1,11 @@
-import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp, where } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import MeetingSchedule from "../model/MeetingSchedule";
-import { db } from "../firebase";
 
 export const fetchMeetingSchedules = async (reportIds: string[]): Promise<{ [key: string]: MeetingSchedule }> => {
     const schedules: { [key: string]: MeetingSchedule } = {};
 
     try {
-        const response = await fetch('http://localhost:3001/api/meeting-schedules', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -60,7 +59,7 @@ export const scheduleMeeting = async (
     existingSchedules: { [key: string]: any }
 ): Promise<{ [key: string]: any }> => {
     try {
-        const response = await fetch('http://localhost:3001/api/meeting-schedules/create', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

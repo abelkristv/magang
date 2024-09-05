@@ -1,46 +1,46 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import Student from "../model/Student";
 import { Option } from "fp-ts/lib/Option";
 import { option } from "fp-ts";
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
-const fetchStudents = async (companyName: string): Promise<Option<Student[]>> => {
-    try {
-        const studentsData = await prisma.student.findMany({
-            where: {
-                tempatMagang: companyName,
-            },
-        });
+// const fetchStudents = async (companyName: string): Promise<Option<Student[]>> => {
+//     try {
+//         const studentsData = await prisma.student.findMany({
+//             where: {
+//                 tempatMagang: companyName,
+//             },
+//         });
 
-        if (studentsData.length === 0) {
-            return option.none;
-        }
+//         if (studentsData.length === 0) {
+//             return option.none;
+//         }
 
-        const formattedStudentsData = studentsData.map(student => ({
-            iden: student.id.toString(),  // Convert the ID to a string if necessary
-            name: student.name,
-            nim: student.nim,
-            semester: student.semester,
-            tempat_magang: student.tempatMagang,
-            email: student.email,
-            phone: student.phone,
-            image_url: student.imageUrl,
-            status: student.status,
-            faculty_supervisor: student.facultySupervisor,
-            site_supervisor: student.siteSupervisor,
-            major: student.major,
-            notes: student.notes,
-            period: student.period,
-        }));
+//         const formattedStudentsData = studentsData.map(student => ({
+//             iden: student.id.toString(),  // Convert the ID to a string if necessary
+//             name: student.name,
+//             nim: student.nim,
+//             semester: student.semester,
+//             tempat_magang: student.tempatMagang,
+//             email: student.email,
+//             phone: student.phone,
+//             image_url: student.imageUrl,
+//             status: student.status,
+//             faculty_supervisor: student.facultySupervisor,
+//             site_supervisor: student.siteSupervisor,
+//             major: student.major,
+//             notes: student.notes,
+//             period: student.period,
+//         }));
 
-        return option.some(formattedStudentsData);
-    } catch (error) {
-        console.error('Error fetching students:', error);
-        return option.none;
-    } finally {
-        await prisma.$disconnect();
-    }
-};
+//         return option.some(formattedStudentsData);
+//     } catch (error) {
+//         console.error('Error fetching students:', error);
+//         return option.none;
+//     } finally {
+//         await prisma.$disconnect();
+//     }
+// };
 
 const fetchAllStudents = async (): Promise<Option<Student[]>> => {
     try {
@@ -79,7 +79,7 @@ const fetchAllStudents = async (): Promise<Option<Student[]>> => {
 
 export const fetchStudentById = async (studentId: string): Promise<Option<Student>> => {
     try {
-        const response = await fetch(`http://localhost:3001/api/student/${studentId}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${studentId}`);
         
         if (response.status === 404) {
             console.error("No such student!");
@@ -119,7 +119,7 @@ export const updateStudentNotes = async (
     }
 
     try {
-        const response = await fetch(`http://localhost:3001/api/student/${studentId}/notes`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${studentId}/notes`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export const updateStudentNotes = async (
 
 const fetchStudentsByName = async (studentName: string): Promise<Option<Student[]>> => {
     try {
-        const response = await fetch(`http://localhost:3001/api/students/search?studentName=${encodeURIComponent(studentName)}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students/search?studentName=${encodeURIComponent(studentName)}`);
         
         if (response.status === 404) {
             console.error("No students found with the provided name");
@@ -181,4 +181,4 @@ const fetchStudentsByName = async (studentName: string): Promise<Option<Student[
     }
 };
 
-export { fetchStudents, fetchAllStudents, fetchStudentsByName };
+export { fetchAllStudents, fetchStudentsByName };

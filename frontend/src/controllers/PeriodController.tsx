@@ -1,6 +1,6 @@
 export const fetchPeriods = async (): Promise<string[]> => {
     try {
-        const response = await fetch('http://localhost:3001/api/periods');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/periods`);
 
         if (!response.ok) {
             throw new Error(`Error fetching periods: ${response.statusText}`);

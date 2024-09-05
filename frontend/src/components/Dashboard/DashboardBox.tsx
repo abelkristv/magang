@@ -105,7 +105,7 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
                     <p>You can see all of the enrichment students in the <u>student list page</u> and add <u>records</u> about them, either it is from the student, company, or yourself.</p>
                     <div style={{display:"flex", alignItems:"center"}} onClick={() => {
                         setActiveTab("Student List");
-                        navigate('/workspaces/student-list');
+                        navigate('/enrichment-documentation/workspaces/student-list');
                     }} css={buttonStyle}>
                         <p className="buttonStyle">Go to Student List {">>"}</p>
                     </div>
@@ -115,7 +115,7 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
                     <p>If any enrichment activities, such as meetings, discussions, or evaluations, were to happen, use the <u>documentation page</u> to log those past events.</p>
                     <div style={{display:"flex", alignItems:"center"}} onClick={() => {
                         setActiveTab("Documentation");
-                        navigate('/workspaces/documentation');
+                        navigate('/enrichment-documentation/workspaces/documentation');
                     }} css={buttonStyle}>
                         <p className="buttonStyle">Go to Documentation {">>"}</p>
                     </div>

@@ -18,7 +18,7 @@ function PrivateRoute({ children }: PrivateRouteProps) {
             if (user) {
                 setAuthenticated(true);
             } else {
-                navigate('/');
+                navigate('/enrichment-documentation');
             }
             setLoading(false);
         });

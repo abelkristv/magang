@@ -138,7 +138,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                         editableUser.image_url = user.image_url;
                     }
     
-                    const response = await fetch(`http://localhost:3001/api/user/${editableUser.id}`, {
+                    const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/${editableUser.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',

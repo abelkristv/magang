@@ -2,7 +2,7 @@ import Student from "../model/Student";
 
 export const fetchTotalComments = async (students: Student[]): Promise<{ [key: string]: number }> => {
     try {
-        const response = await fetch('http://localhost:3001/api/total-comments', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/total-comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
