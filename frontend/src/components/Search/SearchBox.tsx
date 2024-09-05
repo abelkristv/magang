@@ -21,7 +21,7 @@ import { fetchPeriods } from "../../controllers/PeriodController";
 import { fetchTotalReportsByStudent } from "../../controllers/ReportController";
 
 interface SearchBoxProps {
-    onSelectStudent: (studentId: string | null | Student[]) => void;
+    onSelectStudent: (studentId: string | null ) => void;
 }
 
 const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
