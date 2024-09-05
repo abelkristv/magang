@@ -41,6 +41,17 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                setTimeEnd('')
+                setTimeStart('')
+                setDescription('')
+                setPlace('')
+                setDate('')
+                setError('')
+                setDateError('')
+                setTimeStartError('')
+                setTimeEndError('')
+                setDescriptionError('')
+                setPlaceError('')
                 onClose();
             }
         };
@@ -124,6 +135,12 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
 
         setError('');
         onSubmit({ timeStart, timeEnd, description, place, date, meetingType, studentReportId });
+        setTimeEnd('')
+        setTimeStart('')
+        setDescription('')
+        setPlace('')
+        setDate('')
+        setMeetingType('Online')
         setVisible(true);
         setTimeout(() => {
             setVisible(false);
@@ -223,13 +240,29 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
         color: red;
         text-align: center;
     `;
+
+    const handleButtonClose = () => {
+        setTimeEnd('')
+        setTimeStart('')
+        setDescription('')
+        setPlace('')
+        setDate('')
+        setError('')
+        console.log(dateError)
+        setDateError('')
+        setTimeStartError('')
+        setTimeEndError('')
+        setDescriptionError('')
+        setPlaceError('')
+        onClose()
+    }
     
     return (
         <div css={modalStyle}>
             <div ref={modalRef} css={modalContentStyle}>
                 <div className="modalHeader" css={modalHeaderStyle}>
                     <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Schedule a meeting</p>
-                    <Icon icon="mdi:close" onClick={onClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
+                    <Icon icon="mdi:close" onClick={handleButtonClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
                 <div css={formStyle}>
                     <div className="dateContainer" style={{display: "flex", justifyContent:"space-between"}}>
