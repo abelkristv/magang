@@ -36,6 +36,11 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
 
     
     const handleAddRecord = async () => {
+        setError("");
+        if(!description){
+            setError("Description is required");
+            return;
+        }
         try {
             await addStudentReport(studentName, description, selectedType, selectedPerson, userAuth!.currentUser.email);
             setIsVisible(true);

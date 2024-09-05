@@ -73,7 +73,7 @@ export const scheduleMeeting = async (
         }
 
         const result = await response.json();
-        alert(result.message);
+        // alert(result.message);
 
         // Fetch the updated schedules
         return result.updatedSchedules;

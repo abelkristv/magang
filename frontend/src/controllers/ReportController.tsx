@@ -70,7 +70,7 @@ export const updateStudentReport = async (
                 : report
         );
 
-        alert("Report updated successfully!");
+        // alert("Report updated successfully!");
         return updatedReports;
     } catch (error) {
         console.error("Error updating report:", error);
@@ -92,7 +92,7 @@ export const deleteStudentReport = async (
             throw new Error(`Error deleting report: ${response.statusText}`);
         }
 
-        alert("Report deleted successfully!");
+        // alert("Report deleted successfully!");
         return reports.filter(report => report.id !== reportId);
     } catch (error) {
         console.error("Error deleting report:", error);
@@ -203,10 +203,10 @@ export const addStudentReport = async (
             throw new Error(`Error adding report: ${response.statusText}`);
         }
 
-        alert('The new student record has been successfully added');
+        // alert('The new student record has been successfully added');
     } catch (error) {
         console.error("Error adding document: ", error);
-        alert("Failed to add record. Please try again.");
+        // alert("Failed to add record. Please try again.");
         throw error;
     }
 };

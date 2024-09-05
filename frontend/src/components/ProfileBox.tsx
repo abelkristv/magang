@@ -343,13 +343,14 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     `;
 
     const recentlyAddedRecordsContainerStyle = css`
-        margin-top: 10px;
+        margin-top: 15px;
         display: flex;
         flex-direction: column;
         gap: 25px;
         padding: 2px;
         box-sizing: border-box;
         overflow: auto;
+        scrollbar-width: thin;
         height: 500px;
 
         .recordCard {
@@ -545,7 +546,14 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                             name="name"
                                             value={editableUser?.name}
                                             onChange={handleChange}
-                                            css={editInputStyle}
+                                            style={{
+                                                fontWeight: "600",
+                                                fontSize: "18px",
+                                                border: "none",
+                                                width: "258px !important",
+                                                borderBottom: "1px solid gray",
+                                                padding: "0px",
+                                            }}
                                         />
                                     ) : (
                                         <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
@@ -625,7 +633,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                             </select>
 
                                             {/* Company Filter */}
-                                            <p>Company</p>
+                                            <p style={{marginTop:"13px"}}>Company</p>
                                             <select value={selectedCompany} onChange={(e) => handleFilterChange("company", e.target.value)}>
                                                 <option value="">All</option>
                                                 {companies.map((company, index) => (
@@ -672,7 +680,9 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                     height: "100%",
                                                     display: "flex",
                                                     flexDirection: "row",
-                                                    paddingRight: "20px",
+                                                    paddingRight: "15px",
+                                                    paddingTop: "10px",
+                                                    paddingLeft: "15px",
                                                     gap: "10px"
                                                 }}>
                                                     <div css={cardStyle} className="leftSide" style={
@@ -724,6 +734,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                     <div className="rightSide" style={{ position: "relative", width: "70%", paddingLeft: "10px", height: "100%", boxSizing: "border-box" }}>
                                                         <div style={{
                                                             marginBottom: "10px",
+                                                            marginTop: "3px",
                                                             display: "flex",
                                                             flexDirection: "column",
                                                             height: "100%",

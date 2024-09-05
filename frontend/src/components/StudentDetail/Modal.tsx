@@ -3,6 +3,7 @@
 import { css } from "@emotion/react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useEffect, useRef, useState, FC, FormEvent } from "react";
+import SuccessPopup from "../Elementary/SuccessPopup";
 
 interface ModalProps {
     isOpen: boolean;
@@ -17,10 +18,11 @@ interface ModalProps {
         studentReportId: string;
     }) => void;
     studentReportId: string; 
+    setVisible: (value: boolean) => void;
 }
 
 
-const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) => {
+const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, setVisible }) => {
     const [timeStart, setTimeStart] = useState<string>('');
     const [timeEnd, setTimeEnd] = useState<string>('');
     const [description, setDescription] = useState<string>('');
@@ -29,6 +31,12 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
     const [error, setError] = useState<string>('');
     const [meetingType, setMeetingType] = useState<string>('online'); // New state for meeting type
     const modalRef = useRef<HTMLDivElement>(null);
+
+    const [dateError, setDateError] = useState<string>('');
+    const [timeStartError, setTimeStartError] = useState<string>('');
+    const [timeEndError, setTimeEndError] = useState<string>('');
+    const [descriptionError, setDescriptionError] = useState<string>('');
+    const [placeError, setPlaceError] = useState<string>('');
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -50,20 +58,76 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSubmit = () => {
+        // e.preventDefault();
 
-        // time validation
+        setError('');
+        setDateError('');
+        setTimeStartError('');
+        setTimeEndError('');
+        setDescriptionError('');
+        setPlaceError('');
+        
+        let hasError = false;
+
+        const currentDate = new Date();
+        const selectedDate = new Date(date);
+        if (!date) {
+            setDateError('Date is required.');
+            hasError = true;
+        } else if (selectedDate < currentDate) {
+            setDateError('Date cannot be in the past.');
+            hasError = true;
+        }
+
+        if (!timeStart) {
+            setTimeStartError('Start time is required.');
+            hasError = true;
+        }
+        if (!timeEnd) {
+            setTimeEndError('End time is required.');
+            hasError = true;
+        }
+
         const start = new Date(`1970-01-01T${timeStart}:00`);
         const end = new Date(`1970-01-01T${timeEnd}:00`);
 
         if (end < start) {
-            setError('End time cannot be earlier than start time.');
+            setError("End time can't earlier than start time.");
             return;
         }
 
+        
+        if (timeStart && timeEnd) {
+            const start = new Date(`1970-01-01T${timeStart}:00`);
+            const end = new Date(`1970-01-01T${timeEnd}:00`);
+            if (end < start) {
+                setTimeEndError('End time cannot be earlier than start time.');
+                hasError = true;
+            }
+        }
+
+        // Validate description
+        if (!description.trim()) {
+            setDescriptionError('Description is required.');
+            hasError = true;
+        }
+
+        // Validate place/Zoom link
+        if (!place.trim()) {
+            setPlaceError('Place or Zoom Link is required.');
+            hasError = true;
+        }
+
+        // Stop submission if there are errors
+        if (hasError) return;
+
         setError('');
         onSubmit({ timeStart, timeEnd, description, place, date, meetingType, studentReportId });
+        setVisible(true);
+        setTimeout(() => {
+            setVisible(false);
+        }, 5000);
         onClose();
     };
 
@@ -83,7 +147,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
     const modalContentStyle = css`
         background: white;
         border-radius: 10px;
-        width: 580px;
+        width: 650px;
         display: flex;
         flex-direction: column;
         border-radius: 10px;
@@ -167,7 +231,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
                     <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Schedule a meeting</p>
                     <Icon icon="mdi:close" onClick={onClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
-                <form onSubmit={handleSubmit} css={formStyle}>
+                <div css={formStyle}>
                     <div className="dateContainer" style={{display: "flex", justifyContent:"space-between"}}>
                         <div style={{display:"flex", flexDirection:"column", gap:"10px"}}>
                             <p>Date</p>
@@ -176,9 +240,10 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 css={inputStyle}
-                                style={{width:"14.3rem", fontSize:"15px"}}
-                                required
+                                style={{width:"15rem", fontSize:"15px"}}
+                                // required
                             />
+                            {dateError && <p css={errorStyle} style={{fontSize:"13px"}}>{dateError}</p>}
                         </div>
                         <div style={{display:"flex", flexDirection:"column", gap:"10px"}}>
                             <p>Meeting Type</p>
@@ -186,8 +251,8 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
                                 value={meetingType}
                                 onChange={(e) => setMeetingType(e.target.value)}
                                 css={inputStyle}
-                                style={{width:"15.4rem", fontSize:"15px"}}
-                                required
+                                style={{width:"20.5rem", fontSize:"15px"}}
+                                // required
                             >
                                 <option value="online" style={{fontSize:"15px"}}>Online</option>
                                 <option value="onsite" style={{fontSize:"15px"}}>Onsite</option>
@@ -206,10 +271,12 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
                                         value={timeStart}
                                         onChange={(e) => setTimeStart(e.target.value)}
                                         css={inputStyle}
-                                        style={{width:"10.9rem", fontSize:"15px"}}
-                                        required
+                                        style={{width:"11.55rem", fontSize:"15px"}}
+                                        // required
                                     />
                                 </div>
+                                {timeStartError && <p css={errorStyle} style={{fontSize:"13px", marginBottom:"10px", marginTop:"3px", marginLeft:"55px"}}>{timeStartError}</p>}
+                                
                                 <div className="endTime" style={{display: "flex", gap: "20px", alignItems: "center", marginTop:"3px"}}>
                                     <p style={{fontSize:"15px", width:"35px"}}>End</p>
                                     <input
@@ -218,47 +285,50 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId }) =
                                         value={timeEnd}
                                         onChange={(e) => setTimeEnd(e.target.value)}
                                         css={inputStyle}
-                                        style={{width:"10.9rem", fontSize:"15px"}}
-                                        required
+                                        style={{width:"11.55rem", fontSize:"15px"}}
+                                        // required
                                     />
                                 </div>
+                                {timeEndError && <p css={errorStyle} style={{fontSize:"13px", marginBottom:"10px", marginTop:"3px", marginLeft:"55px"}}>{timeEndError}</p>}
+                                {error && <p css={errorStyle} style={{fontSize:"13px", marginTop:"8px"}}>{error}</p>}
                             </div>
                         </div>
-                        <div className="descriptionContainer" style={{display: "flex", flexDirection: "column", width:"15.4rem"}}>
+                        <div className="descriptionContainer" style={{display: "flex", flexDirection: "column", width:"20.5rem"}}>
                             <p>Description</p>
                             <textarea
-                                placeholder="Description"
+                                // placeholder="Description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 css={inputStyle}
-                                style={{marginTop:"10px", fontSize:"15px", padding:"3px 6px", scrollbarWidth:"thin", resize:"none"}}
+                                style={{marginTop:"10px", fontSize:"15px", padding:"10px 12px", scrollbarWidth:"thin", resize:"none", height:"78px"}}
                                 rows={4}
-                                required
+                                // required
                             />
+                            {descriptionError && <p css={errorStyle} style={{fontSize:"13px", marginTop:"10px"}}>{descriptionError}</p>}
                         </div>
                     </div>
                     <div className="placeContainer" style={{display: "flex", flexDirection: "column", marginTop:"9px"}}>
                         <p>Place / Zoom Link</p>
                         <input
                             type="text"
-                            placeholder="Place / Zoom Link"
+                            // placeholder="Place / Zoom Link"
                             value={place}
                             onChange={(e) => setPlace(e.target.value)}
                             css={inputStyle}
                             style={{marginTop:"10px", fontSize:"15px"}}
-                            required
+                            // required
                         />
+                        {placeError && <p css={errorStyle} style={{fontSize:"13px", marginTop:"7px"}}>{placeError}</p>}
                     </div>
                     
                     <div style={{marginTop: "2.2rem", display:"flex", flexDirection:"column", alignItems:"center"}}>
-                        {error && <p css={errorStyle} style={{fontSize:"13px"}}>{error}</p>}
                         <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
-                            <button type="submit" css={buttonStyle}>
+                            <button css={buttonStyle} onClick={handleSubmit}>
                                 Schedule
                             </button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );

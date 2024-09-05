@@ -43,6 +43,7 @@ import { fetchStudentById, updateStudentNotes } from "../../controllers/StudentC
 import { deleteStudentReport, fetchReports, updateStudentReport } from "../../controllers/ReportController";
 import { Report } from "../../model/Report";
 import { fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
+import SuccessPopup from "../Elementary/SuccessPopup";
 
 function formatDate(dateString: string): string {
     const [year, month, day] = dateString.split('-');
@@ -72,6 +73,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [editedType, setEditedType] = useState<string>("");
     const [sortOrder, setSortOrder] = useState<string>("latest");  // Default to "latest"
+
+    const [isVisible, setIsVisible] = useState(false);
 
 
     // State variables for editing notes
@@ -451,6 +454,22 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         }
     `;
 
+    const buttonStyle = css`
+        margin-left: 7rem;
+        margin-top: 2rem;
+        background-color: #49A8FF;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 17px;
+        font-weight: 500;
+        &:hover {
+            background-color: #68b5fc;
+        }
+    `;
+
     const Placeholder = () => (
         <div style={{marginTop:"17px"}}>
             <ReportItemPlaceholder>
@@ -666,6 +685,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                 <input style={{
                                                     padding: "6px",
                                                     fontSize: "15px",
+                                                    height: "30px",
                                                     border: "1px solid #ccc",
                                                     borderRadius: "5px"}} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
                                             </div>
@@ -674,14 +694,13 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                 <input style={{
                                                     padding: "6px",
                                                     fontSize: "15px",
+                                                    height: "30px",
                                                     border: "1px solid #ccc",
                                                     borderRadius: "5px"}} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="rightSide">
                                         <div className="type">
-                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Type</p>
+                                            <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Type</p>
                                             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                                 <select
                                                     style={{
@@ -689,20 +708,44 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                         fontSize: "15px",
                                                         border: "1px solid #ccc",
                                                         borderRadius: "5px",
-                                                        width: "200px",
+                                                        width: "212px",
+                                                        height: "45px",
                                                         backgroundColor: "white"
                                                     }}
                                                     value={filterType}
                                                     onChange={(e) => setFilterType(e.target.value)}
                                                 >
-                                                    <option value="">All Types</option>
+                                                    <option value="">All</option>
                                                     <option value="Urgent">Urgent</option>
                                                     <option value="Report">Report</option>
                                                     <option value="Complaint">Complaint</option>
                                                 </select>
                                             </div>
                                         </div>
-                                        <div className="person" style={{marginTop: "20px"}}>
+                                    </div>
+                                    <div className="rightSide">
+                                        <div className="sorting">
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        height: "45px",
+                                                        width: "200px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={sortOrder}
+                                                    onChange={(e) => setSortOrder(e.target.value)}
+                                                >
+                                                    <option value="latest">Latest</option>
+                                                    <option value="earliest">Earliest</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="person" style={{marginTop: "75px"}}>
                                             <p style={{ marginBottom: "12px", fontSize: "16px" }}>Person</p>
                                             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                                 <select
@@ -712,11 +755,13 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                         border: "1px solid #ccc",
                                                         borderRadius: "5px",
                                                         width: "200px",
+                                                        height: "45px",
                                                         backgroundColor: "white"
                                                     }}
                                                     value={filterPerson}
                                                     onChange={(e) => setFilterPerson(e.target.value)}
                                                 >
+                                                    <option value="">All</option>
                                                     <option value="Student">Student</option>
                                                     <option value="Enrichment">Enrichment</option>
                                                     <option value="Company">Company</option>
@@ -728,25 +773,10 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div className="sorting" style={{ marginTop: "20px" }}>
-                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
-                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                <select
-                                                    style={{
-                                                        padding: "6px",
-                                                        fontSize: "15px",
-                                                        border: "1px solid #ccc",
-                                                        borderRadius: "5px",
-                                                        width: "200px",
-                                                        backgroundColor: "white"
-                                                    }}
-                                                    value={sortOrder}
-                                                    onChange={(e) => setSortOrder(e.target.value)}
-                                                >
-                                                    <option value="latest">Latest</option>
-                                                    <option value="earliest">Earliest</option>
-                                                </select>
-                                            </div>
+                                        <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
+                                            <button type="submit" css={buttonStyle}>
+                                                Apply
+                                            </button>
                                         </div>
                                     </div>
                                 </DropdownContent>
@@ -832,19 +862,24 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                             {isUpdating ? (
                                                                 <p style={{ color: 'black' }}>Updating...</p>
                                                             ) : (
-                                                                <button
-                                                                    onClick={() => handleSaveEditReport(report.id)}
-                                                                    style={{
-                                                                        backgroundColor: '#49A8FF',
-                                                                        color: 'white',
-                                                                        padding: '5px 10px',
-                                                                        border: 'none',
-                                                                        borderRadius: '5px',
-                                                                        cursor: 'pointer',
-                                                                    }}
-                                                                >
-                                                                    Save
-                                                                </button>
+                                                                // <button
+                                                                //     onClick={() => handleSaveEditReport(report.id)}
+                                                                //     style={{
+                                                                //         backgroundColor: '#49A8FF',
+                                                                //         color: 'white',
+                                                                //         padding: '5px 10px',
+                                                                //         border: 'none',
+                                                                //         borderRadius: '5px',
+                                                                //         cursor: 'pointer',
+                                                                //     }}
+                                                                // >
+                                                                //     Save
+                                                                // </button>
+                                                                <Icon icon={"fa:check"} fontSize={18} onClick={() => handleSaveEditReport(report.id)} style={{
+                                                                    cursor: 'pointer',
+                                                                    marginRight:"10px",
+                                                                    color:"black",
+                                                                }} />
                                                             )}
                                                         </>
                                                     ) : (
@@ -964,12 +999,14 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 onClose={handleModalClose}
                 onSubmit={handleModalSubmit}
                 studentReportId={selectedReportId || ""}
+                setVisible={setIsVisible}
             />
             <ExportModal
                 isOpen={isExportModalOpen}
                 onClose={handleExportModalClose}
                 onExport={handleExportModalSubmit}
             />
+            <SuccessPopup message='The meeting has been successfully scheduled' isVisible={isVisible} />
         </Main>
     );
 };
