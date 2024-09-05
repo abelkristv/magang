@@ -4,9 +4,9 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.dev 
+      dockerfile: Dockerfile
     ports:
-      - "3030:5173"
+      - "3030:80"
     volumes:
       - ./frontend:/app
     environment:
@@ -14,6 +14,8 @@ services:
     depends_on:
       - backend  # Wait for the backend to be ready before starting
       - db
+    networks:
+      - enrichment-network
 
   backend:
     build:
@@ -29,6 +31,8 @@ services:
       - PASSWORD_USER=z9kk79v4w3
     depends_on:
       - db
+    networks:
+      - enrichment-network
 
   db:
     image: postgres
@@ -40,6 +44,8 @@ services:
       - ./db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - enrichment-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -50,6 +56,12 @@ services:
       - "5050:80"
     depends_on:
       - db
+    networks:
+      - enrichment-network
 
 volumes:
   db_data:
+
+networks:
+  enrichment-network:
+    driver: bridge

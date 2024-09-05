@@ -113,7 +113,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
     const handleLogout = async () => {
         try {
             await signOut(auth);
-            navigate('/login');
+            navigate('/enrichment-documentation/login');
         } catch (error) {
             console.error("Error logging out: ", error);
         }
@@ -135,7 +135,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                         css={sidebarContentContainerStyle(activeTab === "Dashboard")}
                         onClick={() => {
                             setActiveTab("Dashboard");
-                            navigate('/workspaces/dashboard');
+                            navigate('/enrichment-documentation/workspaces/dashboard');
                         }}
                     >
                         <Icon icon={"ic:round-dashboard"} color={activeTab === "Dashboard" ? "black" : "white"} fontSize={25} />
@@ -147,7 +147,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                         onClick={() => {
                             setSelectedStudentId(null);
                             setActiveTab("Search");
-                            navigate('/workspaces/search');
+                            navigate('/enrichment-documentation/workspaces/search');
                         }}
                     >
                         <Icon icon={"material-symbols:search"} color={activeTab === "Search" ? "black" : "white"} fontSize={25} />
@@ -162,7 +162,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                         onClick={() => {
                             setSelectedStudentId(null);
                             setActiveTab("Student List");
-                            navigate('/workspaces/student-list');
+                            navigate('/enrichment-documentation/workspaces/student-list');
                         }}
                     >
                         <Icon icon={"pepicons-pop:people"} color={activeTab === "Student List" ? "black" : "white"} fontSize={25} />
@@ -173,7 +173,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                         css={sidebarContentContainerStyle(activeTab === "Documentation")}
                         onClick={() => {
                             setActiveTab("Documentation");
-                            navigate('/workspaces/documentation');
+                            navigate('/enrichment-documentation/workspaces/documentation');
                         }}
                     >
                         <Icon icon={"material-symbols:book"} color={activeTab === "Documentation" ? "black" : "white"} fontSize={25} />
@@ -186,7 +186,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                     css={sidebarContentContainerStyle(activeTab === "Profile")}
                     onClick={() => {
                         setActiveTab("Profile");
-                        navigate('/workspaces/profile');
+                        navigate('/enrichment-documentation/workspaces/profile');
                     }}
                 >
                     <Icon icon={"material-symbols:face"} color={activeTab === "Profile" ? "black" : "white"} fontSize={25} />

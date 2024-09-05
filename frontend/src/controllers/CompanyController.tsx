@@ -4,7 +4,7 @@ import { Option } from "fp-ts/lib/Option";
 
 export const fetchAllCompanies = async (): Promise<Option<Company[]>> => {
     try {
-        const response = await fetch('http://localhost:3001/api/companies');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/companies`);
 
         if (!response.ok) {
             throw new Error(`Error fetching companies: ${response.statusText}`);

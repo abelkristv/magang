@@ -948,7 +948,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                     <div className="buttonContainer" css={buttonContainerStyle}>
                         <Button onClick={() => {
                             setGlobalActiveTab('Add New Documentation')
-                            navigate("/workspaces/add-new-documentation")
+                            navigate("/enrichment-documentation/workspaces/add-new-documentation")
                         }} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>
                             Add new documentation
                         </Button>

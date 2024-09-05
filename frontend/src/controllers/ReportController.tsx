@@ -18,7 +18,7 @@ export const fetchReports = async (
             params.append('filterEndDate', filterEndDate);
         }
 
-        const response = await fetch(`http://localhost:3001/api/reports?${params.toString()}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports?${params.toString()}`);
 
         if (!response.ok) {
             throw new Error(`Error fetching reports: ${response.statusText}`);
@@ -42,7 +42,7 @@ export const updateStudentReport = async (
     try {
         const updatedTimestamp = new Date().toISOString();
 
-        const response = await fetch(`http://localhost:3001/api/reports/${reportId}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export const deleteStudentReport = async (
     reports: Report[]
 ): Promise<Report[]> => {
     try {
-        const response = await fetch(`http://localhost:3001/api/reports/${reportId}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'DELETE',
         });
 
@@ -109,7 +109,7 @@ export const fetchTotalReportsByStudent = async (
 
     for (const student of students) {
         const response = await fetch(
-            `http://localhost:3001/api/student/${student.iden}/reports/count`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${student.iden}/reports/count`
         );
 
         if (!response.ok) {
@@ -127,7 +127,7 @@ export const fetchTotalReportsByStudent = async (
 
 export const fetchUrgentStudentReports = async (): Promise<Report[]> => {
     try {
-        const response = await fetch('http://localhost:3001/api/reports/urgent');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/urgent`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -144,7 +144,7 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
     try {
         // Fetch records and documentation from the backend API
         const response = await fetch(
-            `http://localhost:3001/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
         );
 
         if (!response.ok) {
@@ -191,7 +191,7 @@ export const addStudentReport = async (
     };
 
     try {
-        const response = await fetch('http://localhost:3001/api/reports', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

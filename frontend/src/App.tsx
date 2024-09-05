@@ -12,9 +12,9 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/workspaces/*" element={<PrivateRoute> <WorkSpace /></PrivateRoute>} />
+          <Route path="/enrichment-documentation" element={<Login />} />
+          <Route path="/enrichment-documentation/login" element={<Login />} />
+          <Route path="/enrichment-documentation/workspaces/*" element={<PrivateRoute> <WorkSpace /></PrivateRoute>} />
         </Routes>
      </Router>
     </AuthProvider>

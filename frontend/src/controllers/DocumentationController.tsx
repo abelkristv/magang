@@ -38,7 +38,7 @@ export const addDocumentation = async (
             modalDiscussionDetails,
         };
 
-        const response = await fetch('http://localhost:3001/api/documentation', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export const addDocumentation = async (
 
 export const fetchAllDocumentation = async (): Promise<Option<Documentation[]>> => {
     try {
-        const response = await fetch('http://localhost:3001/api/documentation');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation`);
         if (!response.ok) {
             console.error('Error fetching documentation:', response.statusText);
             return option.none;
@@ -84,7 +84,7 @@ export const fetchAllDocumentation = async (): Promise<Option<Documentation[]>> 
 
 export const fetchDocumentationsByEmail = async (email: string): Promise<Documentation[]> => {
     try {
-        const response = await fetch(`http://localhost:3001/api/documentation/email/${email}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/email/${email}`);
         
         if (!response.ok) {
             console.error("Error fetching documentations:", response.statusText);

@@ -3,7 +3,7 @@ import { option } from "fp-ts";
 
 export const fetchAllMajors = async (): Promise<Option<Major[]>> => {
     try {
-        const response = await fetch('http://localhost:3001/api/majors');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/majors`);
 
         if (!response.ok) {
             throw new Error(`Error fetching majors: ${response.statusText}`);

@@ -7,7 +7,7 @@ import { fetchAllCompanies } from "./CompanyController";
 
 const fetchUser = async (email: string): Promise<Option<User>> => {
     try {
-        const response = await fetch(`http://localhost:3001/api/user/email/${email}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/email/${email}`);
         
         if (!response.ok) {
             console.error('Error fetching user:', response.statusText);
@@ -38,7 +38,7 @@ const fetchUserNames = async (reports: Report[]): Promise<{ [key: string]: strin
     const uniqueEmails = [...new Set(reports.map(report => report.writer))];
 
     try {
-        const response = await fetch('http://localhost:3001/api/user/names', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/names`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -85,8 +85,20 @@ export const fetchUserAndCompanies = async (email: string | undefined) => {
 
 export const updateUser = async (updatedUser: User) => {
     try {
-        const response = await axios.put(`/api/user/${updatedUser.id}`, updatedUser);
-        return response.data;
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/${updatedUser.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedUser),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update user');
+        }
+
+        const data = await response.json();
+        return data;
     } catch (error) {
         console.error('Error updating user:', error);
         throw new Error('Failed to update user');

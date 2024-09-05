@@ -92,7 +92,7 @@ const Login = () => {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             if (authContext) {
                 authContext.setCurrentUser({ email: userCredential.user.email! } as User);
-                navigate('/workspaces/dashboard');
+                navigate('/enrichment-documentation/workspaces/dashboard');
             } else {
                 setError("Failed to login, unable to set user context");
             }
