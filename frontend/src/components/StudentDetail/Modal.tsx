@@ -141,7 +141,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
         setPlace('')
         setDate('')
         setMeetingType('Online')
-        setVisible(true);
+        // setVisible(true);
         setTimeout(() => {
             setVisible(false);
         }, 5000);
