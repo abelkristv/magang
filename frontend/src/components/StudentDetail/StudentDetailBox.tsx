@@ -339,7 +339,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     };
 
     const handleRecordAdded = () => {
-        // fetchReports();
+        setIsFetching(true)
     };
 
     const handleEditNotesClick = async () => {
