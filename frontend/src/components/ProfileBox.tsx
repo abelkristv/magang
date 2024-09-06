@@ -30,6 +30,7 @@ interface Record {
         facultySupervisor?: string;
         siteSupervisor?: string;
         major?: string;
+        period: string;
     };
     imageUrl?: string;
     major?: string;
@@ -184,14 +185,19 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
 
     const handleApplyFilters = () => {
         let filtered = allRecords;
-
+    
         if (tempSelectedMajor) filtered = filtered.filter(record => record.major === tempSelectedMajor);
         if (selectedCompany) filtered = filtered.filter(record => record.studentData.tempatMagang === selectedCompany);
-        // if (selectedPeriod) filtered = filtered.filter(record => record.period === selectedPeriod);
-
+    
+        if (selectedPeriod) {
+            const periodNumber = selectedPeriod.split(' ').pop();
+            filtered = filtered.filter(record => record.studentData.period === periodNumber);
+        }
+    
         setFilteredRecords(filtered);
         setIsDropdownOpen(false);
     };
+    
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -639,13 +645,13 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                             </select>
 
                                             {/* Period Filter */}
-                                            {/* <p>Period</p>
+                                            <p>Period</p>
                                             <select value={selectedPeriod} onChange={(e) => handleFilterChange("period", e.target.value)}>
                                                 <option value="">All</option>
                                                 {periods.map((period, index) => (
                                                     <option key={index} value={period}>{`${period}`}</option>
                                                 ))}
-                                            </select> */}
+                                            </select>
 
                                             <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", marginTop: "30px" }}>
                                                 <button onClick={handleApplyFilters} style={{ backgroundColor: "#49A8FF" }}>Apply</button>
