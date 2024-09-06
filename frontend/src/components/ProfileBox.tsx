@@ -17,10 +17,7 @@ interface ProfileBoxProps {
 }
 
 interface Record {
-    timestamp: {
-        seconds: number;
-        nanoseconds: number;
-    };
+    timestamp: Date;
     studentName: string;
     type: string;
     writer: string;
@@ -667,9 +664,9 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                     filteredRecords.map((record, index) => {
                                         // const { time, date } = formatDate(record.timestamp);
                                         console.log("record : " , record)
-                                        const timestamp = new Date(record.timestamp.seconds * 1000);
-                                        const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                                        const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                                        // const timestamp = new Date(record.timestamp);
+                                        const formattedDate = record.timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                        const formattedTime = record.timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
                                         return (
                                             <div key={index} className="recordCard">
                                                 {record.imageUrl && <img src={record.imageUrl} alt={record.studentName} style={{ height: "7px" }} />}

@@ -142,7 +142,6 @@ export const fetchUrgentStudentReports = async (): Promise<Report[]> => {
 
 export const fetchRecordsAndDocumentation = async (user: User) => {
     try {
-        // Fetch records and documentation from the backend API
         const response = await fetch(
             `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
         );
@@ -162,12 +161,37 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
             };
         });
 
-        return { records: fetchedRecords, documentations: data.documentations };
+        const writerEmails = fetchedRecords.map((record: any) => record.writer);
+
+        const nameResponse = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/names`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ emails: writerEmails }),
+            }
+        );
+
+        if (!nameResponse.ok) {
+            throw new Error('Failed to fetch user names');
+        }
+
+        const emailToNameMap = await nameResponse.json();
+
+        const updatedRecords = fetchedRecords.map((record: any) => ({
+            ...record,
+            writer: emailToNameMap[record.writer] || record.writer, 
+        }));
+
+        return { records: updatedRecords, documentations: data.documentations };
     } catch (error) {
         console.error('Error fetching records and documentation:', error);
         throw error;
     }
 };
+
 
 export const addStudentReport = async (
     studentName: string, 

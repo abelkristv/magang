@@ -139,7 +139,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             }
         };
         fetchReportsData();
-    }, [student, filterStartDate, filterEndDate, filterType, filterPerson, sortOrder]);
+    }, [student, sortOrder, isFetching]);
     
     
 
@@ -167,7 +167,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     }) => {
         try {
             const updatedSchedules = await scheduleMeeting(data, meetingSchedules);
-            setMeetingSchedules(updatedSchedules);
+            // setMeetingSchedules(updatedSchedules);
 
             // Construct email details
             const emailDetails = {
@@ -179,6 +179,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 Place: ${data.place}
                 Description: ${data.description}`
             };
+
+            console.log(emailDetails)
 
             // Send the email via the API
             const response = await fetch('http://localhost:3001/send-email', {
@@ -195,10 +197,14 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
 
             const result = await response.json();
             console.log('Email sent:', result);
+            setIsFetching(true)
+            setIsVisible(true)
 
         } catch (error) {
             console.error('Error scheduling meeting or sending email:', error);
+            setIsFetching(true)
         }
+        setIsFetching(true)
     };
 
 
@@ -339,7 +345,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     };
 
     const handleRecordAdded = () => {
-        // fetchReports();
+        setIsFetching(true)
     };
 
     const handleEditNotesClick = async () => {
@@ -352,6 +358,10 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             }
         }
         setIsEditingNotes(!isEditingNotes);
+    };
+
+    const onApplyFilter = () => {
+        setIsFetching(true);
     };
 
     const meetindDescriptionComponentStyle = css`
@@ -774,7 +784,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                             </div>
                                         </div>
                                         <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
-                                            <button type="submit" css={buttonStyle}>
+                                            <button type="submit" css={buttonStyle} onClick={onApplyFilter}>
                                                 Apply
                                             </button>
                                         </div>
