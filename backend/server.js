@@ -281,6 +281,7 @@ app.get('/api/documentation/email/:email', async (req, res) => {
     }
 });
 
+
 app.get('/api/user/email/:email', async (req, res) => {
     const { email } = req.params;
 
