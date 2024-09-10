@@ -160,7 +160,7 @@ const Login = () => {
                         
                     </div>
                     <div className="buttonContainer" style={{display: 'flex', justifyContent: "center"}}>
-                        <PrimaryButton content={"LOGIN"} height={60} marginTop='30px' borderRadius='41px' bg_color='#000000' bg_color_hover='#262626' width={369} />
+                        <PrimaryButton content={"LOGIN"} height={60} marginTop='30px' borderRadius='41px' bg_color='rgb(73, 168, 255)' bg_color_hover='#6bb6fa' width={369} />
                     </div>
                 </form>
             </div>

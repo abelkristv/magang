@@ -183,7 +183,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             console.log(emailDetails)
 
             // Send the email via the API
-            const response = await fetch('http://localhost:3001/send-email', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/send-email`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

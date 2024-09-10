@@ -156,7 +156,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                 </div>
                 <hr />
                 <div className="sidebarContent" css={sidebarContentStyle}>
-                    <div
+                    {/* <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Student List")}
                         onClick={() => {
@@ -167,7 +167,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                     >
                         <Icon icon={"pepicons-pop:people"} color={activeTab === "Student List" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Student List")}>Student List</a>
-                    </div>
+                    </div> */}
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Documentation")}
