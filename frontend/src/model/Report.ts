@@ -1,6 +1,6 @@
 export interface Report {
     id: string;
-    hasRead: boolean;
+    status: string;
     person: string;
     report: string;
     sentiment: string;

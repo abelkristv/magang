@@ -105,7 +105,7 @@ async function main() {
     data: [
       {
         id: '0mF9ZmtFZ7dZnv5c2WB0',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'Excellent student',
         sentiment: 'positive',
@@ -116,7 +116,7 @@ async function main() {
       },
       {
         id: '26OID1nvdK7JgerpULLA',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'test',
         sentiment: 'negative',
@@ -127,7 +127,7 @@ async function main() {
       },
       {
         id: '2hbVlHI11Zb83dzlGglZ',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'tet',
         sentiment: 'negative',
@@ -138,7 +138,7 @@ async function main() {
       },
       {
         id: 'BJPz1a1GdW5AlkBuED65',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'Kerja bagus, rajin',
         sentiment: 'positive',
@@ -149,7 +149,7 @@ async function main() {
       },
       {
         id: 'CVy7cNXFfH4UpBgLquqm',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'test1234123123',
         sentiment: 'positive',
@@ -160,7 +160,7 @@ async function main() {
       },
       {
         id: 'Cp8ICf4ySArn3fPuYal4',
-        hasRead: null, // NULL or undefined value
+        status: "not solved", 
         person: 'Student',
         report: 'testeteststst',
         sentiment: 'positive',
@@ -171,7 +171,7 @@ async function main() {
       },
       {
         id: 'FiF3byXtXvbhpnSTnR8z',
-        hasRead: true,
+        status: "not solved",
         person: 'Student',
         report: 'Kerjanya bagus',
         sentiment: 'negative',
@@ -182,7 +182,7 @@ async function main() {
       },
       {
         id: 'Ghr3tYJEcsNMVkp6dc82',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'test',
         sentiment: 'positive',
@@ -193,7 +193,7 @@ async function main() {
       },
       {
         id: 'ILiWjsbkgomdTYZpY6vx',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'test',
         sentiment: 'positive',
@@ -204,7 +204,7 @@ async function main() {
       },
       {
         id: 'OPNgAOkQzS7yzRhSrr6k',
-        hasRead: false,
+        status: "solved",
         person: 'Student',
         report: 'test',
         sentiment: 'negative',
@@ -215,7 +215,7 @@ async function main() {
       },
       {
         id: 'OUzB8QRpQaEMIIUeZMBn',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'test',
         sentiment: 'neutral',
@@ -226,7 +226,7 @@ async function main() {
       },
       {
         id: 'Qn5NLyTpX2lRrQxOxFIb',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'During their internship at Kalbe Corporation, Cynthia consistently demonstrated exceptional dedication and skill in their role within the marketing department. Michael took on significant responsibilities, including content creation for our social media platforms and assisting in the development and execution of digital marketing strategies. Their ability to analyze campaign performance metrics and contribute innovative ideas to promotional event planning was highly commendable. Michael\'s proactive approach and collaborative spirit were evident in cross-functional meetings with the sales and product development teams, where they provided valuable insights and support. Their performance not only met but exceeded our expectations, showcasing a strong aptitude for marketing and a keen understanding of integrated marketing communications. We are confident that Michael has a bright future ahead and are grateful for their meaningful contributions to our team.',
         sentiment: 'positive',
@@ -237,7 +237,7 @@ async function main() {
       },
       {
         id: 'Rc1tDBfKdPxtrWtJT9zv',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'sdfasdsadfsadfsadf',
         sentiment: 'negative',
@@ -248,7 +248,7 @@ async function main() {
       },
       {
         id: 'SKesh3aPfpSqQtXbckrx',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'test',
         sentiment: 'negative',
@@ -259,7 +259,7 @@ async function main() {
       },
       {
         id: 'TeSdHDa7jX5MbRygQrqD',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'testsetsetset',
         sentiment: 'neutral',
@@ -270,7 +270,7 @@ async function main() {
       },
       {
         id: 'Xro2BbShjYbnbKUvizW7',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'testtt',
         sentiment: 'positive',
@@ -281,7 +281,7 @@ async function main() {
       },
       {
         id: 'dEVJCWSWjnoe4N4qzJAK',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'teststafsdf',
         sentiment: 'negative',
@@ -292,7 +292,7 @@ async function main() {
       },
       {
         id: 'dbrPWO7ou7uV6RYL2dhd',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'test',
         sentiment: 'positive',
@@ -303,7 +303,7 @@ async function main() {
       },
       {
         id: 'fN9Xb8dI1ycIROI6QaML',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'testsefsdafasdfearer',
         sentiment: 'negative',
@@ -314,7 +314,7 @@ async function main() {
       },
       {
         id: 'k21HDN7uiazVUw3ACDO2',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'ada masalah dengan rekan enrichment',
         sentiment: 'negative',
@@ -325,7 +325,7 @@ async function main() {
       },
       {
         id: 'lho8bfCh95jrHW8zVQDP',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'testaeasfdsafsda',
         sentiment: 'positive',
@@ -336,7 +336,7 @@ async function main() {
       },
       {
         id: 'nISgLw6pBURRxyNKlnsw',
-        hasRead: false,
+        status: "not solved",
         person: 'Student',
         report: 'Michael kerjanya bagus',
         sentiment: 'negative',
@@ -347,7 +347,7 @@ async function main() {
       },
       {
         id: 'phjhSJmv0r0k86cJxobM',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'ASDFASDF',
         sentiment: 'positive',
@@ -358,7 +358,7 @@ async function main() {
       },
       {
         id: 'tfnUNpeD13XuVSKIAWYD',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'test222',
         sentiment: 'negative',
@@ -369,7 +369,7 @@ async function main() {
       },
       {
         id: 'xE07SZnWzswyv5vj9RVA',
-        hasRead: true,
+        status: "solved",
         person: 'Student',
         report: 'czvcxvasdfaew3afsdfawerfwqe',
         sentiment: 'neutral',
