@@ -98,6 +98,7 @@ model User {
   name           String
   phoneNumber    String?
   role           String
+  password       String?
 }
 
 model MeetingSchedule {

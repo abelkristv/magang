@@ -88,18 +88,41 @@ const Login = () => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(''); // Reset error message before attempting login
+    
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            if (authContext) {
-                authContext.setCurrentUser({ email: userCredential.user.email! } as User);
-                navigate('/enrichment-documentation/workspaces/dashboard');
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                // Set the user context if the API response is successful
+                if (authContext) {
+                    authContext.setCurrentUser({ email } as User); 
+                    console.log("hehe")
+                    localStorage.setItem('token', data.token);
+                    navigate('/enrichment-documentation/workspaces/dashboard');
+                } else {
+                    setError('Failed to login, unable to set user context');
+                }
             } else {
-                setError("Failed to login, unable to set user context");
+                // Handle the error returned from the API
+                setError(data.error || 'Failed to login, check your email and password');
             }
         } catch (error) {
-            setError("Failed to login, make sure you enter the correct email / password");
+            setError('Failed to login, please try again later');
         }
     };
+    
 
     const inputContainerStyle = css`
         display: flex;

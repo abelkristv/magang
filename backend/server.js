@@ -1,7 +1,12 @@
+
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
+
+
 
 dotenv.config();
 
@@ -711,7 +716,59 @@ app.put('/api/user/:id', async (req, res) => {
     }
 });
 
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
 
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        // console.log(user.password)
+        // console.log(await bcrypt.hash(password.trim(), 10))
+        // console.log(password)
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
+            expiresIn: '1h', // Token expires in 1 hour
+        });
+
+        res.json({ message: 'Login successful', token });
+    } catch (error) {
+        console.error('Error during login:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/api/verify-token', (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
+    console.log("tokennn")
+
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ error: 'Token is invalid or expired' });
+        }
+
+        res.status(200).json({ message: 'Token is valid' });
+    });
+});
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
