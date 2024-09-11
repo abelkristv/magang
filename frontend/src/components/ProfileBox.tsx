@@ -1,5 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
+import { getAuth, updateEmail, sendEmailVerification } from 'firebase/auth';
 import { useAuth } from "../helper/AuthProvider";
 import { useEffect, useState } from "react";
 import User from "../model/User";
@@ -136,6 +137,23 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                         editableUser.image_url = user.image_url;
                     }
     
+                    // Check if the email has changed
+                    if (editableUser.email !== user.email) {
+                        const auth = getAuth(); // Initialize Firebase Auth
+                        const currentUser = auth.currentUser;
+    
+                        if (currentUser) {
+                            // Send email verification to the new email address
+                            await sendEmailVerification(currentUser);
+                            alert('Please verify the new email address. A verification email has been sent.');
+    
+                            return; // Do not proceed with the email update until the email is verified
+                        } else {
+                            throw new Error('User is not authenticated.');
+                        }
+                    }
+    
+                    // Send the updated user data to your backend
                     const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/${editableUser.id}`, {
                         method: 'PUT',
                         headers: {
@@ -143,6 +161,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                         },
                         body: JSON.stringify(editableUser),
                     });
+                    
                     const fetchedUser = await response.json();
                     const updatedUser: User = {
                         id: fetchedUser.id,
@@ -151,9 +170,12 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                         company_name: fetchedUser.companyName,
                         name: fetchedUser.name,
                         role: fetchedUser.role,
-                        phone_number: fetchedUser.phoneNumber
-                    }
+                        phone_number: fetchedUser.phoneNumber,
+                    };
+    
+                    // Update the local user state
                     setUser(updatedUser);
+                    userAuth?.setCurrentUser(updatedUser); // Update the Firebase Auth context or state if needed
                     setEditableUser(updatedUser);
                     setIsEditing(false);
                 } catch (error) {
@@ -165,7 +187,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
             setIsEditing(true);
         }
     };
-    
+
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

@@ -37,10 +37,14 @@ export const updateStudentReport = async (
     reportId: string,
     editedContent: string,
     editedType: string,
+    editedStatus: string,
+    editedSource: string,
     reports: Report[]
 ): Promise<Report[]> => {
     try {
         const updatedTimestamp = new Date().toISOString();
+
+        console.log("report to be updated: ", reportId)
 
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'PUT',
@@ -50,6 +54,8 @@ export const updateStudentReport = async (
             body: JSON.stringify({
                 report: editedContent,
                 type: editedType,
+                status: editedStatus,
+                person: editedSource,
                 timestamp: updatedTimestamp,
             }),
         });
@@ -198,6 +204,7 @@ export const addStudentReport = async (
     description: string, 
     selectedType: string, 
     selectedPerson: string, 
+    selectedStatus: string,
     writer: string
 ): Promise<void> => {
     if (description.trim() === "") {
@@ -208,6 +215,7 @@ export const addStudentReport = async (
         hasRead: false,
         type: selectedType,
         person: selectedPerson,
+        status: selectedStatus,
         report: description,
         studentName: studentName,
         timestamp: new Date(),

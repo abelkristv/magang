@@ -16,8 +16,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
     const [description, setDescription] = useState<string>("");
     const [selectedType, setSelectedType] = useState<string>("Report");
     const [selectedPerson, setSelectedPerson] = useState<string>("Student");
+    const [selectedStatus, setSelectedStatus] = useState<string>("not solved");
     const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState<boolean>(false);
     const [isPersonDropdownOpen, setIsPersonDropdownOpen] = useState<boolean>(false);
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
     const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -34,6 +36,10 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         setIsPersonDropdownOpen(false);
     };
 
+    const handleStatusSelect = (status: string) => {
+        setSelectedStatus(status)
+        setIsStatusDropdownOpen(false)
+    }
     
     const handleAddRecord = async () => {
         setError("");
@@ -42,7 +48,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
             return;
         }
         try {
-            await addStudentReport(studentName, description, selectedType, selectedPerson, userAuth!.currentUser.email);
+            await addStudentReport(studentName, description, selectedType, selectedPerson, selectedStatus, userAuth!.currentUser.email);
             setIsVisible(true);
             setTimeout(() => {
                 setIsVisible(false);
@@ -50,6 +56,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
             setDescription("");
             setSelectedType("Report");
             setSelectedPerson("Student");
+            setSelectedStatus("solved")
             onRecordAdded();
         } catch (error) {
             console.error("Error adding record: ", error);
@@ -227,7 +234,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                         )}
                     </div>
                     <div className="person-dropdown" css={dropdownStyle}>
-                    <p style={{marginBottom: "5px", fontSize:"17px"}}>Person</p>
+                    <p style={{marginBottom: "5px", fontSize:"17px"}}>Source</p>
                         <div css={dropdownButtonStyle} onClick={() => setIsPersonDropdownOpen(!isPersonDropdownOpen)}>
                             <div style={{fontSize:"15px"}}>{selectedPerson}</div>
                             <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
@@ -247,6 +254,23 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                         )}
                     </div>
                 </div>
+                <div className="person-dropdown" css={dropdownStyle}>
+                    <p style={{marginBottom: "5px", fontSize:"17px"}}>Status</p>
+                        <div css={dropdownButtonStyle} onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}>
+                            <div style={{fontSize:"15px"}}>{selectedStatus}</div>
+                            <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
+                        </div>
+                        {isStatusDropdownOpen && (
+                            <div css={dropdownContentStyle}>
+                                <div css={dropdownItemStyle(selectedStatus === "solved")} onClick={() => handleStatusSelect("solved")}>
+                                    Solved
+                                </div>
+                                <div css={dropdownItemStyle(selectedStatus === "not solved")} onClick={() => handleStatusSelect("not solved")}>
+                                    Not Solved
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 <div css={buttonContainerStyle}>
                     <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>
                 </div>

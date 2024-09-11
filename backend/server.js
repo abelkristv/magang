@@ -83,7 +83,9 @@ app.get('/api/reports', async (req, res) => {
 
 app.put('/api/reports/:id', async (req, res) => {
     const { id } = req.params;
-    const { report, type, timestamp } = req.body;
+    const { report, type, status, person, timestamp } = req.body;
+    console.log(report)
+    console.log("id: ", id)
 
     try {
         const updatedReport = await prisma.studentReport.update({
@@ -91,6 +93,8 @@ app.put('/api/reports/:id', async (req, res) => {
             data: {
                 report,
                 type,
+                status,
+                person,
                 timestamp: new Date(timestamp), // Convert timestamp to Date
             },
         });
@@ -656,10 +660,10 @@ app.post('/send-email', (req, res) => {
 });
 
 app.post('/api/reports', async (req, res) => {
-    const { hasRead, type, person, report, studentName, timestamp, writer } = req.body;
+    const { hasRead, type, person, status, report, studentName, timestamp, writer } = req.body;
 
     // Validate the required fields
-    if (!report || !studentName || !type || !person || !writer) {
+    if (!report || !studentName || !type || !status || !person || !writer) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -667,9 +671,9 @@ app.post('/api/reports', async (req, res) => {
         // Create the new student report in the database
         const newReport = await prisma.studentReport.create({
             data: {
-                hasRead,
                 type,
                 person,
+                status,
                 report,
                 sentiment:"neutral",
                 studentName,

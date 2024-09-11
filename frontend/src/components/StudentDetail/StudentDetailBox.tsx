@@ -44,6 +44,7 @@ import { deleteStudentReport, fetchReports, updateStudentReport } from "../../co
 import { Report } from "../../model/Report";
 import { fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
 import SuccessPopup from "../Elementary/SuccessPopup";
+import EditReportModal from "./EditReportModal";
 
 function formatDate(dateString: string): string {
     const [year, month, day] = dateString.split('-');
@@ -70,9 +71,12 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const [deletingReportId, setDeletingReportId] = useState<string | null>(null);
     const [editingReportId, setEditingReportId] = useState<string | null>(null);
     const [editedContent, setEditedContent] = useState<string>("");
+    const [editedSource, setEditedSource] = useState<string>("");
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [editedType, setEditedType] = useState<string>("");
     const [sortOrder, setSortOrder] = useState<string>("latest");  // Default to "latest"
+    const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+    const [editedStatus, setEditedStatus] = useState<string>("");
 
     const [isVisible, setIsVisible] = useState(false);
 
@@ -183,7 +187,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             console.log(emailDetails)
 
             // Send the email via the API
-            const response = await fetch('http://localhost:3001/send-email', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/send-email`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -223,10 +227,13 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         }
     };
 
-    const handleEditReport = (reportId: string, currentContent: string, currentType: string) => {
+    const handleEditReport = (reportId: string, currentContent: string, currentType: string, currentSource: string) => {
         setEditingReportId(reportId);
         setEditedContent(currentContent);
+        setEditedSource(currentSource);
+        console.log("current content : ", currentContent)
         setEditedType(currentType);
+        setIsEditModalOpen(true)
     };
 
     // const handleCycleType = () => {
@@ -240,10 +247,10 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         setEditedType(event.target.value);
     };
 
-    const handleSaveEditReport = async (reportId: string) => {
+    const handleSaveEditReport = async (reportId: string, content: string, type: string, status: string, source: string) => {
         try {
             setIsUpdating(true);
-            const updatedReports = await updateStudentReport(reportId, editedContent, editedType, reports);
+            const updatedReports = await updateStudentReport(reportId, content, type, status, source, reports);
             setReports(updatedReports);
             setEditingReportId(null);
         } catch (error) {
@@ -251,6 +258,10 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         } finally {
             setIsUpdating(false);
         }
+        setEditedContent("")
+        setEditedType("")
+        setEditedStatus("")
+        setEditedSource("")
     };
 
     const exportToExcel = async (startDate: string, endDate: string) => {
@@ -356,6 +367,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             } catch (error) {
                 // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
             }
+        } else if (!isEditingNotes) {
+
         }
         setIsEditingNotes(!isEditingNotes);
     };
@@ -679,7 +692,17 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 <BottomContentContainer>
                     <div className="left-side">
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0px", alignItems:"center" }}>
-                            <h2 style={{ textAlign: "left", margin:"0", fontWeight: "600", fontSize: "18px" }}>Records</h2>
+                            <div className="records-header-container" style={{ display: "flex", gap: "20px"}}>
+                                <h2 style={{ textAlign: "left", margin:"0", fontWeight: "600", fontSize: "18px" }}>Records</h2>
+                                <div className="records-option" style={{display: "flex", alignItems: "center", gap: "7px"}}>
+                                    <div className="color-green" style={{width: "12px", height: "12px", backgroundColor: "#17AF3F", borderRadius: "100%"}}></div>
+                                    <p style={{fontSize: "10px"}}>Solved</p>
+                                </div>
+                                <div className="records-option" style={{display: "flex", alignItems: "center", gap: "7px"}}>
+                                    <div className="color-red" style={{width: "12px", height: "12px", backgroundColor: "#FF0000", borderRadius: "100%"}}></div>
+                                    <p style={{fontSize: "10px"}}>Not Solved</p>
+                                </div>
+                            </div>
                             <div style={{ display: "flex", alignItems: "center", gap: "5px", position: "relative" }}>
                                 <p style={{fontSize:"15px"}}>Filter by:</p>
                                 <Dropdown onClick={handleDropdownClick}>
@@ -756,7 +779,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                             </div>
                                         </div>
                                         <div className="person" style={{marginTop: "75px"}}>
-                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Person</p>
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Source</p>
                                             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                                 <select
                                                     style={{
@@ -800,54 +823,24 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                     const timestamp = new Date(report.timestamp);
                                     const formattedDate = timestamp.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
                                     const formattedTime = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                                    console.log(userEmailsToNames[report.writer] || report.writer, ": ", report.status)
 
                                     return (
                                         <ReportItem key={report.id}>
                                             <div className="topSide">
                                                 <div className="topLeftSide">
+                                                    <div className="dot" style={report.status == "solved" ? {
+                                                        width: "12px",
+                                                        height: "12px",
+                                                        backgroundColor: "#17AF3F",
+                                                        borderRadius: "100%"
+                                                    } : {
+                                                        width: "12px",
+                                                        height: "12px",
+                                                        backgroundColor: "#FF0000",
+                                                        borderRadius: "100%"
+                                                    }}></div>
                                                     <p className="report-writer" style={{ fontSize: '17px', fontWeight: "500" }}>{userEmailsToNames[report.writer] || report.writer}</p>
-                                                    {editingReportId === report.id ? (
-                                                        <div className="select-wrapper" style={{ position: 'relative', display: 'inline-block', width: editedType === 'Complaint' ? '130px' : '130px' }}>
-                                                        <select
-                                                            value={editedType}
-                                                            onChange={handleCycleType}
-                                                            style={{
-                                                                backgroundColor: 'white',
-                                                                color: 'black',
-                                                                padding: '2px 50px 2px 8px',
-                                                                borderRadius: '8px',
-                                                                width: '150px',
-                                                                height: '33px',
-                                                                textAlign: 'start',
-                                                                fontWeight: "400",
-                                                                border: '1px solid black',
-                                                                outline: 'none',
-                                                                appearance: 'none',
-                                                                WebkitAppearance: 'none',
-                                                                MozAppearance: 'none',
-                                                                cursor: 'pointer',
-                                                                fontSize: '16px',
-                                                            }}
-                                                        >
-                                                            <option value="Urgent" style={{ backgroundColor: 'white', color: 'black' }}>Urgent</option>
-                                                            <option value="Report" style={{ backgroundColor: 'white', color: 'black' }}>Report</option>
-                                                            <option value="Complaint" style={{ backgroundColor: 'white', color: 'black' }}>Complaint</option>
-                                                        </select>
-                                                        <Icon
-                                                            icon={"weui:arrow-filled"}
-                                                            color="black"
-                                                            rotate={45}
-                                                            fontSize={9}
-                                                            style={{
-                                                                position: 'absolute',
-                                                                right: '-13px',
-                                                                top: '50%',
-                                                                transform: 'translateY(-50%)',
-                                                                pointerEvents: 'none', // Prevent the icon from blocking interactions with the dropdown
-                                                            }}
-                                                        />
-                                                    </div>                                                    
-                                                ) : (
                                                     <p
                                                         style={{
                                                             backgroundColor: report.type === 'Report' ? '#A024FF' : report.type === 'Urgent' ? 'red' : '#FF8336',
@@ -862,43 +855,17 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                     >
                                                         {report.type}
                                                     </p>
-                                                )}
                                                 </div>
                                                 <div className="topRightSide">
                                                     {deletingReportId === report.id ? (
                                                         <p style={{ color: 'red' }}>Deleting...</p>
-                                                    ) : editingReportId === report.id ? (
-                                                        <>
-                                                            {isUpdating ? (
-                                                                <p style={{ color: 'black' }}>Updating...</p>
-                                                            ) : (
-                                                                // <button
-                                                                //     onClick={() => handleSaveEditReport(report.id)}
-                                                                //     style={{
-                                                                //         backgroundColor: '#49A8FF',
-                                                                //         color: 'white',
-                                                                //         padding: '5px 10px',
-                                                                //         border: 'none',
-                                                                //         borderRadius: '5px',
-                                                                //         cursor: 'pointer',
-                                                                //     }}
-                                                                // >
-                                                                //     Save
-                                                                // </button>
-                                                                <Icon icon={"fa:check"} fontSize={18} onClick={() => handleSaveEditReport(report.id)} style={{
-                                                                    cursor: 'pointer',
-                                                                    marginRight:"10px",
-                                                                    color:"black",
-                                                                }} />
-                                                            )}
-                                                        </>
                                                     ) : (
                                                         <>
                                                             <Icon
                                                                 icon={"material-symbols:edit"}
                                                                 fontSize={24}
                                                                 style={{ cursor: 'pointer' }}
-                                                                onClick={() => handleEditReport(report.id, report.report, report.type)}
+                                                                onClick={() => handleEditReport(report.id, report.report, report.type, report.person)}
                                                             />
                                                             <Icon
                                                                 icon={"ic:baseline-delete"}
@@ -918,24 +885,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                     marginBottom: "5px"
                                                 }}>By {report.person} - {formattedTime}, {formattedDate}</p>
                                             </div>
-                                            {editingReportId === report.id ? (
-                                                <textarea
-                                                    value={editedContent}
-                                                    onChange={(e) => setEditedContent(e.target.value)}
-                                                    style={{
-                                                        width: '100%',
-                                                        minHeight: '87px',
-                                                        padding: '10px',
-                                                        borderRadius: '5px',
-                                                        border: '1px solid #D9D9D9',
-                                                        fontSize: "16px",
-                                                        boxSizing:"border-box",
-                                                        marginBottom:"5px",
-                                                    }}
-                                                />
-                                            ) : (
-                                                <p className="report-content" style={{color:'#5F6368', fontSize:"16px"}}>{report.report}</p>
-                                            )}
+                                            <p className="report-content" style={{color:'#5F6368', fontSize:"16px"}}>{report.report}</p>
                                             {meetingSchedules[report.id] ? (
                                                 <>
                                                     <ShowMeetingSchedule>
@@ -1010,6 +960,16 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 onSubmit={handleModalSubmit}
                 studentReportId={selectedReportId || ""}
                 setVisible={setIsVisible}
+            />
+            <EditReportModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onSubmit={handleSaveEditReport}
+                currentContent={editedContent}
+                currentType={editedType}
+                currentStatus={editedStatus}
+                currentId={editingReportId!}
+                currentSource={editedSource}
             />
             <ExportModal
                 isOpen={isExportModalOpen}

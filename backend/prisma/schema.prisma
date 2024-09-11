@@ -43,7 +43,7 @@ model Student {
 
 model StudentReport {
   id          String                 @id @default(uuid())
-  hasRead     Boolean?
+  status     String?
   person      String
   report      String
   sentiment   String

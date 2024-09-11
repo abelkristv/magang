@@ -44,7 +44,7 @@ import { option } from "fp-ts";
 
 const fetchAllStudents = async (): Promise<Option<Student[]>> => {
     try {
-        const response = await fetch('http://localhost:3001/api/students');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students`);
         
         if (response.status !== 200) {
             console.error("Error fetching students from API");
