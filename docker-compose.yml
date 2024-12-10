@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
     ports:
       - "3030:5173"
     volumes:
@@ -12,10 +15,12 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
-      - backend  # Wait for the backend to be ready before starting
+      - backend
       - db
     networks:
       - enrichment-network
+
+
 
   backend:
     build:
@@ -29,6 +34,7 @@ services:
       - DATABASE_URL=postgresql://abel:hehe@db:5432/documentation_enrichment
       - EMAIL_USER=abel.kristanto1@gmail.com
       - PASSWORD_USER=z9kk79v4w3
+      - JWT_SECRET=hehe
     depends_on:
       - db
     networks:

@@ -14,7 +14,7 @@ const MainBox = ({navText,  children}: MainBoxProps) => {
         height: 100%;
         padding: 40px 43px 40px 43px;
         box-sizing: border-box;
-        overflow: hidden;
+        overflow: scroll;
     `
 
     const navSide = css`

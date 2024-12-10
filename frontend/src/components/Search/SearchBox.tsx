@@ -5,7 +5,7 @@ import Student from "../../model/Student";
 import { useAuth } from "../../helper/AuthProvider";
 import User from "../../model/User";
 import { fetchUser } from "../../controllers/UserController";
-import { fetchAllStudents } from "../../controllers/StudentController";
+import { fetchAllStudents, fetchStudentsByName, fetchStudentsWithFilters, PaginatedResponse } from "../../controllers/StudentController";
 import notFoundImage from "../../assets/not_found.png";
 import MainBox from "../Elementary/MainBox";
 import SearchInput from "./SearchInput";
@@ -29,11 +29,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
     const [_user, setUser] = useState<User | null>(null);
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
     const [_companies, setCompanies] = useState<Company[]>([]);
     const [_majors, setMajors] = useState<Major[]>([]);
     const [_periods, setPeriods] = useState<string[]>([]);
     const [comments, setComments] = useState<{ [key: string]: number }>({});
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [studentResponse, setStudentResponse] = useState<PaginatedResponse>({pagination: {currentPage : 1, limit: 9}} as PaginatedResponse);
     const userAuth = useAuth();
 
     const [searchState, setSearchState] = useState<SearchState>({
@@ -67,7 +69,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
 
     useEffect(() => {
         onSelectStudent(null);
-
+    
         const fetchPeriodsData = async () => {
             try {
                 const periodList = await fetchPeriods();
@@ -84,76 +86,92 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 console.error("Failed to fetch periods:", error);
             }
         };
-
+    
         const fetchData = async () => {
             setIsLoading(true);
-            const fetchedUser: User = await fetchUser(userAuth?.currentUser?.email!)
-                .then((user) => user._tag === "Some" ? user.value : { id: "null" } as User);
-
-            if (fetchedUser.id === "null") {
-                console.log("User not found");
-            } else {
-                setUser(fetchedUser);
-
-                const fetchedStudents: Student[] = await fetchAllStudents()
-                    .then((students) => students._tag === "Some" ? students.value : [{ iden: "null" }] as Student[])
-                    .then((students) =>
+    
+            if (!isSearching) {
+                const fetchedUser: User = await fetchUser(userAuth?.currentUser?.email!)
+                    .then((user) => user._tag === "Some" ? user.value : { id: "null" } as User);
+    
+                if (fetchedUser.id === "null") {
+                    console.log("User not found");
+                } else {
+                    setUser(fetchedUser);
+    
+                    const fetchedResponse: PaginatedResponse = await fetchAllStudents(
+                        studentResponse.pagination.currentPage,
+                        studentResponse.pagination.limit
+                    ).then((students) => students._tag === "Some" ? students.value : [{}] as unknown as PaginatedResponse);
+    
+                    setStudentResponse(fetchedResponse);
+    
+                    const fetchedStudents: Student[] = fetchedResponse.students;
+    
+                    fetchedStudents.forEach(student =>
                         fetchedUser.role === "Company" ?
                             students.filter(student => student.tempat_magang === fetchedUser.company_name) :
-                            students);
-
-                if (fetchedStudents[0].iden === "null") {
-                    console.log("Students not found");
-                } else {
-                    setStudents(fetchedStudents);
-                    setFilteredStudents(fetchedStudents);
-                    const totalComments = await fetchTotalReportsByStudent(fetchedStudents); // Using fetchTotalReports here
-                    setComments(totalComments);
+                            students
+                    );
+    
+                    if (fetchedStudents[0].iden === "null") {
+                        console.log("Students not found");
+                    } else {
+                        setStudents(fetchedStudents);
+                        setFilteredStudents(fetchedStudents);
+                        const totalComments = await fetchTotalReportsByStudent(fetchedStudents); // Using fetchTotalReports here
+                        setComments(totalComments);
+                    }
+    
+                    const fetchedCompanies: Company[] = await fetchAllCompanies()
+                        .then((companies) => companies._tag === "Some" ? companies.value : [{ id: "null" }] as Company[]);
+    
+                    if (fetchedCompanies[0].id === "null") {
+                        console.log("Company not found");
+                    } else {
+                        setCompanies(fetchedCompanies);
+                    }
+    
+                    const fetchedMajors: Major[] = await fetchAllMajors()
+                        .then((majors) => majors._tag === "Some" ? majors.value : [{ id: "null" }] as Major[]);
+    
+                    if (fetchedMajors[0].id === "null") {
+                        console.log("Majors not found");
+                    } else {
+                        setMajors(fetchedMajors);
+                    }
+    
+                    setFilterOptions(prev => ({
+                        ...prev,
+                        userRole: fetchedUser.role,
+                        companies: fetchedCompanies,
+                        majors: fetchedMajors,
+                    }));
+    
+                    setTempFilterOptions(prev => ({
+                        ...prev,
+                        userRole: fetchedUser.role,
+                        companies: fetchedCompanies,
+                        majors: fetchedMajors,
+                    }));
                 }
-
-                const fetchedCompanies: Company[] = await fetchAllCompanies()
-                    .then((companies) => companies._tag === "Some" ? companies.value : [{ id: "null" }] as Company[]);
-
-                if (fetchedCompanies[0].id === "null") {
-                    console.log("Company not found");
-                } else {
-                    setCompanies(fetchedCompanies);
-                }
-
-                const fetchedMajors: Major[] = await fetchAllMajors()
-                    .then((majors) => majors._tag === "Some" ? majors.value : [{ id: "null" }] as Major[]);
-
-                if (fetchedMajors[0].id === "null") {
-                    console.log("Majors not found");
-                } else {
-                    setMajors(fetchedMajors);
-                }
-
-                setFilterOptions(prev => ({
-                    ...prev,
-                    userRole: fetchedUser.role,
-                    companies: fetchedCompanies,
-                    majors: fetchedMajors,
-                }));
-
-                setTempFilterOptions(prev => ({
-                    ...prev,
-                    userRole: fetchedUser.role,
-                    companies: fetchedCompanies,
-                    majors: fetchedMajors,
-                }));
             }
-
+    
             setIsLoading(false);
         };
-
+    
         fetchPeriodsData();
         fetchData();
-    }, [userAuth, onSelectStudent]);
+    }, [userAuth, onSelectStudent, isSearching, studentResponse.pagination.currentPage]);
+    
 
     useEffect(() => {
         if (searchState.searchQuery.trim() === "") {
-            setFilteredStudents([]);
+            setSearchState(prevState => ({
+                ...prevState,
+                searchQuery: "",
+            }));
+            setIsSearching(false);
         }
     }, [searchState.searchQuery, students]);
 
@@ -165,48 +183,38 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         }));
     };
 
-    const handleSearch = () => {
-        let filtered = students;
-        if (searchState.searchQuery.trim() !== "") {
-            filtered = students.filter(student =>
-                student.name.toLowerCase().includes(searchState.searchQuery.toLowerCase()) ||
-                student.nim.toLowerCase().includes(searchState.searchQuery.toLowerCase()) ||
-                student.email.toLowerCase().includes(searchState.searchQuery.toLowerCase())
+    const handleSearch = async (page: number = 1) => {
+        let filtered: Student[] = [];
+        let paginationData: PaginatedResponse["pagination"] = studentResponse.pagination;
+    
+        try {
+            const response = await fetchStudentsWithFilters(
+                page,
+                studentResponse.pagination.limit,
+                searchState.searchQuery.trim(),
+                filterOptions.selectedPeriod
             );
+    
+            if (response._tag === "Some") {
+                const { students: fetchedStudents, pagination } = response.value;
+                filtered = fetchedStudents;
+                paginationData = pagination;
+            } else {
+                console.log("No students found.");
+            }
+        } catch (error) {
+            console.error("Error while searching students:", error);
         }
-
-        if (filterOptions.selectedPeriod) {
-            filtered = filtered.filter(student => student.period === filterOptions.selectedPeriod);
-        }
-
-        if (filterOptions.selectedCompany) {
-            filtered = filtered.filter(student => student.tempat_magang === filterOptions.selectedCompany);
-        }
-
-        if (filterOptions.selectedMajor) {
-            filtered = filtered.filter(student => student.major === filterOptions.selectedMajor);
-        }
-
-        if (searchState.sortField) {
-            filtered.sort((a, b) => {
-                const sortField = searchState.sortField as keyof Student;
-                if (a[sortField] < b[sortField]) {
-                    return searchState.sortOrder === "asc" ? -1 : 1;
-                }
-                if (a[sortField] > b[sortField]) {
-                    return searchState.sortOrder === "asc" ? 1 : -1;
-                }
-                return 0;
-            });
-        }
-
+    
         setFilteredStudents(filtered);
-
-        if (!searchHistory.includes(searchState.searchQuery)) {
+        setStudentResponse(prev => ({ ...prev, pagination: paginationData }));
+    
+        if (!searchHistory.includes(searchState.searchQuery) && searchState.searchQuery.trim() !== "") {
             setSearchHistory([searchState.searchQuery, ...searchHistory].slice(0, 5));
         }
     };
-
+    
+    
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             handleSearch();
@@ -258,56 +266,48 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     };
 
     const handleApplyFilters = () => {
-        setFilterOptions(prev => {
-            const updatedOptions = { ...prev, ...tempFilterOptions };
-            handleSearchWithOptions(updatedOptions); // Apply search with updated filter options
-            return updatedOptions;
-        });
+        const updatedOptions = { ...filterOptions, ...tempFilterOptions };
+    
+        setFilterOptions(updatedOptions);
+    
+        handleSearchWithOptions(updatedOptions);
+    
         toggleDropdown();
     };
     
-    const handleSearchWithOptions = (options: FilterOptions) => {
-        let filtered = students;
-        
-        if (searchState.searchQuery.trim() !== "") {
-            filtered = students.filter(student =>
-                student.name.toLowerCase().includes(searchState.searchQuery.toLowerCase()) ||
-                student.nim.toLowerCase().includes(searchState.searchQuery.toLowerCase()) ||
-                student.email.toLowerCase().includes(searchState.searchQuery.toLowerCase())
+    
+    
+    const handleSearchWithOptions = async (options: FilterOptions) => {
+        let filtered: Student[] = [];
+        let paginationData: PaginatedResponse["pagination"] = studentResponse.pagination;
+    
+        try {
+            const response = await fetchStudentsWithFilters(
+                studentResponse.pagination.currentPage,
+                studentResponse.pagination.limit,
+                searchState.searchQuery.trim(),
+                options.selectedPeriod
             );
-        }
     
-        if (options.selectedPeriod) {
-            filtered = filtered.filter(student => student.period === options.selectedPeriod);
-        }
-    
-        if (options.selectedCompany) {
-            filtered = filtered.filter(student => student.tempat_magang === options.selectedCompany);
-        }
-    
-        if (options.selectedMajor) {
-            filtered = filtered.filter(student => student.major === options.selectedMajor);
-        }
-    
-        if (searchState.sortField) {
-            filtered.sort((a, b) => {
-                const sortField = searchState.sortField as keyof Student;
-                if (a[sortField] < b[sortField]) {
-                    return searchState.sortOrder === "asc" ? -1 : 1;
-                }
-                if (a[sortField] > b[sortField]) {
-                    return searchState.sortOrder === "asc" ? 1 : -1;
-                }
-                return 0;
-            });
+            if (response._tag === "Some") {
+                const { students: fetchedStudents, pagination } = response.value;
+                filtered = fetchedStudents;
+                paginationData = pagination;
+            } else {
+                console.log("No students found.");
+            }
+        } catch (error) {
+            console.error("Error while applying filters:", error);
         }
     
         setFilteredStudents(filtered);
+        setStudentResponse(prev => ({ ...prev, pagination: paginationData }));
     
-        if (!searchHistory.includes(searchState.searchQuery)) {
+        if (!searchHistory.includes(searchState.searchQuery) && searchState.searchQuery.trim() !== "") {
             setSearchHistory([searchState.searchQuery, ...searchHistory].slice(0, 5));
         }
     };
+    
     
 
     const handleSearchFocus = () => {
@@ -380,6 +380,91 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         width: 808px;
     `;
 
+    const renderPagination = () => {
+        const totalPages = studentResponse.pagination?.totalPages || 1;
+        const currentPage = studentResponse.pagination?.currentPage || 1;
+    
+        const paginationStyle = css`
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+    
+            button {
+                padding: 5px 10px;
+                border: 1px solid #ddd;
+                background-color: #f9f9f9;
+                cursor: pointer;
+                border-radius: 5px;
+                font-size: 14px;
+    
+                &:hover {
+                    background-color: #eaeaea;
+                }
+    
+                &:disabled {
+                    background-color: #ccc;
+                    cursor: not-allowed;
+                }
+            }
+    
+            .active {
+                background-color: #ddd;
+                font-weight: bold;
+            }
+        `;
+    
+        const startPage = Math.max(1, currentPage - 1);
+        const endPage = Math.min(totalPages, currentPage + 1);
+    
+        const pageNumbers = [];
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(i);
+        }
+    
+        return (
+            <div css={paginationStyle}>
+                <button
+                    onClick={() => handleSearch(1)}
+                    disabled={currentPage === 1}
+                >
+                    &laquo;
+                </button>
+    
+                <button
+                    onClick={() => handleSearch(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    &lt;
+                </button>
+    
+                {pageNumbers.map((page) => (
+                    <button
+                        key={page}
+                        onClick={() => handleSearch(page)}
+                        className={page === currentPage ? "active" : ""}
+                    >
+                        {page}
+                    </button>
+                ))}
+    
+                <button
+                    onClick={() => handleSearch(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    &gt;
+                </button>
+    
+                <button
+                    onClick={() => handleSearch(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    &raquo;
+                </button>
+            </div>
+        );
+    };
+    
     return (
         <MainBox navText="Search">
             <div css={searchContainerStyle}>
@@ -458,6 +543,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     <p>No Student Found</p>
                 </div>
             )}
+            {renderPagination()}
         </MainBox>
     );
 };

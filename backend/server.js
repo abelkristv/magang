@@ -5,6 +5,26 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const xlsx = require('xlsx'); // Add this line to import the 'xlsx' module
+
+
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//       const uploadDir = path.join(__dirname, 'uploads');
+//       if (!fs.existsSync(uploadDir)) {
+//         fs.mkdirSync(uploadDir);
+//       }
+//       cb(null, uploadDir);
+//     },
+//     filename: (req, file, cb) => {
+//       cb(null, Date.now() + path.extname(file.originalname)); // Set unique filename
+//     },
+//   });
+
+  const upload = multer({ dest: 'uploads/' });
+  
 
 
 
@@ -43,13 +63,57 @@ app.get('/api/student/:id', async (req, res) => {
 
 app.get('/api/students', async (req, res) => {
     try {
-        const students = await prisma.student.findMany();
-        res.json(students);
+        const page = parseInt(req.query.page) || 1; 
+        const limit = parseInt(req.query.limit) || 10; 
+        const offset = (page - 1) * limit; 
+        const searchQuery = req.query.name || '';
+        const period = req.query.period || '';
+        const numericPeriod = period.match(/\d+\.\d+/)?.[0] || '';
+
+        const whereClause = {
+            AND: [
+                searchQuery ? {
+                    name: {
+                        contains: searchQuery, 
+                        mode: 'insensitive', 
+                    },
+                } : undefined,
+                numericPeriod ? {
+                    period: {
+                        equals: numericPeriod, 
+                    },
+                } : undefined,
+            ].filter(Boolean), 
+        };
+
+        const students = await prisma.student.findMany({
+            skip: offset,
+            take: limit,
+            where: whereClause,
+        });
+
+        const totalStudents = await prisma.student.count({
+            where: whereClause,
+        });
+
+        const totalPages = Math.ceil(totalStudents / limit);
+
+        res.json({
+            students,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalStudents,
+                limit,
+            }
+        });
     } catch (error) {
         console.error('Error fetching students:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+
 
 app.get('/api/reports', async (req, res) => {
     const { studentName, filterStartDate, filterEndDate } = req.query;
@@ -234,24 +298,49 @@ app.get('/api/student/:id/reports/count', async (req, res) => {
 });
 
 app.get('/api/students/search', async (req, res) => {
-    const { studentName } = req.query;
+    const { studentName, page = 1, limit = 10 } = req.query;
 
     if (!studentName) {
         return res.status(400).json({ error: 'studentName query parameter is required' });
     }
 
+    const pageNumber = parseInt(page);
+    const pageSize = parseInt(limit);
+    const offset = (pageNumber - 1) * pageSize;
+
     try {
         const students = await prisma.student.findMany({
             where: {
                 name: {
-                    contains: studentName, // Partial match search
-                    mode: 'insensitive', // Case insensitive
+                    contains: studentName,
+                    mode: 'insensitive',
+                },
+            },
+            skip: offset,
+            take: pageSize,
+        });
+
+        const totalStudents = await prisma.student.count({
+            where: {
+                name: {
+                    contains: studentName,
+                    mode: 'insensitive',
                 },
             },
         });
 
+        const totalPages = Math.ceil(totalStudents / pageSize);
+
         if (students.length > 0) {
-            res.json(students);
+            res.json({
+                students,
+                pagination: {
+                    currentPage: pageNumber,
+                    totalPages,
+                    totalStudents,
+                    limit: pageSize,
+                },
+            });
         } else {
             res.status(404).json({ error: 'No students found with the provided name' });
         }
@@ -260,6 +349,7 @@ app.get('/api/students/search', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 app.get('/api/documentation', async (req, res) => {
     try {
@@ -769,6 +859,127 @@ app.post('/api/verify-token', (req, res) => {
         res.status(200).json({ message: 'Token is valid' });
     });
 });
+
+app.post('/api/upload-student-data', upload.single('file'), async (req, res) => {
+    const { file } = req;
+    const { period } = req.body;
+    const periodYear = period.split(' ')[2].replace('.', '.')
+    if (!file) {
+        return res.status(400).json({ message: 'No file uploaded.' });
+    }
+
+    try {
+        const fileExtension = path.extname(file.originalname); // Ensure 'path' is used
+        let studentData = [];
+
+        if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+            const workbook = xlsx.readFile(file.path);
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const data = xlsx.utils.sheet_to_json(sheet);
+            console.log('Raw data:', data);     
+
+            studentData = data.map((row) => ({
+                name: row.NAME,   // Ensure the field names match
+                email: row.EMAIL,
+                major: row.MAJOR,
+                nim: String(row['STUDENT ID']),
+                semester: "6",
+                period: periodYear,
+                tempatMagang : "",
+                phone: "",
+                imageUrl: "",
+                status: "active",
+                facultySupervisor: "",
+                siteSupervisor: "",
+                major: ""
+            }));
+
+        } else if (fileExtension === '.csv') {
+            studentData = [];
+            fs.createReadStream(file.path)
+                .pipe(csvParser())
+                .on('data', (row) => {
+                    console.log('Raw row data:', row); // Log each row
+                    studentData.push({
+                        name: row.NAME,  // Ensure the field names match
+                        email: row.EMAIL,
+                        major: row.MAJOR,
+                        nim: String(row['STUDENT ID']),
+                        semester: "6",
+                        period: periodYear,
+                        tempatMagang : "",
+                        phone: "",
+                        imageUrl: "",
+                        status: "active",
+                        facultySupervisor: "",
+                        siteSupervisor: "",
+                        major: ""
+                    });
+                });
+
+            return;
+        } else {
+            return res.status(400).json({ message: 'Invalid file type. Only .csv, .xlsx, and .xls are allowed.' });
+        }
+
+        await saveStudentDataToDb(studentData, periodYear);
+        res.status(200).json({ message: 'File processed and data uploaded successfully' });
+
+    } catch (error) {
+        console.error('Error processing file:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+async function saveStudentDataToDb(studentData, periodYear) {
+    for (const student of studentData) {
+        // if (!student.name || !student.email || !student.major) {
+        //     // console.error('Missing required field for student:', student);
+        //     continue; 
+        // }
+        await prisma.student.create({
+            data: {
+                name: student.name,
+                email: student.email,
+                major: student.major,
+                nim: student.nim,
+                semester: "6",
+                period: periodYear,
+                tempatMagang : "",
+                phone: "",
+                imageUrl: "",
+                status: "active",
+                facultySupervisor: "",
+                siteSupervisor: "",
+                major: ""
+            },
+        });
+    }
+}
+
+
+
+  app.post('/api/periods', async (req, res) => {
+    const { name } = req.body;
+  
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Period name is required.' });
+    }
+  
+    try {
+      const newPeriod = await prisma.period.create({
+        data: {
+          name, 
+        },
+      });
+  
+      res.status(201).json(newPeriod);
+    } catch (error) {
+      console.error('Error saving period:', error);
+      res.status(500).json({ message: 'Failed to save period' });
+    }
+  });
+  
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

@@ -179,6 +179,17 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                         <Icon icon={"material-symbols:book"} color={activeTab === "Documentation" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Documentation")}>Documentation</a>
                     </div>
+                    <div
+                        className="sidebarContentContainer"
+                        css={sidebarContentContainerStyle(activeTab === "Upload Student Data")}
+                        onClick={() => {
+                            setActiveTab("Upload Student Data");
+                            navigate('/enrichment-documentation/workspaces/upload-student-data');
+                        }}
+                    >
+                        <Icon icon={"material-symbols:person"} color={activeTab === "Upload Student Data" ? "black" : "white"} fontSize={25} />
+                        <a href="#" css={linkStyle(activeTab === "Upload Student Data")}>Upload Student Data</a>
+                    </div>
                 </div>
                 <hr />
                 <div

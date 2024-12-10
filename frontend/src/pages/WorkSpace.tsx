@@ -8,6 +8,7 @@ import StudentListBox from '../components/StudentList/StudentListBox';
 import ProfileBox from '../components/ProfileBox';
 import DocumentationBox from '../components/Documentation/DocumentationBox/DocumentationBox';
 import StudentDetailBox from '../components/StudentDetail/StudentDetailBox';
+import UploadStudentData from '../components/UploadStudentData/UploadStudentData';
 import AddNewDocumentationBox from '../components/Documentation/Add New Documentation/AddNewDocumentationbox';
 import { useAuth } from '../helper/AuthProvider';
 import { Route, Routes, Navigate } from 'react-router-dom';
@@ -65,6 +66,7 @@ const WorkSpace = () => {
                 <Route path="/profile" element={<ProfileBox setTodayReportsCount={setUrgentReportsCount} />} />
                 <Route path="/add-new-documentation" element={<AddNewDocumentationBox />} />
                 <Route path="/documentation" element={<DocumentationBox setGlobalActiveTab={setActiveTab} />} />
+                <Route path="/upload-student-data" element={<UploadStudentData />} /> 
             </Routes>
         </main>
     );

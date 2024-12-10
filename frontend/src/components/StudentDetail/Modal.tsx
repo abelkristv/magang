@@ -70,17 +70,15 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
     if (!isOpen) return null;
 
     const handleSubmit = () => {
-        // e.preventDefault();
-
         setError('');
         setDateError('');
         setTimeStartError('');
         setTimeEndError('');
         setDescriptionError('');
         setPlaceError('');
-        
+    
         let hasError = false;
-
+    
         const currentDate = new Date();
         const selectedDate = new Date(date);
         if (!date) {
@@ -90,7 +88,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
             setDateError('Date cannot be in the past.');
             hasError = true;
         }
-
+    
         if (!timeStart) {
             setTimeStartError('Start time is required.');
             hasError = true;
@@ -99,54 +97,53 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
             setTimeEndError('End time is required.');
             hasError = true;
         }
-
+    
         const start = new Date(`1970-01-01T${timeStart}:00`);
         const end = new Date(`1970-01-01T${timeEnd}:00`);
-
-        if (end < start) {
-            setError("End time can't earlier than start time.");
-            return;
-        }
-
-        
+    
         if (timeStart && timeEnd) {
-            const start = new Date(`1970-01-01T${timeStart}:00`);
-            const end = new Date(`1970-01-01T${timeEnd}:00`);
             if (end < start) {
                 setTimeEndError('End time cannot be earlier than start time.');
                 hasError = true;
             }
         }
-
+    
         // Validate description
         if (!description.trim()) {
             setDescriptionError('Description is required.');
             hasError = true;
         }
-
-        // Validate place/Zoom link
+    
+        // Validate place based on meeting type
         if (!place.trim()) {
             setPlaceError('Place or Zoom Link is required.');
             hasError = true;
+        } else if (meetingType === 'online') {
+            // Zoom URL validation
+            const zoomUrlRegex = /^https:\/\/(www\.)?zoom\.us\/[a-zA-Z0-9/?=&_.-]+$/;
+            if (!zoomUrlRegex.test(place)) {
+                setPlaceError('Please provide a valid Zoom URL.');
+                hasError = true;
+            }
         }
-
+    
         // Stop submission if there are errors
         if (hasError) return;
-
+    
         setError('');
         onSubmit({ timeStart, timeEnd, description, place, date, meetingType, studentReportId });
-        setTimeEnd('')
-        setTimeStart('')
-        setDescription('')
-        setPlace('')
-        setDate('')
-        setMeetingType('Online')
-        // setVisible(true);
+        setTimeEnd('');
+        setTimeStart('');
+        setDescription('');
+        setPlace('');
+        setDate('');
+        setMeetingType('online');
         setTimeout(() => {
             setVisible(false);
         }, 5000);
         onClose();
     };
+    
 
     const modalStyle = css`
         position: fixed;

@@ -42,18 +42,37 @@ import { option } from "fp-ts";
 //     }
 // };
 
-const fetchAllStudents = async (): Promise<Option<Student[]>> => {
+export interface PaginatedResponse {
+    students: Student[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalStudents: number;
+        limit: number;
+    };
+}
+
+const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Option<PaginatedResponse>> => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students`);
-        
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students?page=${page}&limit=${limit}`
+        );
+
         if (response.status !== 200) {
-            console.error("Error fetching students from API");
+            console.error("Error fetching students from API:", response.status);
             return option.none;
         }
 
         const data = await response.json();
+        console.log("API Response:", data);
 
-        const studentsData = data.map((student: any) => ({
+        // Ensure data contains the expected structure
+        if (!data.students || !data.pagination) {
+            console.error("Unexpected API response structure:", data);
+            return option.none;
+        }
+
+        const studentsData = data.students.map((student: any) => ({
             iden: student.id.toString(),
             name: student.name,
             nim: student.nim,
@@ -70,7 +89,10 @@ const fetchAllStudents = async (): Promise<Option<Student[]>> => {
             period: student.period,
         } as Student));
 
-        return option.some(studentsData);
+        return option.some({
+            students: studentsData,
+            pagination: data.pagination,
+        });
     } catch (error) {
         console.error("Error fetching students from API:", error);
         return option.none;
@@ -142,43 +164,105 @@ export const updateStudentNotes = async (
     }
 };
 
-const fetchStudentsByName = async (studentName: string): Promise<Option<Student[]>> => {
+const fetchStudentsByName = async (studentName: string, page: number = 1, limit: number = 10): Promise<Option<PaginatedResponse>> => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students/search?studentName=${encodeURIComponent(studentName)}`);
-        
-        if (response.status === 404) {
-            console.error("No students found with the provided name");
-            return option.none;
-        }
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students/search?studentName=${encodeURIComponent(studentName)}&page=${page}&limit=${limit}`
+        );
 
         if (!response.ok) {
+            if (response.status === 404) {
+                console.error("No students found with the provided name.");
+                return option.none;
+            }
             throw new Error(`Error fetching students: ${response.statusText}`);
         }
 
         const data = await response.json();
 
-        const studentsData = data.map((student: any) => ({
-            iden: student.id.toString(),
-            name: student.name,
-            nim: student.nim,
-            semester: student.semester,
-            tempat_magang: student.tempatMagang,
-            email: student.email,
-            phone: student.phone,
-            image_url: student.imageUrl,
-            status: student.status,
-            faculty_supervisor: student.facultySupervisor,
-            site_supervisor: student.siteSupervisor,
-            major: student.major,
-            notes: student.notes,
-            period: student.period,
-        } as Student));
-
-        return option.some(studentsData);
+        return option.some({
+            students: data.students.map((student: any) => ({
+                iden: student.id.toString(),
+                name: student.name,
+                nim: student.nim,
+                semester: student.semester,
+                tempat_magang: student.tempatMagang,
+                email: student.email,
+                phone: student.phone,
+                image_url: student.imageUrl,
+                status: student.status,
+                faculty_supervisor: student.facultySupervisor,
+                site_supervisor: student.siteSupervisor,
+                major: student.major,
+                notes: student.notes,
+                period: student.period,
+            })),
+            pagination: data.pagination,
+        });
     } catch (error) {
         console.error("Error fetching students by name:", error);
         return option.none;
     }
 };
 
-export { fetchAllStudents, fetchStudentsByName };
+const fetchStudentsWithFilters = async (
+    page: number = 1,
+    limit: number = 9,
+    name?: string,
+    period?: string
+): Promise<Option<PaginatedResponse>> => {
+    try {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+        });
+
+        if (name) {
+            params.append("name", name);
+        }
+
+        if (period) {
+            params.append("period", period);
+        }
+
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students?${params.toString()}`
+        );
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.error("No students found.");
+                return option.none;
+            }
+            throw new Error(`Error fetching students: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        return option.some({
+            students: data.students.map((student: any) => ({
+                iden: student.id.toString(),
+                name: student.name,
+                nim: student.nim,
+                semester: student.semester,
+                tempat_magang: student.tempatMagang,
+                email: student.email,
+                phone: student.phone,
+                image_url: student.imageUrl,
+                status: student.status,
+                faculty_supervisor: student.facultySupervisor,
+                site_supervisor: student.siteSupervisor,
+                major: student.major,
+                notes: student.notes,
+                period: student.period,
+            })),
+            pagination: data.pagination,
+        });
+    } catch (error) {
+        console.error("Error fetching students with filters:", error);
+        return option.none;
+    }
+};
+
+
+export { fetchAllStudents, fetchStudentsByName, fetchStudentsWithFilters };
