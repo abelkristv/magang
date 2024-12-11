@@ -45,6 +45,8 @@ import { Report } from "../../model/Report";
 import { fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
 import SuccessPopup from "../Elementary/SuccessPopup";
 import EditReportModal from "./EditReportModal";
+import { useParams } from "react-router-dom";
+import ConfirmationModal from "./ConfirmationModal";
 
 function formatDate(dateString: string): string {
     const [year, month, day] = dateString.split('-');
@@ -53,7 +55,9 @@ function formatDate(dateString: string): string {
     return date.toLocaleDateString('en-GB', options).replace(/ /g, ' ');
 }
 
-const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
+const StudentDetailBox = () => {
+
+    const { studentId } = useParams<{ studentId: string }>();
     const userAuth = useAuth();
     const [student, setStudent] = useState<Student | null>(null);
     const [reports, setReports] = useState<Report[]>([] as Report[]);
@@ -77,6 +81,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const [sortOrder, setSortOrder] = useState<string>("latest");  // Default to "latest"
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
     const [editedStatus, setEditedStatus] = useState<string>("");
+    const [dateErrorMessage, setDateErrorMessage] = useState<string>("");
 
     const [isVisible, setIsVisible] = useState(false);
 
@@ -85,9 +90,9 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
     const [editedNotes, setEditedNotes] = useState<string>("");
 
-    const [filterType, setFilterType] = useState<string>("");  // for filtering by type
-    const [filterPerson, setFilterPerson] = useState<string>("");  // for filtering by person
-
+    const [filterType, setFilterType] = useState<string>(""); 
+    const [filterPerson, setFilterPerson] = useState<string>(""); 
+    const [filterStatus, setFilterStatus] = useState<string>("");  
 
     useEffect(() => {
         const fetchData = async () => {
@@ -102,8 +107,12 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     }, [userAuth]);
 
     useEffect(() => {
+        setDateErrorMessage(dateErrorMessage)
+    }, [dateErrorMessage]);
+
+    useEffect(() => {
         const fetchStudent = async () => {
-            const studentOption: Option<Student> = await fetchStudentById(studentId);
+            const studentOption: Option<Student> = await fetchStudentById(studentId!);
             if (studentOption._tag === "Some") {
                 const studentData = studentOption.value;
                 setStudent(studentData);
@@ -122,7 +131,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 
                 // Apply type and person filters
                 const filteredByType = filterType ? reportList.filter(report => report.type === filterType) : reportList;
-                const filteredReports = filterPerson ? filteredByType.filter(report => report.person === filterPerson) : filteredByType;
+                const filteredByStatus = filterStatus ? filteredByType.filter(report => report.status === filterStatus) : filteredByType
+                const filteredReports = filterPerson ? filteredByStatus.filter(report => report.person === filterPerson) : filteredByStatus;
     
                 // Sort reports by latest or earliest
                 const sortedReports = filteredReports.sort((a, b) => {
@@ -143,7 +153,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             }
         };
         fetchReportsData();
-    }, [student, sortOrder, isFetching]);
+    }, [student, isFetching]);
     
     
 
@@ -216,14 +226,27 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
         setExpandedReportId(reportId === expandedReportId ? null : reportId);
     };
 
-    const handleDeleteReport = async (reportId: string) => {
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+    const [reportToDelete, setReportToDelete] = useState<string | null>(null);
+
+    const handleDeleteClick = (reportId: string) => {
+        setReportToDelete(reportId);
+        setIsConfirmModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!reportToDelete) return;
+
         try {
-            setDeletingReportId(reportId);
-            const updatedReports = await deleteStudentReport(reportId, reports);
+            setDeletingReportId(reportToDelete);
+            const updatedReports = await deleteStudentReport(reportToDelete, reports);
             setReports(updatedReports);
         } catch (error) {
+            console.error("Error deleting report:", error);
         } finally {
             setDeletingReportId(null);
+            setReportToDelete(null);
+            setIsConfirmModalOpen(false);
         }
     };
 
@@ -288,7 +311,8 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             'Report',
             'Timestamp',
             'Type',
-            'Person',
+            'Source',
+            'Status'
         ];
     
         // Include type and person in the data map
@@ -298,6 +322,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             Timestamp: new Date(report.timestamp).toLocaleString(),
             Type: report.type,
             Person: report.person,
+            Status : report.status
         }));
     
         const workbook = new ExcelJS.Workbook();
@@ -339,11 +364,13 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
             { key: 'Timestamp', width: 20 },
             { key: 'Type', width: 15 },
             { key: 'Person', width: 15 },
+            { key: 'Status', width: 15 },
+            
         ];
     
         // Export the file
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StudentReports.xlsx');
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'studentrecord_' + student?.nim + "_" +student?.name + "_" +startDate + "_" + endDate + "_" + '.xlsx');
     };    
     
 
@@ -362,7 +389,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     const handleEditNotesClick = async () => {
         if (isEditingNotes) {
             try {
-                const updatedStudent = await updateStudentNotes(studentId, editedNotes, student);
+                const updatedStudent = await updateStudentNotes(studentId!, editedNotes, student);
                 setStudent(updatedStudent);
             } catch (error) {
                 // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
@@ -374,6 +401,12 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     };
 
     const onApplyFilter = () => {
+        if (filterStartDate > filterEndDate) {
+            setDateErrorMessage("* start date cannot be greater than end date")
+            return
+        } else {
+            setDateErrorMessage("")
+        }
         setIsFetching(true);
     };
 
@@ -478,14 +511,15 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
     `;
 
     const buttonStyle = css`
-        margin-left: 7rem;
-        margin-top: 2rem;
+        // margin-left: 7rem;
+        margin-top: 4rem;
         background-color: #49A8FF;
         color: white;
         padding: 10px 20px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
+        width : 100%;
         font-size: 17px;
         font-weight: 500;
         &:hover {
@@ -709,109 +743,138 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                     <p style={{fontSize:"15px"}} >All Records</p>
                                     <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} />
                                 </Dropdown>
-                                <DropdownContent isOpen={isDropdownOpen} style={{display: "", flexDirection: "row", gap: "25px"}}>
-                                    <div className="time">
-                                        <p style={{marginBottom: "12px", fontSize: "16px"}}>Time</p>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                            <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
-                                                <p style={{fontSize: "15px", width: "18%"}}>Start</p>
-                                                <input style={{
-                                                    padding: "6px",
-                                                    fontSize: "15px",
-                                                    height: "30px",
-                                                    border: "1px solid #ccc",
-                                                    borderRadius: "5px"}} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
-                                            </div>
-                                            <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
-                                                <p style={{fontSize: "15px", width: "18%"}}>End</p>
-                                                <input style={{
-                                                    padding: "6px",
-                                                    fontSize: "15px",
-                                                    height: "30px",
-                                                    border: "1px solid #ccc",
-                                                    borderRadius: "5px"}} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
-                                            </div>
-                                        </div>
-                                        <div className="type">
-                                            <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Type</p>
+                                <DropdownContent isOpen={isDropdownOpen} style={{display: ""}}>
+                                    <div style={{display: "flex", flexDirection: "row", gap: "25px"}}>
+                                        <div className="time">
+                                            <p style={{marginBottom: "12px", fontSize: "16px"}}>Time</p>
                                             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                <select
-                                                    style={{
+                                                <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
+                                                    <p style={{fontSize: "15px", width: "18%"}}>Start</p>
+                                                    <input style={{
                                                         padding: "6px",
                                                         fontSize: "15px",
+                                                        height: "30px",
                                                         border: "1px solid #ccc",
-                                                        borderRadius: "5px",
-                                                        width: "212px",
-                                                        height: "45px",
-                                                        backgroundColor: "white"
-                                                    }}
-                                                    value={filterType}
-                                                    onChange={(e) => setFilterType(e.target.value)}
-                                                >
-                                                    <option value="">All</option>
-                                                    <option value="Urgent">Urgent</option>
-                                                    <option value="Report">Report</option>
-                                                    <option value="Complaint">Complaint</option>
-                                                </select>
+                                                        borderRadius: "5px"}} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
+                                                </div>
+                                                <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
+                                                    <p style={{fontSize: "15px", width: "18%"}}>End</p>
+                                                    <input style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        height: "30px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px"}} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
+                                                </div>
                                             </div>
+                                            <div className="type">
+                                                <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Type</p>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                    <select
+                                                        style={{
+                                                            padding: "6px",
+                                                            fontSize: "15px",
+                                                            border: "1px solid #ccc",
+                                                            borderRadius: "5px",
+                                                            width: "212px",
+                                                            height: "45px",
+                                                            backgroundColor: "white"
+                                                        }}
+                                                        value={filterType}
+                                                        onChange={(e) => setFilterType(e.target.value)}
+                                                    >
+                                                        <option value="">All</option>
+                                                        <option value="Urgent">Urgent</option>
+                                                        <option value="Report">Report</option>
+                                                        <option value="Complaint">Complaint</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="status">
+                                                <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Status</p>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                    <select
+                                                        style={{
+                                                            padding: "6px",
+                                                            fontSize: "15px",
+                                                            border: "1px solid #ccc",
+                                                            borderRadius: "5px",
+                                                            width: "212px",
+                                                            height: "45px",
+                                                            backgroundColor: "white"
+                                                        }}
+                                                        value={filterStatus}
+                                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                                    >
+                                                        <option value="">All</option>
+                                                        <option value="solved">Solved</option>
+                                                        <option value="not solved">Not Solved</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="buttonContainer">
+
+                                                <button type="submit" css={buttonStyle} onClick={onApplyFilter}>
+                                                    Apply
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                        <div className="rightSide">
+                                            <div className="sorting">
+                                                <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                    <select
+                                                        style={{
+                                                            padding: "6px",
+                                                            fontSize: "15px",
+                                                            border: "1px solid #ccc",
+                                                            borderRadius: "5px",
+                                                            height: "45px",
+                                                            width: "200px",
+                                                            backgroundColor: "white"
+                                                        }}
+                                                        value={sortOrder}
+                                                        onChange={(e) => setSortOrder(e.target.value)}
+                                                    >
+                                                        <option value="latest">Latest</option>
+                                                        <option value="earliest">Earliest</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="person" style={{marginTop: "75px"}}>
+                                                <p style={{ marginBottom: "12px", fontSize: "16px" }}>Source</p>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                    <select
+                                                        style={{
+                                                            padding: "6px",
+                                                            fontSize: "15px",
+                                                            border: "1px solid #ccc",
+                                                            borderRadius: "5px",
+                                                            width: "200px",
+                                                            height: "45px",
+                                                            backgroundColor: "white"
+                                                        }}
+                                                        value={filterPerson}
+                                                        onChange={(e) => setFilterPerson(e.target.value)}
+                                                    >
+                                                        <option value="">All</option>
+                                                        <option value="Student">Student</option>
+                                                        <option value="Enrichment">Enrichment</option>
+                                                        <option value="Company">Company</option>
+                                                        {/* {Object.keys(userEmailsToNames).map((personEmail) => (
+                                                            <option key={personEmail} value={personEmail}>
+                                                                {userEmailsToNames[personEmail]}
+                                                            </option>
+                                                        ))} */}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
                                         </div>
                                     </div>
-                                    <div className="rightSide">
-                                        <div className="sorting">
-                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
-                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                <select
-                                                    style={{
-                                                        padding: "6px",
-                                                        fontSize: "15px",
-                                                        border: "1px solid #ccc",
-                                                        borderRadius: "5px",
-                                                        height: "45px",
-                                                        width: "200px",
-                                                        backgroundColor: "white"
-                                                    }}
-                                                    value={sortOrder}
-                                                    onChange={(e) => setSortOrder(e.target.value)}
-                                                >
-                                                    <option value="latest">Latest</option>
-                                                    <option value="earliest">Earliest</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="person" style={{marginTop: "75px"}}>
-                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Source</p>
-                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                <select
-                                                    style={{
-                                                        padding: "6px",
-                                                        fontSize: "15px",
-                                                        border: "1px solid #ccc",
-                                                        borderRadius: "5px",
-                                                        width: "200px",
-                                                        height: "45px",
-                                                        backgroundColor: "white"
-                                                    }}
-                                                    value={filterPerson}
-                                                    onChange={(e) => setFilterPerson(e.target.value)}
-                                                >
-                                                    <option value="">All</option>
-                                                    <option value="Student">Student</option>
-                                                    <option value="Enrichment">Enrichment</option>
-                                                    <option value="Company">Company</option>
-                                                    {/* {Object.keys(userEmailsToNames).map((personEmail) => (
-                                                        <option key={personEmail} value={personEmail}>
-                                                            {userEmailsToNames[personEmail]}
-                                                        </option>
-                                                    ))} */}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginTop: "10px"}}>
-                                            <button type="submit" css={buttonStyle} onClick={onApplyFilter}>
-                                                Apply
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <div style={{color: "red", fontSize: "14px"}}>{dateErrorMessage}</div>
+                                    
                                 </DropdownContent>
                             </div>
                         </div>
@@ -871,7 +934,7 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                                                                 icon={"ic:baseline-delete"}
                                                                 fontSize={24}
                                                                 style={{ cursor: 'pointer' }}
-                                                                onClick={() => handleDeleteReport(report.id)}
+                                                                onClick={() => handleDeleteClick(report.id)}
                                                             />
                                                         </>
                                                     )}
@@ -975,6 +1038,12 @@ const StudentDetailBox: React.FC<StudentDetailBoxProps> = ({ studentId }) => {
                 isOpen={isExportModalOpen}
                 onClose={handleExportModalClose}
                 onExport={handleExportModalSubmit}
+            />
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this report? This action cannot be undone."
             />
             <SuccessPopup message='The meeting has been successfully scheduled' isVisible={isVisible} />
         </Main>

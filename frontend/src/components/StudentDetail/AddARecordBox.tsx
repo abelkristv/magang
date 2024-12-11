@@ -257,7 +257,12 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                 <div className="person-dropdown" css={dropdownStyle}>
                     <p style={{marginBottom: "5px", fontSize:"17px"}}>Status</p>
                         <div css={dropdownButtonStyle} onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}>
-                            <div style={{fontSize:"15px"}}>{selectedStatus}</div>
+                        <div style={{ fontSize: "15px" }}>
+                            {selectedStatus
+                                .split(' ')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ')}
+                        </div>
                             <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
                         </div>
                         {isStatusDropdownOpen && (

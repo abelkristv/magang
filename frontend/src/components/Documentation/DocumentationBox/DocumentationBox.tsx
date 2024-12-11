@@ -18,6 +18,9 @@ import notFoundImage from "../../../assets/not_found.png";
 import { fetchDiscussionDetails, fetchDiscussionsWithDetails } from "../../../controllers/DiscussionDetailController";
 import { useNavigate } from "react-router-dom";
 import JSZip from 'jszip';
+import { title } from "process";
+import { start } from "repl";
+import FailedPopup from "../../Elementary/FailedPopup";
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -37,8 +40,11 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const [exportEndDate, setExportEndDate] = useState<string>('');
     const [exportType, setExportType] = useState<string>('All');
     const [docDates, setDocDates] = useState<string[]>([]);
+    const [dateErrorMessage, setDateErrorMessage] = useState<string>("");
     const userAuth = useAuth();
     const modalRef = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+    
 
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -77,6 +83,10 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
         fetchData();
     }, []);
+
+    useEffect(() => {
+        setDateErrorMessage(dateErrorMessage)
+    }, [dateErrorMessage])
     
 
     useEffect(() => {
@@ -193,7 +203,10 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
     const downloadImages = async () => {
         if (!selectedDocumentation || !selectedDocumentation.pictures?.length) {
-            console.error("No images to download");
+            setIsVisible(true)
+            setTimeout(() => {
+                setIsVisible(false);
+            }, 5000);
             return;
         }
     
@@ -206,7 +219,13 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     
         try {
             const content = await zip.generateAsync({ type: 'blob' });
-            saveAs(content, `${selectedDocumentation.title}_images.zip`);
+            const timestamp = selectedDocumentation.time; 
+            const dateObject = new Date(timestamp);
+
+            const formattedDate = dateObject.toISOString().split('T')[0];
+
+            saveAs(content, `documentation_${selectedDocumentation.title}_${formattedDate}.zip`);
+
         } catch (error) {
             console.error("Error generating zip file: ", error);
         }
@@ -217,16 +236,31 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         setActiveTab(tab);
     };
 
-    const openExportModal = () => setIsExportModalOpen(true);
+    const openExportModal = () => {
+        setDateErrorMessage("");
+        setIsExportModalOpen(true)
+    };
     const closeExportModal = () => setIsExportModalOpen(false);
 
     const exportToExcel = async () => {
         const startDate = new Date(exportStartDate);
         const endDate = new Date(exportEndDate);
+        console.log(isNaN(startDate.getTime()))
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            setDateErrorMessage("One or more dates are invalid");
+            return;
+        }
+        if (startDate > endDate) {
+            setDateErrorMessage("start date cant be bigger than end date")
+            return
+        }
+        setDateErrorMessage('')
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
+        let title;
         const filteredDocs = documentations.filter(doc => {
             let docDate: Date;
+            title = doc.title
     
             if (doc.timestamp instanceof Date) {
                 docDate = doc.timestamp;
@@ -362,7 +396,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         
     
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'documentation.xlsx');
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'documentation' + '_' + title + '_' + '.xlsx');
     
         closeExportModal();
     };
@@ -1165,14 +1199,19 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                 </select>
                             </div>
                         </div>
+                        <div style={{color: 'red', fontSize: "14px"}}>*{dateErrorMessage}</div>
+
                         <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginBottom:"20px", marginTop:"23px"}}>
                             <button onClick={exportToExcel} css={exportButton}>
                                 Export
                             </button>
                         </div>
+                        
                     </div>
                 </div>
             )}
+                        <FailedPopup isVisible={isVisible} message="There is no message to download" />
+
         </main>
     );
 }

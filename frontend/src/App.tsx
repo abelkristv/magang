@@ -7,7 +7,6 @@ import WorkSpace from './pages/WorkSpace';
 
 function App() {
 
-  console.log("test")
   return (
     <AuthProvider>
       <Router>

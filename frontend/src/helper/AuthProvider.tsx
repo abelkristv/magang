@@ -10,8 +10,7 @@ interface AuthContextType {
     logout: () => void;
 }
 
-// Create the context with a default value of null
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function useAuth() {
     return useContext(AuthContext);

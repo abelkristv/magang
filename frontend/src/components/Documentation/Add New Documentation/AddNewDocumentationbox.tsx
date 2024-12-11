@@ -16,6 +16,7 @@ import Compressor from 'compressorjs';
 import { fetchDiscussionDetails } from '../../../controllers/DiscussionDetailController';
 import { css } from '@emotion/react';
 import SuccessPopup from '../../Elementary/SuccessPopup';
+import { useNavigate } from 'react-router-dom';
 
 interface DiscussionDetail {
     discussionTitle: string;
@@ -50,6 +51,7 @@ const AddNewDocumentationBox: React.FC = () => {
     const [newPicture, setNewPicture] = useState<File | null>(null); 
     const [isPicturesModalOpen, setIsPicturesModalOpen] = useState<boolean>(false);
     const userAuth = useAuth();
+    const navigate = useNavigate();
 
     const [title, setTitle] = useState<string>("");
     const [invitationNumber, setInvitationNumber] = useState<string>("");
@@ -375,6 +377,7 @@ const AddNewDocumentationBox: React.FC = () => {
                 setTotalCounter(0);
                 setResults([]);
                 setPictures([]);
+                navigate('/enrichment-documentation/workspaces/documentation')
             } else {
                 alert(result.message);
             }

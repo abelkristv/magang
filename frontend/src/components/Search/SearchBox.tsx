@@ -19,12 +19,14 @@ import { fetchAllCompanies } from "../../controllers/CompanyController";
 import { fetchAllMajors } from "../../controllers/MajorController";
 import { fetchPeriods } from "../../controllers/PeriodController";
 import { fetchTotalReportsByStudent } from "../../controllers/ReportController";
+import { useNavigate } from "react-router-dom";
 
 interface SearchBoxProps {
     onSelectStudent: (studentId: string | null ) => void;
 }
 
 const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
+    const navigate = useNavigate();
     const [students, setStudents] = useState<Student[]>([]);
     const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
     const [_user, setUser] = useState<User | null>(null);
@@ -37,6 +39,11 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [studentResponse, setStudentResponse] = useState<PaginatedResponse>({pagination: {currentPage : 1, limit: 9}} as PaginatedResponse);
     const userAuth = useAuth();
+
+    const handleStudentSelect = (studentId: string) => {
+        onSelectStudent(studentId);
+        navigate(`/enrichment-documentation/workspaces/student-detail/${studentId}`);
+    };
 
     const [searchState, setSearchState] = useState<SearchState>({
         searchQuery: "",
@@ -513,7 +520,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                             <StudentCard 
                                 key={student.iden} 
                                 student={student} 
-                                onClick={() => onSelectStudent(student.iden)} 
+                                onClick={() =>handleStudentSelect(student.iden)} 
                                 totalComments={comments[student.name] || 0}  // Using comments for total reports
                                 isLoading={isLoading} 
                             />

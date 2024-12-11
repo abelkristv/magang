@@ -22,11 +22,10 @@ const WorkSpace = () => {
 
     useEffect(() => {
         const fetchReportSize = async () => {
-            const reports = await fetchUrgentStudentReports()
-            setUrgentReportsCount(reports.length)
-        }
-        fetchReportSize()
-        // fetchUrgentReportsCount();
+            const reports = await fetchUrgentStudentReports();
+            setUrgentReportsCount(reports.length);
+        };
+        fetchReportSize();
     }, [activeTab, userAuth]);
 
     const mainStyle = css`
@@ -40,36 +39,25 @@ const WorkSpace = () => {
 
     return (
         <main css={mainStyle}>
-            <Sidebar 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
-                setSelectedStudentId={setSelectedStudentId} 
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                setSelectedStudentId={setSelectedStudentId}
                 todayReportsCount={urgentReportsCount}
             />
             <Routes>
                 <Route path="/" element={<Navigate to="/workspaces" />} />
                 <Route path="/dashboard" element={<DashboardBox setActiveTab={setActiveTab} />} />
-                <Route path="/search" element={
-                    selectedStudentId ? (
-                        <StudentDetailBox studentId={selectedStudentId} />
-                    ) : (
-                        <SearchBox onSelectStudent={setSelectedStudentId} />
-                    )
-                } />
-                <Route path="/student-list" element={
-                    selectedStudentId ? (
-                        <StudentDetailBox studentId={selectedStudentId} />
-                    ) : (
-                        <StudentListBox onSelectStudent={setSelectedStudentId} />
-                    )
-                } />
+                <Route path="/search" element={<SearchBox onSelectStudent={setSelectedStudentId} />} />
+                <Route path="/student-list" element={<StudentListBox onSelectStudent={setSelectedStudentId} />} />
+                <Route path="/student-detail/:studentId" element={<StudentDetailBox/>} />
                 <Route path="/profile" element={<ProfileBox setTodayReportsCount={setUrgentReportsCount} />} />
                 <Route path="/add-new-documentation" element={<AddNewDocumentationBox />} />
                 <Route path="/documentation" element={<DocumentationBox setGlobalActiveTab={setActiveTab} />} />
-                <Route path="/upload-student-data" element={<UploadStudentData />} /> 
+                <Route path="/upload-student-data" element={<UploadStudentData />} />
             </Routes>
         </main>
     );
-}
+};
 
 export default WorkSpace;

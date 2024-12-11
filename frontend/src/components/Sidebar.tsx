@@ -7,6 +7,7 @@ import { css } from "@emotion/react";
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
 
 interface SideBarProps {
     width?: string;
@@ -18,6 +19,21 @@ interface SideBarProps {
 
 const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCount }: SideBarProps) => {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const storedTab = localStorage.getItem('activeTab');
+        if (storedTab) {
+            setActiveTab(storedTab);
+        } else {
+            setActiveTab("Dashboard"); 
+        }
+    }, [setActiveTab]);
+
+    const handleTabClick = (tab: string, path: string) => {
+        setActiveTab(tab);
+        localStorage.setItem('activeTab', tab); 
+        navigate(path);
+    };
 
     const sidebarStyle = css`
         display: flex;
@@ -110,6 +126,8 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
         font-weight: ${isActive ? '500' : '300'};
     `;
 
+    
+
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -133,10 +151,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Dashboard")}
-                        onClick={() => {
-                            setActiveTab("Dashboard");
-                            navigate('/enrichment-documentation/workspaces/dashboard');
-                        }}
+                        onClick={() => handleTabClick('Dashboard', '/enrichment-documentation/workspaces/dashboard')}
                     >
                         <Icon icon={"ic:round-dashboard"} color={activeTab === "Dashboard" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Dashboard")}>Dashboard</a>
@@ -144,11 +159,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Search")}
-                        onClick={() => {
-                            setSelectedStudentId(null);
-                            setActiveTab("Search");
-                            navigate('/enrichment-documentation/workspaces/search');
-                        }}
+                        onClick={() => handleTabClick('Search', '/enrichment-documentation/workspaces/search')}
                     >
                         <Icon icon={"material-symbols:search"} color={activeTab === "Search" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Search")}>Search</a>
@@ -171,10 +182,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Documentation")}
-                        onClick={() => {
-                            setActiveTab("Documentation");
-                            navigate('/enrichment-documentation/workspaces/documentation');
-                        }}
+                        onClick={() => handleTabClick('Documentation', '/enrichment-documentation/workspaces/documentation')}
                     >
                         <Icon icon={"material-symbols:book"} color={activeTab === "Documentation" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Documentation")}>Documentation</a>
@@ -182,10 +190,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                     <div
                         className="sidebarContentContainer"
                         css={sidebarContentContainerStyle(activeTab === "Upload Student Data")}
-                        onClick={() => {
-                            setActiveTab("Upload Student Data");
-                            navigate('/enrichment-documentation/workspaces/upload-student-data');
-                        }}
+                        onClick={() => handleTabClick('Upload Student Data', '/enrichment-documentation/workspaces/upload-student-data')}
                     >
                         <Icon icon={"material-symbols:person"} color={activeTab === "Upload Student Data" ? "black" : "white"} fontSize={25} />
                         <a href="#" css={linkStyle(activeTab === "Upload Student Data")}>Upload Student Data</a>
@@ -195,10 +200,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                 <div
                     className="sidebarContentContainer"
                     css={sidebarContentContainerStyle(activeTab === "Profile")}
-                    onClick={() => {
-                        setActiveTab("Profile");
-                        navigate('/enrichment-documentation/workspaces/profile');
-                    }}
+                    onClick={() => handleTabClick('Profile', '/enrichment-documentation/workspaces/profile')}
                 >
                     <Icon icon={"material-symbols:face"} color={activeTab === "Profile" ? "black" : "white"} fontSize={25} />
                     <a href="#" css={linkStyle(activeTab === "Profile")}>Profile</a>

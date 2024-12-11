@@ -25,9 +25,12 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setContent(currentContent)
-        setType(currentType)
-    })
+        setContent(currentContent);
+        setType(currentType);
+        setSource(currentSource);
+        setStatus(currentStatus);
+    }, [currentContent, currentType, currentSource, currentStatus]);
+    
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
