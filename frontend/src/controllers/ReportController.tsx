@@ -7,7 +7,7 @@ export const fetchReports = async (
     filterStartDate?: string, 
     filterEndDate?: string
 ): Promise<Report[]> => {
-
+    const token = localStorage.getItem('token');
     try {
         const params = new URLSearchParams({ studentName });
 
@@ -18,7 +18,15 @@ export const fetchReports = async (
             params.append('filterEndDate', filterEndDate);
         }
 
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports?${params.toString()}`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports?${params.toString()}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
 
         if (!response.ok) {
             throw new Error(`Error fetching reports: ${response.statusText}`);
@@ -41,6 +49,7 @@ export const updateStudentReport = async (
     editedSource: string,
     reports: Report[]
 ): Promise<Report[]> => {
+    const token = localStorage.getItem('token');
     try {
         const updatedTimestamp = new Date().toISOString();
 
@@ -50,6 +59,7 @@ export const updateStudentReport = async (
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify({
                 report: editedContent,
@@ -89,9 +99,13 @@ export const deleteStudentReport = async (
     reportId: string,
     reports: Report[]
 ): Promise<Report[]> => {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`, 
+            },
         });
 
         if (!response.ok) {
@@ -112,10 +126,18 @@ export const fetchTotalReportsByStudent = async (
     students: Student[]
 ): Promise<{ [key: string]: number }> => {
     const totals: { [key: string]: number } = {};
+    const token = localStorage.getItem('token');
+
 
     for (const student of students) {
         const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${student.iden}/reports/count`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${student.iden}/reports/count`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
         );
 
         if (!response.ok) {
@@ -132,8 +154,17 @@ export const fetchTotalReportsByStudent = async (
 };
 
 export const fetchUrgentStudentReports = async (): Promise<Report[]> => {
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/urgent`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/urgent`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -147,9 +178,16 @@ export const fetchUrgentStudentReports = async (): Promise<Report[]> => {
 
 
 export const fetchRecordsAndDocumentation = async (user: User) => {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/records-and-documentation?email=${encodeURIComponent(user.email)}`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/records-and-documentation?email=${encodeURIComponent(user.email)}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
         );
 
         if (!response.ok) {
@@ -175,6 +213,8 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+
                 },
                 body: JSON.stringify({ emails: writerEmails }),
             }
@@ -211,6 +251,9 @@ export const addStudentReport = async (
         throw new Error("Description cannot be empty.");
     }
 
+    const token = localStorage.getItem('token');
+
+
     const newRecord = {
         hasRead: false,
         type: selectedType,
@@ -227,6 +270,7 @@ export const addStudentReport = async (
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify(newRecord),
         });
@@ -235,10 +279,8 @@ export const addStudentReport = async (
             throw new Error(`Error adding report: ${response.statusText}`);
         }
 
-        // alert('The new student record has been successfully added');
     } catch (error) {
         console.error("Error adding document: ", error);
-        // alert("Failed to add record. Please try again.");
         throw error;
     }
 };

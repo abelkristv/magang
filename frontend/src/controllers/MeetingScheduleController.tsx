@@ -3,12 +3,14 @@ import MeetingSchedule from "../model/MeetingSchedule";
 
 export const fetchMeetingSchedules = async (reportIds: string[]): Promise<{ [key: string]: MeetingSchedule }> => {
     const schedules: { [key: string]: MeetingSchedule } = {};
+    const token = localStorage.getItem('token');
 
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify({ reportIds }),
         });
@@ -58,11 +60,13 @@ export const scheduleMeeting = async (
     },
     existingSchedules: { [key: string]: any }
 ): Promise<{ [key: string]: any }> => {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify(data),
         });

@@ -2,8 +2,18 @@ import { Option } from "fp-ts/lib/Option";
 import { option } from "fp-ts";
 
 export const fetchAllMajors = async (): Promise<Option<Major[]>> => {
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/majors`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/majors`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
 
         if (!response.ok) {
             throw new Error(`Error fetching majors: ${response.statusText}`);

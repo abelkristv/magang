@@ -18,6 +18,8 @@ export const addDocumentation = async (
 ) => {
     try {
         const parsedTime = new Date(time);
+        const token = localStorage.getItem('token');
+
 
         if (!user || !user.email) {
             throw new Error("User is not defined or user email is missing");
@@ -42,6 +44,7 @@ export const addDocumentation = async (
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify(documentationData),
         });
@@ -65,8 +68,18 @@ export const addDocumentation = async (
 
 
 export const fetchAllDocumentation = async (): Promise<Option<Documentation[]>> => {
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
         if (!response.ok) {
             console.error('Error fetching documentation:', response.statusText);
             return option.none;
@@ -83,8 +96,18 @@ export const fetchAllDocumentation = async (): Promise<Option<Documentation[]>> 
 }
 
 export const fetchDocumentationsByEmail = async (email: string): Promise<Documentation[]> => {
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/email/${email}`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/email/${email}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
         
         if (!response.ok) {
             console.error("Error fetching documentations:", response.statusText);

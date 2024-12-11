@@ -1,6 +1,16 @@
 export const fetchPeriods = async (): Promise<string[]> => {
+    const token = localStorage.getItem('token');
+
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/periods`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/periods`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                }
+            }
+        );
 
         if (!response.ok) {
             throw new Error(`Error fetching periods: ${response.statusText}`);

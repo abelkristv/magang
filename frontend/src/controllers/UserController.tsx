@@ -6,8 +6,19 @@ import { Report } from "../model/Report";
 import { fetchAllCompanies } from "./CompanyController";
 
 const fetchUser = async (email: string): Promise<Option<User>> => {
+
+    const token = localStorage.getItem('token');
+
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/email/${email}`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/email/${email}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
         
         if (!response.ok) {
             console.error('Error fetching user:', response.statusText);
@@ -36,12 +47,13 @@ const fetchUser = async (email: string): Promise<Option<User>> => {
 
 const fetchUserNames = async (reports: Report[]): Promise<{ [key: string]: string }> => {
     const uniqueEmails = [...new Set(reports.map(report => report.writer))];
-
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/names`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify({ emails: uniqueEmails }),
         });
@@ -84,11 +96,13 @@ export const fetchUserAndCompanies = async (email: string | undefined) => {
 };
 
 export const updateUser = async (updatedUser: User) => {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/${updatedUser.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify(updatedUser),
         });

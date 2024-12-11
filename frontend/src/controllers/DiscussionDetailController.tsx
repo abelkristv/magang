@@ -4,8 +4,19 @@ import DiscussionDetail from "../model/DiscussionDetail";
 
 
 export const fetchDiscussionDetails = async (docID: string): Promise<DiscussionDetail[]> => {
+    const token = localStorage.getItem('token');
+
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussion-details/${docID}`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussion-details/${docID}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
 
         if (!response.ok) {
             throw new Error('Failed to fetch discussion details');
@@ -32,12 +43,16 @@ const formatTime = (timestamp: any): string => {
 
 export const fetchDiscussionsWithDetails = async (filteredDocs: Documentation[]): Promise<any[]> => {
     const docIds = filteredDocs.map(doc => doc.id);
+    const token = localStorage.getItem('token');
+
 
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussions-with-details`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
+
             },
             body: JSON.stringify({ docIds }),
         });

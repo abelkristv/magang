@@ -54,8 +54,16 @@ export interface PaginatedResponse {
 
 const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Option<PaginatedResponse>> => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students?page=${page}&limit=${limit}`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student?page=${page}&limit=${limit}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
         );
 
         if (response.status !== 200) {
@@ -66,7 +74,6 @@ const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Op
         const data = await response.json();
         console.log("API Response:", data);
 
-        // Ensure data contains the expected structure
         if (!data.students || !data.pagination) {
             console.error("Unexpected API response structure:", data);
             return option.none;
@@ -101,7 +108,17 @@ const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Op
 
 export const fetchStudentById = async (studentId: string): Promise<Option<Student>> => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${studentId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${studentId}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
+        );
         
         if (response.status === 404) {
             console.error("No such student!");
@@ -139,12 +156,13 @@ export const updateStudentNotes = async (
     if (!student) {
         return null;
     }
-
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/${studentId}/notes`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify({ notes }),
         });
@@ -165,9 +183,16 @@ export const updateStudentNotes = async (
 };
 
 const fetchStudentsByName = async (studentName: string, page: number = 1, limit: number = 10): Promise<Option<PaginatedResponse>> => {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students/search?studentName=${encodeURIComponent(studentName)}&page=${page}&limit=${limit}`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student/search?studentName=${encodeURIComponent(studentName)}&page=${page}&limit=${limit}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
         );
 
         if (!response.ok) {
@@ -211,6 +236,7 @@ const fetchStudentsWithFilters = async (
     name?: string,
     period?: string
 ): Promise<Option<PaginatedResponse>> => {
+    const token = localStorage.getItem('token');
     try {
         const params = new URLSearchParams({
             page: page.toString(),
@@ -226,7 +252,13 @@ const fetchStudentsWithFilters = async (
         }
 
         const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/students?${params.toString()}`
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student?${params.toString()}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, 
+                },
+            }
         );
 
         if (!response.ok) {

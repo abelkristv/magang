@@ -3,8 +3,20 @@ import { Option } from "fp-ts/lib/Option";
 
 
 export const fetchAllCompanies = async (): Promise<Option<Company[]>> => {
+    const token = localStorage.getItem('token');
+
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/companies`);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/companies`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 
+
+                },
+            }
+        );
 
         if (!response.ok) {
             throw new Error(`Error fetching companies: ${response.statusText}`);

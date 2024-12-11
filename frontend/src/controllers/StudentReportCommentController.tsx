@@ -1,11 +1,13 @@
 import Student from "../model/Student";
 
 export const fetchTotalComments = async (students: Student[]): Promise<{ [key: string]: number }> => {
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/total-comments`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/total-comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, 
             },
             body: JSON.stringify({ students }),
         });

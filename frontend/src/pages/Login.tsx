@@ -91,7 +91,7 @@ const Login = () => {
         setError(''); // Reset error message before attempting login
     
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/login`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,10 +105,8 @@ const Login = () => {
             const data = await response.json();
     
             if (response.ok) {
-                // Set the user context if the API response is successful
                 if (authContext) {
                     authContext.setCurrentUser({ email } as User); 
-                    console.log("hehe")
                     localStorage.setItem('token', data.token);
                     navigate('/enrichment-documentation/workspaces/dashboard');
                 } else {
