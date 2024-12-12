@@ -10,5 +10,6 @@ router.use(AuthMiddleware);
 router.put('/:id', (req, res) => userController.updateUser(req, res));
 router.get('/email/:email', (req, res) => userController.getUserByEmail(req, res));
 router.post('/names', (req, res) => userController.getNamesByEmails(req, res));
+router.get('/current-user', (req, res) => userController.getCurrentUser(req, res));
 
 export default router;

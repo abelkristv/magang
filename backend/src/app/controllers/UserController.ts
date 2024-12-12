@@ -73,4 +73,27 @@ export class UserController {
       }
     }
   }
+
+  async getCurrentUser(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id; // `req.user` is properly typed now
+      if (!userId) {
+        res.status(401).json({ message: 'User not authenticated' });
+        return;
+      }
+  
+      const user = await this.userService.getCurrentUser(userId);
+      res.status(200).json({ success: true, user });
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+  
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'An unknown error occurred' });
+      }
+    }
+  }
+  
+  
 }

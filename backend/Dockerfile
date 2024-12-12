@@ -14,6 +14,9 @@ RUN npm install
 RUN npm install nodemon --save-dev
 
 RUN npm install -g ts-node
+RUN npm install -g nodemon
+RUN npm i -g --save-dev @types/node
+
 
 # Copy the rest of your application code to the container
 COPY . .

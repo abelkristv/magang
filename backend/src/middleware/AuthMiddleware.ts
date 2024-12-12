@@ -13,10 +13,16 @@ export const AuthMiddleware = (req: Request, res: Response, next: NextFunction):
     const secret = process.env.JWT_SECRET || 'default_secret';
     const decoded = jwt.verify(token, secret) as JwtPayload;
 
-    req.user = decoded;
+    req.user = {
+      id: decoded.id as string,
+      name: decoded.name as string,
+      email: decoded.email as string,
+      role: decoded.role as string,
+    };
 
     next();
   } catch (error) {
+    console.error('JWT verification failed:', error);
     res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
 };
