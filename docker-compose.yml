@@ -32,8 +32,8 @@ services:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql://abel:hehe@db:5432/documentation_enrichment
-      - EMAIL_USER=abel.kristanto1@gmail.com
-      - PASSWORD_USER=z9kk79v4w3
+      # - EMAIL_USER=a
+      # - PASSWORD_USER=a
       - JWT_SECRET=hehe
     depends_on:
       - db
