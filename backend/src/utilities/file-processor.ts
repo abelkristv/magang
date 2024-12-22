@@ -3,11 +3,18 @@ import csvParser from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 
-export const processExcelFile = (filePath: string): any[] => {
+export const processExcelFile = (filePath: string): Record<string, any[]> => {
     const workbook = xlsx.readFile(filePath);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    return xlsx.utils.sheet_to_json(sheet);
+    const result: Record<string, any[]> = {};
+
+    workbook.SheetNames.forEach((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
+        result[sheetName] = xlsx.utils.sheet_to_json(sheet);
+    });
+
+    return result;
 };
+
 
 export const processCsvFile = (filePath: string): Promise<any[]> => {
     return new Promise((resolve, reject) => {
