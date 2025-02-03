@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 
 export const MainContainer = styled.div`
     background-color: white;
-    width: 100%;
+    width: 80%;
     height: 100%;
     padding: 40px 43px;
     box-sizing: border-box;
@@ -31,35 +31,34 @@ export const Header = styled.div`
 `;
 
 export const ContentContainer = styled.div`
-    margin-top: 40px;
+    margin-top: 80px;
+    margin-left: 175px;
     border: 1px solid #ebebeb;
     text-align: start;
     border-radius: 10px;
-    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.25);
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.15);
+    width: 1300px;
 `;
 
 export const HeaderGrid = styled.div`
     display: flex;
     flex-direction: column;
     text-align: start;
-    gap: 10px;
     margin-top: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 45px;
 `;
 
 export const ContentSide = styled.div`
     display: flex;
     justify-content: space-between;
-    padding: 80px 100px 100px 100px;
+    padding: 40px 50px 40px 50px;
+    gap: 50px;
 
     .leftSide {
         width: 50%;
-        padding-right: 50px;
-        border-right: 2px solid #ECEAEA;
     }
     .rightSide {
         width: 50%;
-        padding-left: 50px;
     }
 
     .input {
@@ -175,7 +174,7 @@ export const LocationContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 31px;
+    margin-top: 19px;
 
     input {
         height: 47px;

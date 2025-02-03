@@ -247,7 +247,7 @@ const AttendeeModal: React.FC<AttendeeModalProps> = ({
             <div css={modalStyle}>
                 <div css={modalContentStyle} ref={attendeeModalRef}>
                     <div className="modalHeader" css={modalHeaderStyle}>
-                        <p className="headerp">List Of Attendee</p>
+                        <p className="headerp">List Of Attendees</p>
                         <Icon icon="mdi:close" onClick={closeAttendeeModal} fontSize={25} color="#51587E" css={closeButtonStyle} /> 
 
                     </div>

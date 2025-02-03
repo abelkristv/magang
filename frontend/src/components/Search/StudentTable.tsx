@@ -85,13 +85,6 @@ const arrowStyle = css`
     margin-left: 5px; /* Add gap between the text and the arrow */
 `;
 
-const getSortArrow = (field: keyof Student, sortField: keyof Student | null, sortOrder: "asc" | "desc") => {
-    if (field !== "major" && sortField === field) {
-        return sortOrder === 'asc' ? '▲' : '▼';
-    }
-    return '▼'; // Default position is down
-};
-
 const StudentTable: React.FC<StudentTableProps> = ({ students, sortField, sortOrder, handleSort, onClick }) => {
     return (
         <table css={tableStyle}>
@@ -99,10 +92,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, sortField, sortOr
                 <tr>
                     <th className="no-column">No.</th>
                     <th className="name-column" onClick={() => handleSort('name')}>
-                        Name <span css={arrowStyle}>{getSortArrow('name', sortField, sortOrder)}</span>
+                        Name
                     </th>
                     <th className="nim-column" onClick={() => handleSort('nim')}>
-                        NIM <span css={arrowStyle}>{getSortArrow('nim', sortField, sortOrder)}</span>
+                        NIM
                     </th>
                     <th>
                         Major

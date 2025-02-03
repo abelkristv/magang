@@ -11,7 +11,7 @@ export class RecordController {
       const { records, documentations } = await this.recordService.getRecordsAndDocumentation(email as string);
       res.json({ records, documentations });
     } catch (error) {
-      console.error('Error fetching records and documentation:', error);
+      console.error('Error fetching records and internal activity:', error);
 
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });

@@ -224,7 +224,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
 
             const formattedDate = dateObject.toISOString().split('T')[0];
 
-            saveAs(content, `documentation_${selectedDocumentation.title}_${formattedDate}.zip`);
+            saveAs(content, `internalactivity_${selectedDocumentation.title}_${formattedDate}.zip`);
 
         } catch (error) {
             console.error("Error generating zip file: ", error);
@@ -247,11 +247,11 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         const endDate = new Date(exportEndDate);
         console.log(isNaN(startDate.getTime()))
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            setDateErrorMessage("One or more dates are invalid");
+            setDateErrorMessage("Please fill in the dates");
             return;
         }
         if (startDate > endDate) {
-            setDateErrorMessage("start date cant be bigger than end date")
+            setDateErrorMessage("The end date cannot be earlier than the start date")
             return
         }
         setDateErrorMessage('')
@@ -284,7 +284,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
     
         const summaryData = [
-            ['Enrichment Activity Documentation Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Enrichment Activity Internal Activity Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Start Date', exportStartDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Meeting Count', meetingCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -307,7 +307,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         const data = await fetchDiscussionsWithDetails(filteredDocs);
     
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Documentation');
+        const worksheet = workbook.addWorksheet('Internal Activity');
     
         worksheet.addRows(summaryData);
     
@@ -396,7 +396,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         
     
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'documentation' + '_' + title + '_' + '.xlsx');
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'internal_activity' + '_' + title + '_' + '.xlsx');
     
         closeExportModal();
     };
@@ -587,8 +587,8 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         gap: 10px;
         width: 100%;
         height: 100%;
-        max-height: 395px;
-        height: 505px;
+        max-height: 381px;
+        // height: 505px;
         overflow-y: auto;
         scrollbar-width: thin;
 
@@ -636,7 +636,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         position: relative;
         margin-top: 0px;
         box-shadow: 0px 0px 5px 1px #dbdbdb;
-        height: 727px;
+        height: 757px;
 
         .decoBox {
             width: 34px;
@@ -755,19 +755,13 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
 
     const exportModalContentStyle = css`
         display: flex;
-        justify-content: space-between;
-        
-        .leftSide {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: start;
-            fontSize: 15px;
-        }
-
-        font-size: 20px;
-        text-align: left;
+        flex-direction: column;
         padding: 20px;
+        padding-top: 0;
+
+        p {
+            text-align: start;
+        }
     `
 
     const periodGridStyle = css`
@@ -832,6 +826,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const documentationTitleStyle = css`
         font-size: 19px;
         font-weight: 600;
+        // margin-left: 570px;
     `
 
     const documentationInfoTitle = css`
@@ -864,6 +859,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const popupHeaderStyle = css`
         font-size: 17px;
         margin-bottom: 13px;
+        margin-top: 17px;
     `;
 
     const inputStyle = css`
@@ -975,20 +971,20 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     return (
         <main className="mainStyle" css={mainStyle}>
             <div className="navSide" css={navSide}>
-                <p>Documentation</p>
+                <p>Internal Activity</p>
             </div>
             <div className="contentBox" css={contentBoxStyle}>
                 <div className="leftSide">
                     <div className="buttonContainer" css={buttonContainerStyle}>
                         <Button onClick={() => {
-                            setGlobalActiveTab('Add New Documentation')
+                            setGlobalActiveTab('Internal Activity')
                             navigate("/enrichment-documentation/workspaces/add-new-documentation")
                         }} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>
-                            Add new documentation
+                            Add Internal Activity
                         </Button>
                         <div style={{display:"flex", gap:"13px"}}>
                             <Button onClick={openExportModal} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Export to Excel</Button>
-                            <Button onClick={downloadImages} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Download pictures</Button>
+                            <Button onClick={downloadImages} style={{ marginTop: "0px", fontSize: "17px", fontWeight:"500", padding: "8px 20px 8px 20px", height:"45px" }}>Download Pictures</Button>
                         </div>
 
                     </div>
@@ -997,7 +993,24 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                         </div> */}
                         {selectedDocumentation ? (
                             <div>
-                                <p css={documentationTitleStyle} style={{textAlign:"center"}}>{selectedDocumentation.title}</p>
+                                <div style={{display:'flex', justifyContent:'space-between'}}>
+                                    <p css={documentationTitleStyle} style={{textAlign:"center"}}>{selectedDocumentation.title}</p>
+                                    <div style={{display:'flex', gap:'10px'}}>
+                                        <Icon
+                                            icon={"material-symbols:edit"}
+                                            fontSize={24}
+                                            style={{ cursor: 'pointer' }}
+                                            // onClick={() => handleEditReport(report.id, report.report, report.type, report.person)}
+                                        />
+                                        <Icon
+                                            icon={"ic:baseline-delete"}
+                                            fontSize={24}
+                                            style={{ cursor: 'pointer' }}
+                                            // onClick={() => handleDeleteClick(report.id)}
+                                        />
+                                    </div>
+                                </div>
+
                                 {/* <p>{selectedDocumentation.nomor_undangan}</p> */}
                                 <div className="informationContainer" style={{display: "flex", gap: "75px", marginTop:"20px"}}>
                                     <div className="informationLeftSide" css={informationStyle}>
@@ -1053,25 +1066,25 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                             className={`tab ${activeTab === 'discussion' ? 'active' : ''}`}
                                             onClick={() => handleTabClick('discussion')}
                                         >
-                                            Discussion Details
+                                            Activity Details
                                         </div>
                                         <div
                                             className={`tab ${activeTab === 'results' ? 'active' : ''}`}
                                             onClick={() => handleTabClick('results')}
                                         >
-                                            Discussion Results
+                                            Activity Results
                                         </div>
                                         <div
                                             className={`tab ${activeTab === 'attendance' ? 'active' : ''}`}
                                             onClick={() => handleTabClick('attendance')}
                                         >
-                                            Attendance List
+                                            Attendees
                                         </div>
                                         <div
                                             className={`tab ${activeTab === 'images' ? 'active' : ''}`}
                                             onClick={() => handleTabClick('images')}
                                         >
-                                            Images
+                                            Pictures
                                         </div>
                                     </div>
                                 </div>
@@ -1094,7 +1107,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                         ) : (
                             <div css={totalStyle}>
                                 <img src={notFoundImage} alt="" />
-                                <p>No documentation selected</p>
+                                <p>No internal activity selected</p>
                             </div>
                         )}
                     </div>
@@ -1151,7 +1164,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                 </div>
                             ))
                         ) : (
-                            <p style={{display:"flex", justifyContent:"center", marginTop:"9rem", fontWeight:"600", fontSize:"18px"}}>No documentation found</p>
+                            <p style={{display:"flex", justifyContent:"center", marginTop:"9rem", fontWeight:"600", fontSize:"18px"}}>No internal activity found</p>
                         )}
                     </div>
                 </div>
@@ -1164,42 +1177,32 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                             <Icon icon="mdi:close" onClick={closeExportModal} fontSize={20} color="#51587E" css={closeButtonStyle} />
                         </div>
                         <div className="exportModalContent" css={exportModalContentStyle}>
-                            <div className="leftSide">
-                                <p css={popupHeaderStyle}>Period</p>
-                                <div className="periodGrid" style={{display: "flex", alignItems: "center", gap: "10px", fontSize:"15px", justifyContent:"space-between"}}>
-                                    <p style={{width:"40px"}}>Start</p>
+                            <p css={popupHeaderStyle}>Period</p>
+                            <div className="content" style={{display: "flex", justifyContent: "space-between"}}>
+                                <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%", fontSize:"15px"}}>
+                                    <p>Start</p>
                                     <input 
                                         type="date" 
                                         value={exportStartDate}
                                         onChange={(e) => setExportStartDate(e.target.value)}
                                         css={inputStyle}
-                                        style={{width:"165px", fontSize:"15px"}}
-                                        required
+                                        style={{width:"14.3rem", fontSize:"15px"}}
                                     />
                                 </div>
-                                <div className="periodGrid" style={{display: "flex", alignItems: "center", gap: "10px", fontSize:"15px", justifyContent:"space-between", marginTop:"9px"}}>
-                                    <p style={{width:"40px"}}>End</p>
-                                    <input
+                                <div className="dateContainer" style={{display: "flex", alignItems: "center", gap: "10px", width: "45%", fontSize:"15px"}}>
+                                    <p>End</p>
+                                    <input 
                                         type="date" 
                                         value={exportEndDate}
                                         onChange={(e) => setExportEndDate(e.target.value)}
                                         css={inputStyle}
-                                        style={{width:"165px", fontSize:"15px"}}
-                                        required
+                                        style={{width:"14.3rem", fontSize:"15px"}}
                                     />
                                 </div>
                             </div>
-                            <div className="rightSide">
-                                <p css={popupHeaderStyle}>Type</p>
-                                <select css={popupTypeStyle} value={exportType} onChange={e => setExportType(e.target.value)}>
-                                    <option value="All">All</option>
-                                    <option value="Meeting">Meeting</option>
-                                    <option value="Discussion">Discussion</option>
-                                    <option value="Evaluation">Evaluation</option>
-                                </select>
-                            </div>
                         </div>
-                        <div style={{color: 'red', fontSize: "14px"}}>*{dateErrorMessage}</div>
+
+                        <div style={{color: 'red', fontSize: "14px"}}>{dateErrorMessage}</div>
 
                         <div className="buttonContainer" style={{display: "flex", justifyContent: "center", marginBottom:"20px", marginTop:"23px"}}>
                             <button onClick={exportToExcel} css={exportButton}>

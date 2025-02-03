@@ -22,17 +22,18 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [] }) => {
 
     const largeImageStyle = css`
         width: 100%;
-        height: 507px;
+        height: 525px;
         object-fit: contain;
         border-radius: 6px;
-        background-color: #CFCFCF;
+        border: 1px solid #9C9C9C;
+        // box-shadow: 1px 1px 4px 3px rgba(0, 0, 0, 0.1);
     `;
 
     const thumbnailContainerStyle = css`
         display: flex;
         flex-direction: column;
         gap: 6px;
-        height: 507px;
+        height: 525px;
         width: 100%;
         overflow-y: scroll;
         overflow-x: hidden;

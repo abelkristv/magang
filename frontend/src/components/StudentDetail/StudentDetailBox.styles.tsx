@@ -69,15 +69,14 @@ export const UserDesc = styled.div`
     width: 100%;
     text-align: left;
     padding: 15px;
-    padding-left: 5px;
     height: 100%;
     justify-content: center;
     items-align: center;
 `;
 
 export const InfoContainer = styled.div`
-    display: grid;
-    grid-template-columns: 0.65fr 1fr;
+    display: flex;
+    align-items: top;
     width: 100%;
     color: black;
     @keyframes pulse {
@@ -100,7 +99,6 @@ export const InfoContainer = styled.div`
 
 export const InfoContainer2 = styled.div`
     display: flex;
-
     width: 100%;
     color: black;
     @keyframes pulse {
@@ -201,14 +199,14 @@ export const DropdownFilterOption = styled.option`
 export const DropdownContent = styled.div<{ isOpen: boolean }>`
     display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
     flex-direction: column;
-    gap: 20px;
+    // gap: 20px;
     font-size: 18px;
     background-color: #EBEBEB;
     text-align: start;
     position: absolute;
     top: 120%;
-    left: -65%;
-    width: 435px;
+    left: -19%;
+    width: 300px;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);

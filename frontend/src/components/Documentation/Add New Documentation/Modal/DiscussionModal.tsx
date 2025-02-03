@@ -238,7 +238,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({
             <div css={modalStyle}>
                 <div css={discussionModalContentStyle} ref={discussionModalRef}>
                     <div className="modalHeader" css={modalHeaderStyle}>
-                        <p className="headerp">List Of Discussion Details</p>
+                        <p className="headerp">List Of Activity Details</p>
                         <Icon icon="mdi:close" onClick={closeDiscussionModal} fontSize={25} color="#51587E" css={closeButtonStyle} /> 
                     </div>
                     <form css={modalFormStyle}>

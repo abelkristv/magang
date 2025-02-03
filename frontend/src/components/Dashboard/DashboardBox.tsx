@@ -91,7 +91,7 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
     // const navigate = useNavigate()
 
     return (
-        <MainBox navText="Dashboard">
+        <MainBox navText="Home">
             <div className="documentationBox" css={documentationBoxStyle}>
                 <div className="documentationContent" css={documentationContentStyle}>
                     <h2>Documentation</h2>
@@ -102,22 +102,22 @@ const DashboardBox = ({ setActiveTab }: DashboardBoxProps) => {
             <div className="bottomBox" css={bottomBoxStyle}>
                 <div className="companyBox" css={companyBox}>
                     <h1>Student Records</h1>
-                    <p>You can see all of the enrichment students in the <u>student list page</u> and add <u>records</u> about them, either it is from the student, company, or yourself.</p>
+                    <p>You can see all of the enrichment students in the <u>student page</u> and add <u>records</u> about them, either it is from the student, company, or yourself.</p>
                     <div style={{display:"flex", alignItems:"center"}} onClick={() => {
-                        setActiveTab("Student List");
-                        navigate('/enrichment-documentation/workspaces/student-list');
+                        setActiveTab("Student");
+                        navigate('/enrichment-documentation/workspaces/student');
                     }} css={buttonStyle}>
                         <p className="buttonStyle">Go to Student List {">>"}</p>
                     </div>
                 </div>
                 <div className="enrichmentBox" css={companyBox}>
-                    <h1>Enrichment Activities</h1>
-                    <p>If any enrichment activities, such as meetings, discussions, or evaluations, were to happen, use the <u>documentation page</u> to log those past events.</p>
-                    <div style={{display:"flex", alignItems:"center"}} onClick={() => {
-                        setActiveTab("Documentation");
-                        navigate('/enrichment-documentation/workspaces/documentation');
+                    <h1>Internal Activities</h1>
+                    <p>If any enrichment activities, such as meetings, discussions, or evaluations, were to happen, use the <u>internal activity page</u> to log those past events.</p>
+                    <div style={{display:"flex", alignItems:"center", width:"280px"}} onClick={() => {
+                        setActiveTab("Internal Activity");
+                        navigate('/enrichment-documentation/workspaces/internal-activity');
                     }} css={buttonStyle}>
-                        <p className="buttonStyle">Go to Documentation {">>"}</p>
+                        <p className="buttonStyle">Go to Internal Activities {">>"}</p>
                     </div>
                 </div>
             </div>

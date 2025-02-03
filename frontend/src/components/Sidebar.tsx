@@ -25,7 +25,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
         if (storedTab) {
             setActiveTab(storedTab);
         } else {
-            setActiveTab("Dashboard"); 
+            setActiveTab("Home"); 
         }
     }, [setActiveTab]);
 
@@ -150,50 +150,38 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                 <div className="sidebarContent" css={sidebarContentStyle}>
                     <div
                         className="sidebarContentContainer"
-                        css={sidebarContentContainerStyle(activeTab === "Dashboard")}
-                        onClick={() => handleTabClick('Dashboard', '/enrichment-documentation/workspaces/dashboard')}
+                        css={sidebarContentContainerStyle(activeTab === "Home")}
+                        onClick={() => handleTabClick('Home', '/enrichment-documentation/workspaces/home')}
                     >
-                        <Icon icon={"ic:round-dashboard"} color={activeTab === "Dashboard" ? "black" : "white"} fontSize={25} />
-                        <a href="#" css={linkStyle(activeTab === "Dashboard")}>Dashboard</a>
+                        <Icon icon={"ic:round-dashboard"} color={activeTab === "Home" ? "black" : "white"} fontSize={25} />
+                        <a href="#" css={linkStyle(activeTab === "Home")}>Home</a>
                     </div>
                     <div
                         className="sidebarContentContainer"
-                        css={sidebarContentContainerStyle(activeTab === "Search")}
-                        onClick={() => handleTabClick('Search', '/enrichment-documentation/workspaces/search')}
+                        css={sidebarContentContainerStyle(activeTab === "Student")}
+                        onClick={() => handleTabClick('Student', '/enrichment-documentation/workspaces/student')}
                     >
-                        <Icon icon={"material-symbols:search"} color={activeTab === "Search" ? "black" : "white"} fontSize={25} />
-                        <a href="#" css={linkStyle(activeTab === "Search")}>Search</a>
+                        <Icon icon={"material-symbols:person"} color={activeTab === "Student" ? "black" : "white"} fontSize={25} />
+                        <a href="#" css={linkStyle(activeTab === "Student")}>Student</a>
                     </div>
                 </div>
                 <hr />
                 <div className="sidebarContent" css={sidebarContentStyle}>
-                    {/* <div
-                        className="sidebarContentContainer"
-                        css={sidebarContentContainerStyle(activeTab === "Student List")}
-                        onClick={() => {
-                            setSelectedStudentId(null);
-                            setActiveTab("Student List");
-                            navigate('/enrichment-documentation/workspaces/student-list');
-                        }}
-                    >
-                        <Icon icon={"pepicons-pop:people"} color={activeTab === "Student List" ? "black" : "white"} fontSize={25} />
-                        <a href="#" css={linkStyle(activeTab === "Student List")}>Student List</a>
-                    </div> */}
                     <div
                         className="sidebarContentContainer"
-                        css={sidebarContentContainerStyle(activeTab === "Documentation")}
-                        onClick={() => handleTabClick('Documentation', '/enrichment-documentation/workspaces/documentation')}
+                        css={sidebarContentContainerStyle(activeTab === "Internal Activity")}
+                        onClick={() => handleTabClick('Internal Activity', '/enrichment-documentation/workspaces/internal-activity')}
                     >
-                        <Icon icon={"material-symbols:book"} color={activeTab === "Documentation" ? "black" : "white"} fontSize={25} />
-                        <a href="#" css={linkStyle(activeTab === "Documentation")}>Documentation</a>
+                        <Icon icon={"material-symbols:book"} color={activeTab === "Internal Activity" ? "black" : "white"} fontSize={25} />
+                        <a href="#" css={linkStyle(activeTab === "Internal Activity")}>Internal Activity</a>
                     </div>
                     <div
                         className="sidebarContentContainer"
-                        css={sidebarContentContainerStyle(activeTab === "Upload Student Data")}
-                        onClick={() => handleTabClick('Upload Student Data', '/enrichment-documentation/workspaces/upload-student-data')}
+                        css={sidebarContentContainerStyle(activeTab === "Upload")}
+                        onClick={() => handleTabClick('Upload', '/enrichment-documentation/workspaces/upload-student-data')}
                     >
-                        <Icon icon={"material-symbols:person"} color={activeTab === "Upload Student Data" ? "black" : "white"} fontSize={25} />
-                        <a href="#" css={linkStyle(activeTab === "Upload Student Data")}>Upload Student Data</a>
+                        <Icon icon={"mdi:cloud-upload"} color={activeTab === "Upload" ? "black" : "white"} fontSize={25} />
+                        <a href="#" css={linkStyle(activeTab === "Upload")}>Upload</a>
                     </div>
                 </div>
                 <hr />

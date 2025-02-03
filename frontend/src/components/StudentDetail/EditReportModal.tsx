@@ -163,12 +163,12 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
         <div css={modalStyle}>
             <div ref={modalRef} css={modalContentStyle}>
                 <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Edit Report</p>
+                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Edit Record</p>
                     <Icon icon="mdi:close" onClick={onClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
                 <div css={formStyle}>
                     <div className="contentContainer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                        <p>Content</p>
+                        <p>Description</p>
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}

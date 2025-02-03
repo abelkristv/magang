@@ -5,9 +5,14 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: 'dist', // Change 'custom-output-folder' to your preferred directory
+    outDir: 'dist',
+  },
+  server: {
+    hmr: {
+      overlay: false
+    }
   },
   css: {
-    postcss: './postcss.config.cjs', // Ensure PostCSS is used
+    postcss: './postcss.config.cjs',
   },
 })

@@ -81,7 +81,7 @@ export const fetchAllDocumentation = async (): Promise<Option<Documentation[]>> 
             }
         );
         if (!response.ok) {
-            console.error('Error fetching documentation:', response.statusText);
+            console.error('Error fetching internal activity:', response.statusText);
             return option.none;
         }
         const documentationsData: Documentation[] = await response.json();
@@ -90,7 +90,7 @@ export const fetchAllDocumentation = async (): Promise<Option<Documentation[]>> 
         }
         return option.some(documentationsData);
     } catch (error) {
-        console.error('Error fetching documentation:', error);
+        console.error('Error fetching internal activity:', error);
         return option.none;
     }
 }
@@ -110,14 +110,14 @@ export const fetchDocumentationsByEmail = async (email: string): Promise<Documen
         );
         
         if (!response.ok) {
-            console.error("Error fetching documentations:", response.statusText);
+            console.error("Error fetching internal activities:", response.statusText);
             return [];
         }
         
         const documentations: Documentation[] = await response.json();
         return documentations;
     } catch (error) {
-        console.error("Error fetching documentations:", error);
+        console.error("Error fetching internal activities:", error);
         return [];
     }
 };

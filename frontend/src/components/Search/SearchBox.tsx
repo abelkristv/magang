@@ -37,7 +37,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const [_periods, setPeriods] = useState<string[]>([]);
     const [comments, setComments] = useState<{ [key: string]: number }>({});
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [studentResponse, setStudentResponse] = useState<PaginatedResponse>({pagination: {currentPage : 1, limit: 9}} as PaginatedResponse);
+    const [studentResponse, setStudentResponse] = useState<PaginatedResponse>({pagination: {currentPage : 1, limit: 12}} as PaginatedResponse);
     const userAuth = useAuth();
 
     const handleStudentSelect = (studentId: string) => {
@@ -48,7 +48,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const [searchState, setSearchState] = useState<SearchState>({
         searchQuery: "",
         isDropdownOpen: false,
-        isGridView: true,
+        isGridView: false,
         sortField: null,
         sortOrder: "asc",
         isSearchHistoryOpen: false,
@@ -473,7 +473,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     };
     
     return (
-        <MainBox navText="Search">
+        <MainBox navText="Student">
             <div css={searchContainerStyle}>
                 <div css={searchHistoryWrapperStyle}>
                     <SearchInput
@@ -520,21 +520,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                             <StudentCard 
                                 key={student.iden} 
                                 student={student} 
-                                onClick={() =>handleStudentSelect(student.iden)} 
-                                totalComments={comments[student.name] || 0}  // Using comments for total reports
+                                onClick={() => handleStudentSelect(student.iden)} 
+                                totalComments={comments[student.name] || 0}
                                 isLoading={isLoading} 
                             />
                         ))}
                     </div>
                 ) : (
-                    // <StudentTable
-                    //     students={filteredStudents}
-                    //     totalComments={comments}  // Using comments for total reports
-                    //     sortField={searchState.sortField}
-                    //     sortOrder={searchState.sortOrder}
-                    //     handleSort={handleSort}
-                    //     onClick={() => onSelectStudent(filteredStudents)}
-                    // />
                     <StudentTable
                         students={filteredStudents}
                         totalComments={comments}

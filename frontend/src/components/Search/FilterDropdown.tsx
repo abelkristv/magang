@@ -44,13 +44,13 @@ const dropdownContentStyle = (isDropdownOpen: boolean) => css`
     position: absolute;
     background-color: #EBEBEB;
     top: 120%;
-    left: -10%;
+    left: -30%;
     text-align: start;
     padding: 10px 15px 15px 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    width: 120%;
     z-index: 1;
 
     p {
@@ -71,22 +71,28 @@ const dropdownContentStyle = (isDropdownOpen: boolean) => css`
         margin-bottom: 15px;
     }
 
-    button {
-        margin-top: 20px;
-        width: 30%;
-        font-size: 17px;
-        padding: 11px;
-        box-sizing: border-box;
-        font-weight: 500;
-        background-color: #000000;
-        color: white;
-        border: none;
-        border-radius: 10px;
+`;
 
-        &:hover {
-            cursor: pointer;
-            background-color: #363636;
-        }
+const buttonContainerStyle = css`
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+`;
+
+const buttonStyle = css`
+    border: none;
+    background-color: #49A8FF;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 17px;
+    margin-top: 30px;
+    width: auto;
+
+    &:hover {
+        cursor: pointer;
+        background-color: #309CFF;
     }
 `;
 
@@ -95,14 +101,10 @@ const FilterDropdown = ({
     isDropdownOpen,
     toggleDropdown,
     tempSelectedPeriod,
-    tempSelectedCompany,
     tempSelectedMajor,
     periods,
-    companies,
     majors,
-    userRole,
     handleTempPeriodChange,
-    handleTempCompanyChange,
     handleTempMajorChange,
     handleApplyFilters,
 }: FilterDropdownProps) => {
@@ -130,21 +132,8 @@ const FilterDropdown = ({
                         <option key={index} value={major.name}>{major.name}</option>
                     ))}
                 </select>
-                {userRole === "Enrichment" && (
-                    <>
-                        <p>Company</p>
-                        <select value={tempSelectedCompany} onChange={handleTempCompanyChange}>
-                            <option value="">All</option>
-                            {companies.map((company, index) => (
-                                <option key={index} value={company.company_name}>{company.company_name}</option>
-                            ))}
-                        </select>
-                    </>
-                )}
-                <div 
-                    className="buttonContainer"
-                    style={{display: "flex", justifyContent: "end"}}>
-                    <button onClick={handleApplyFilters} style={{backgroundColor: '#49A8FF'}}>Apply</button>
+                <div css={buttonContainerStyle}>
+                    <button className="button" css={buttonStyle} onClick={handleApplyFilters}>Apply</button>
                 </div>
             </div>
         </div>

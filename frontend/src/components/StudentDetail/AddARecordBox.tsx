@@ -108,7 +108,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         font-weight: 500;
         font-size: 17px;
         margin-top: 40px;
-        width: 60%;
+        width: 235px;
         margin: auto;
 
         &:hover {
@@ -185,11 +185,41 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         margin-bottom: 10px;
     `;
 
+    const selectStyle = css`
+        padding: 10px;
+        width: 100%;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #D9D9D9 !important;
+        margin-bottom: 20px;
+        background-color: white;
+    `;
+
+    const newPeriodFieldStyle = css`
+        width: 100%;
+        p {
+            margin: 0;
+            padding: 10px 0px 10px 0px;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+    `;
+
     const [isVisible, setIsVisible] = useState(false);
 
     return (
         <div className="add-a-record-box" css={addRecordBoxStyle}>
-            <p className="headerp" style={{fontSize:"19px"}}>Add a record</p>
+            <p className="headerp" style={{fontSize:"19px"}}>Add New Record</p>
             <div className="recordForm" css={recordFormStyle}>
                 <p>Description</p>
                 <textarea
@@ -215,11 +245,21 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                 <div className="dropdown-section" css={dropdownSectionStyle}>
                     <div className="type-dropdown" css={dropdownStyle}>
                     <p style={{marginBottom: "5px", fontSize:"17px"}}>Type</p>
-                        <div css={dropdownButtonStyle} onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}>
+                        {/* <div css={dropdownButtonStyle} onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}>
                             <div style={{fontSize:"15px"}}>{selectedType}</div>
-                            <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
-                        </div>
-                        {isTypeDropdownOpen && (
+                            <Icon icon={"weui:arrow-filled"} color="black" rotate={45} fontSize={10} />
+                        </div> */}
+
+                        <select
+                                    css={selectStyle}
+                                    style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                                >
+                                    <option value="odd">Report</option>
+                                    <option value="even">Complaint</option>
+                                    <option value="even">Urgent</option>
+                                </select>
+                        
+                        {/* {isTypeDropdownOpen && (
                             <div css={dropdownContentStyle}>
                                 <div css={dropdownItemStyle(selectedType === "Report")} onClick={() => handleTypeSelect("Report")}>
                                     Report
@@ -230,14 +270,15 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                                 <div css={dropdownItemStyle(selectedType === "Urgent")} onClick={() => handleTypeSelect("Urgent")}>
                                     Urgent
                                 </div>
+                                
                             </div>
-                        )}
+                        )} */}
                     </div>
                     <div className="person-dropdown" css={dropdownStyle}>
                     <p style={{marginBottom: "5px", fontSize:"17px"}}>Source</p>
                         <div css={dropdownButtonStyle} onClick={() => setIsPersonDropdownOpen(!isPersonDropdownOpen)}>
                             <div style={{fontSize:"15px"}}>{selectedPerson}</div>
-                            <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
+                            <Icon icon={"weui:arrow-filled"} color="black" rotate={45} fontSize={10} />
                         </div>
                         {isPersonDropdownOpen && (
                             <div css={dropdownContentStyle}>
@@ -263,7 +304,7 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                                 .join(' ')}
                         </div>
-                            <Icon icon={"weui:arrow-filled"} color="#49A8FF" rotate={45} fontSize={10} />
+                            <Icon icon={"weui:arrow-filled"} color="black" rotate={45} fontSize={10} />
                         </div>
                         {isStatusDropdownOpen && (
                             <div css={dropdownContentStyle}>

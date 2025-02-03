@@ -2,13 +2,13 @@
 import { useState, FormEvent } from 'react';
 import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
 import PrimaryButton from '../components/Elementary/Button';
 import { useAuth } from '../helper/AuthProvider';
 import User from '../model/User';
+import binusLogo from "../assets/Logo-SoCS-Black-Blue.png";
 
 import { Icon } from '@iconify/react/dist/iconify.js';
+import { AddButton } from '../components/Documentation/Add New Documentation/AddNewDocumentationBox.styles';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -23,36 +23,35 @@ const Login = () => {
         display: flex;
         justify-content: center;
         align-items: center;
-        background: rgb(118,232,255);
-        background: linear-gradient(324deg, rgba(118,232,255,1) 0%, rgba(73,224,255,1) 22%, rgba(0,59,255,1) 100%);
     `;
 
     const centerCardStyle = css`
         background-color: rgb(255, 255, 255);
-        padding: 40px 80px 40px 80px;
+        padding: 40px 50px 40px 50px;
         border-radius: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
-        justify-content: start;
-        width: 570px;
-        height: 494px;
+        justify-content: center;
+        align-items: center;
+        width: 520px;
         box-sizing: border-box;
-        gap: 20px;
+        gap: 30px;
     `;
 
-    const loginHeaderStyle = css`
-        font-size: 40px;
-        margin: 0px;
-        font-weight: 600;
+    const binusLogoStyle = css`
+        width: 60%;
+        object-fit: contain;
+        border-radius: 6px;
+        margin-bottom: 15px;
     `;
 
     const sectionStyle = css`
         display: flex;
         flex-direction: column;
         align-items: start;
-        gap: 5px;
         width: 100%;
+        gap: 10px;
 
         .label {
             font-size: 18px;
@@ -60,6 +59,11 @@ const Login = () => {
 
         input {
             font-size: 17px;
+            box-sizing: border-box;
+            width: 100%;
+            height: 46px;
+            border-radius: 5px;
+            border: 1px solid #ACACAC;
         }
     `;
 
@@ -83,7 +87,8 @@ const Login = () => {
     const formStyle = css`
         display: flex;
         flex-direction: column;
-        gap: 45px;
+        width: 100%;
+        gap: 20px;
     `;
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -108,7 +113,7 @@ const Login = () => {
                 if (authContext) {
                     authContext.setCurrentUser({ email } as User); 
                     localStorage.setItem('token', data.token);
-                    navigate('/enrichment-documentation/workspaces/dashboard');
+                    navigate('/enrichment-documentation/workspaces/home');
                 } else {
                     setError('Failed to login, unable to set user context');
                 }
@@ -142,46 +147,40 @@ const Login = () => {
         }
     `
 
+    const addDocInputText = css`
+        padding: 0px 10px;
+        font-size: 15px;
+    `;
+
     return (
         <main css={mainStyle}>
             <div css={centerCardStyle}>
-                <h1 css={loginHeaderStyle}>Login</h1>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+                <img src={binusLogo} css={binusLogoStyle} />
                 <form onSubmit={handleSubmit} css={formStyle}>
                     <div css={sectionStyle}>
                         <label htmlFor="email">Email</label>
-                        <div className="inputContainer" css={inputContainerStyle}>
-                            <Icon icon={"iconamoon:profile"} fontSize={17} color='#888888'/>
-                            <input
+                        <input
+                            css={addDocInputText}
                             type="email"
-                            id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email"
-                            css={inputStyle}
                             required
-                            />
-                        </div>
-                        
+                        />
                     </div>
                     <div css={sectionStyle}>
                         <label htmlFor="password">Password</label>
-                        <div className="sectionStyle" css={inputContainerStyle}>
-                            <Icon icon={"mdi:password-outline"} fontSize={17} color='#888888' />
-                            <input
+                        <input
+                            css={addDocInputText}
                             type="password"
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            css={inputStyle}
                             required
-                            />
-                        </div>
-                        
+                        />
                     </div>
-                    <div className="buttonContainer" style={{display: 'flex', justifyContent: "center"}}>
-                        <PrimaryButton content={"LOGIN"} height={60} marginTop='30px' borderRadius='41px' bg_color='rgb(73, 168, 255)' bg_color_hover='#6bb6fa' width={369} />
+                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    <div className="buttonContainer">
+                        <AddButton style={{width: "235px", fontSize:"17px", fontWeight:"500", marginTop:'35px'}}>Login</AddButton>
                     </div>
                 </form>
             </div>

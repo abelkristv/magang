@@ -98,7 +98,7 @@ const AddNewDocumentationBox: React.FC = () => {
             const docsCollection = await fetchAllDocumentation();
             let docs: Documentation[];
             if (docsCollection._tag == "None") {
-                console.log("Failed to fetch documentation");
+                console.log("Failed to fetch internal activity");
                 docs = []
             } else {
                 docs = docsCollection.value;
@@ -241,7 +241,7 @@ const AddNewDocumentationBox: React.FC = () => {
         }
 
         if (!documentationType.trim()) {
-            setDocumentationTypeError("Documentation Type is required");
+            setDocumentationTypeError("Internal Activity Type is required");
             valid = false;
         } else {
             setDocumentationTypeError("");
@@ -377,13 +377,13 @@ const AddNewDocumentationBox: React.FC = () => {
                 setTotalCounter(0);
                 setResults([]);
                 setPictures([]);
-                navigate('/enrichment-documentation/workspaces/documentation')
+                navigate('/enrichment-documentation/workspaces/internal-activity')
             } else {
                 alert(result.message);
             }
         } catch (error) {
-            console.error("Error handling documentation addition: ", error);
-            alert("Failed to add documentation. Please try again.");
+            console.error("Error handling internal activity addition: ", error);
+            alert("Failed to add internal activity. Please try again.");
         }
     };
     
@@ -428,7 +428,7 @@ const AddNewDocumentationBox: React.FC = () => {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 18px;
-        margin-top: 33px;
+        margin-top: 20px;
         
         .item {
             width: 100%;
@@ -457,13 +457,13 @@ const AddNewDocumentationBox: React.FC = () => {
     return (
         <MainContainer>
             <NavSide>
-                <p>Add New Documentation</p>
+                <p>Add Internal Activity</p>
             </NavSide>
             <ContentContainer>
-                <Header>Add a documentation</Header>
+                <Header>Add New Internal activity</Header>
                 <ContentSide>
                     <div className="leftSide">
-                        {/* <p style={{ fontSize: "19px" }}>Main</p> */}
+                        <p style={{ fontSize: "19px" }}>Main</p>
                         <HeaderGrid>
                             <TitleContainer>
                                 <div className="inputTitle">
@@ -499,7 +499,7 @@ const AddNewDocumentationBox: React.FC = () => {
                             </DocumentationMeeting>
                         </HeaderGrid>
                         <div className="leftBottomContainer" >
-                            {/* <p className="header" style={{ marginBottom: "20px", fontSize: "19px" }}>Discussion</p> */}
+                            <p className="header" style={{ fontSize: "19px" }}>Activity</p>
                             <div className="discussionItem" css={discussionItemStyle} >
                                 <div className="item">
                                     <div css={discussionItemHeader}>
@@ -550,7 +550,7 @@ const AddNewDocumentationBox: React.FC = () => {
                                         </RequiredLabel>
                                         <span style={{ color: "#49A8FF" }}>({results.length})</span>
                                     </div>
-                                    <Button onClick={openResultsModal}>See or Add more</Button>
+                                    <Button onClick={openResultsModal}>See or Add More</Button>
                                 </div>
                             </div>
                         </div>
@@ -558,12 +558,11 @@ const AddNewDocumentationBox: React.FC = () => {
                     </div>
                     <div className="rightSide">
                         <div className="scheduleContainer">
-                            {/* <p style={{fontSize: "19px"}}>Schedule</p> */}
+                            <p style={{fontSize: "19px"}}>Schedule</p>
                             <ScheduleTopSide>
                                 <div className="typeContainer" style={{ position: "relative", display: "flex", flexDirection: "column", gap: "10px" }}>
                                     <RequiredLabel>
-                                        {/* Type <span>*</span> */}
-                                        Type
+                                        Location Type
                                     </RequiredLabel>
                                     <DropdownComponent selectedValue={type} setSelectedValue={setType} options={["Online", "Onsite"]}  />
                                 </div>
@@ -581,34 +580,34 @@ const AddNewDocumentationBox: React.FC = () => {
                             <LocationContainer>
                                 <RequiredLabel>
                                     {/* Location <span>*</span> */}
-                                    Location
+                                    Place / Link
                                 </RequiredLabel>
                                 <input css={addDocInputText} type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
                                 {locationError && <ErrorText>{locationError}</ErrorText>}
                             </LocationContainer>
                             
                         </div>
-                        {/* <p className="header" style={{ marginBottom: "20px", fontSize: "19px", marginTop: "20px" }}>Snapshot</p> */}
-                        <div className="snapshotItemContainer" css={discussionItemStyle} style={{marginTop:"35px"}}>
+                        <p className="header" style={{ fontSize: "19px", marginTop: "45px" }}>Snapshot</p>
+                        <div className="snapshotItemContainer" css={discussionItemStyle} style={{marginTop:"25px"}}>
                             <div className="item">
                                 <p>Attendees <span style={{ color: "#49A8FF" }}>({attendees.length})</span></p>
-                                <Button onClick={openAttendeeModal}>See or Add more</Button>
+                                <Button onClick={openAttendeeModal}>See or Add More</Button>
                             </div>
                             <div className="item">
                                 <p>Pictures <span style={{ color: "#49A8FF" }}>({pictures.length})</span></p>
-                                <Button onClick={openPicturesModal}>See or Add more</Button>
+                                <Button onClick={openPicturesModal}>See or Add More</Button>
                             </div>
                         </div>
 
                     </div>
                 </ContentSide>
                 <div css={{ textAlign: 'center', padding: "0px 50px 50px 50px"}}>
-                    <AddButton style={{width: "300px", fontSize:"17px", fontWeight:"500"}} onClick={handleAddDocumentation}>Add</AddButton>
+                    <AddButton style={{width: "235px", fontSize:"17px", fontWeight:"500", marginTop:"20px"}} onClick={handleAddDocumentation}>Add</AddButton>
                 </div>
                 
             </ContentContainer>
             
-            <SuccessPopup message='The new documentation has been successfully added' isVisible={isVisible} />
+            <SuccessPopup message='The new internal activity has been successfully added' isVisible={isVisible} />
 
             <AttendeeModal
                 isAttendeeModalOpen={isAttendeeModalOpen}

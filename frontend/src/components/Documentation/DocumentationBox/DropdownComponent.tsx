@@ -63,7 +63,7 @@ const DropdownComponent: React.FC<DropdownComponentProps> = ({ selectedValue, se
         <div style={{ position: 'relative' }}>
             <Dropdown onClick={handleDropdownClick}>
                 <p style={{fontSize:"15px"}}>{selectedValue}</p>
-                <Icon icon={"weui:arrow-filled"} rotate={isDropdownOpen ? 45 : 0} fontSize={isDropdownOpen ? 10 : 20} color='#49A8FF' style={{marginRight:isDropdownOpen?0:2}} />
+                <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} color='black' />
             </Dropdown>
             <DropdownContent isOpen={isDropdownOpen}>
                 {options.map((option, index) => (

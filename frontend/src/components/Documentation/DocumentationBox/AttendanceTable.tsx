@@ -9,8 +9,8 @@ interface AttendanceTableProps {
 
 
 const attendanceTableContainerStyle = css`
-    max-height: 505px;
-    height: 505px;
+    max-height: 530px;
+    height: 555px;
     overflow-y: auto;
     scrollbar-width: thin;
 `;

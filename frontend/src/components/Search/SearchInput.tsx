@@ -72,7 +72,7 @@ const SearchInput = ({
         <div className="searchRow" css={searchRow}>
             <input
                 type="text"
-                placeholder="Find Your Student"
+                placeholder="Enter name or NIM"
                 value={searchQuery}
                 onChange={onSearchChange}
                 onKeyDown={onKeyDown}

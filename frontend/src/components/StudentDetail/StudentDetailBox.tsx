@@ -450,16 +450,6 @@ const StudentDetailBox = () => {
         }
     `;
 
-    const periodFilterStyle = css`
-        padding: 10px;
-        font-size: 15px;
-        border: 100px solid #ccc;
-        border-radius: 5px;
-        cursor: pointer;
-        width: 200px;
-        background-color: #000000;
-    `;
-
     const ReportItemPlaceholder = styled.div`
         border-bottom: 1px solid rgba(0,0,0, 0.3);
         padding: 10px 0 30px 0;
@@ -468,7 +458,7 @@ const StudentDetailBox = () => {
         text-align: left;
         gap: 5px;
         margin-bottom: 18px;
-        background-color: #f0f0f0;
+        background-color: white !important;
         animation: pulse 1.5s infinite;
 
         .topSide {
@@ -510,16 +500,21 @@ const StudentDetailBox = () => {
         }
     `;
 
+    const buttonContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+    `;
+
     const buttonStyle = css`
-        // margin-left: 7rem;
-        margin-top: 4rem;
+        margin-top: 2.7rem;
         background-color: #49A8FF;
         color: white;
         padding: 10px 20px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        width : 100%;
+        width : 30%;
         font-size: 17px;
         font-weight: 500;
         &:hover {
@@ -599,7 +594,7 @@ const StudentDetailBox = () => {
                 <UserCard>
                     {student ? (
                         <>
-                            <img src={student.image_url} alt={student.name} style={{ width: "150px", height: "185px", objectFit: "cover" }} />
+                            {/* <img src={student.image_url} alt={student.name} style={{ width: "150px", height: "185px", objectFit: "cover" }} /> */}
                             <UserDesc>
                                 <div className="userHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                                     <div style={{ width: "100%" }}>
@@ -632,23 +627,23 @@ const StudentDetailBox = () => {
                                     <div className="left-side">
                                         <Information>
                                             <InfoContainer>
-                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "16px" }}>
                                                     <Icon icon={"mdi:college-outline"} fontSize={22} />
-                                                    <p>Major</p>
+                                                    <p style={{width:"190px"}}>Major</p>
                                                 </div>
                                                 <p style={{fontWeight: "500"}}>{student.major}</p>
                                             </InfoContainer>
                                             <InfoContainer>
-                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "16px" }}>
                                                     <Icon icon={"ph:building-bold"} fontSize={22} />
-                                                    <p>Organization Name</p>
+                                                    <p style={{width:"190px"}}>Organization Name</p>
                                                 </div>
                                                 <p style={{fontWeight: "500"}}>{student.tempat_magang}</p>
                                             </InfoContainer>
                                             <InfoContainer>
-                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "16px" }}>
                                                     <Icon icon={"ic:outline-email"} fontSize={22} />
-                                                    <p>Email Address</p>
+                                                    <p style={{width:"190px"}}>Email Address</p>
                                                 </div>
                                                 <p style={{fontWeight: "500"}}>{student.email}</p>
                                             </InfoContainer>
@@ -657,14 +652,14 @@ const StudentDetailBox = () => {
                                     <div className="right-side">
                                         <Information>
                                             <InfoContainer2>
-                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "16px" }}>
                                                     <Icon icon={"material-symbols:supervisor-account"} fontSize={22} />
                                                     <p style={{width:"190px"}}>Faculty Supervisor</p>
                                                 </div>
                                                 <p style={{fontWeight: "500"}}>{student.faculty_supervisor}</p>
                                             </InfoContainer2>
                                             <InfoContainer2>
-                                                <div style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "16px" }}>
+                                                <div style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "16px" }}>
                                                     <Icon icon={"ic:outline-people"} fontSize={22} />
                                                     <p style={{width:"190px"}}>Site Supervisor</p>
                                                 </div>
@@ -677,7 +672,6 @@ const StudentDetailBox = () => {
                         </>
                     ) : (
                         <>
-                            <div className="loading-placeholder" style={{ backgroundColor:"#ddd", width: "150px", height: "185px", objectFit: "cover" }}></div>
                             <UserDesc>
                                 <div className="userHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                                     <div style={{ backgroundColor:"white", width: "100%" }}>
@@ -726,15 +720,15 @@ const StudentDetailBox = () => {
                 <BottomContentContainer>
                     <div className="left-side">
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0px", alignItems:"center" }}>
-                            <div className="records-header-container" style={{ display: "flex", gap: "20px"}}>
+                            <div className="records-header-container" style={{ display: "flex", gap: "20px", alignItems:"center"}}>
                                 <h2 style={{ textAlign: "left", margin:"0", fontWeight: "600", fontSize: "18px" }}>Records</h2>
                                 <div className="records-option" style={{display: "flex", alignItems: "center", gap: "7px"}}>
                                     <div className="color-green" style={{width: "12px", height: "12px", backgroundColor: "#17AF3F", borderRadius: "100%"}}></div>
-                                    <p style={{fontSize: "10px"}}>Solved</p>
+                                    <p style={{fontSize: "13px"}}>Solved</p>
                                 </div>
                                 <div className="records-option" style={{display: "flex", alignItems: "center", gap: "7px"}}>
                                     <div className="color-red" style={{width: "12px", height: "12px", backgroundColor: "#FF0000", borderRadius: "100%"}}></div>
-                                    <p style={{fontSize: "10px"}}>Not Solved</p>
+                                    <p style={{fontSize: "13px"}}>Not Solved</p>
                                 </div>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: "5px", position: "relative" }}>
@@ -743,138 +737,81 @@ const StudentDetailBox = () => {
                                     <p style={{fontSize:"15px"}} >All Records</p>
                                     <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} />
                                 </Dropdown>
-                                <DropdownContent isOpen={isDropdownOpen} style={{display: ""}}>
-                                    <div style={{display: "flex", flexDirection: "row", gap: "25px"}}>
-                                        <div className="time">
-                                            <p style={{marginBottom: "12px", fontSize: "16px"}}>Time</p>
+                                <DropdownContent isOpen={isDropdownOpen}>
+                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                        <div className="sorting">
+                                            <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
                                             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
-                                                    <p style={{fontSize: "15px", width: "18%"}}>Start</p>
-                                                    <input style={{
+                                                <select
+                                                    style={{
                                                         padding: "6px",
                                                         fontSize: "15px",
-                                                        height: "30px",
                                                         border: "1px solid #ccc",
-                                                        borderRadius: "5px"}} type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
-                                                </div>
-                                                <div style={{ display: "flex", gap: "15px", alignItems:"center" }}>
-                                                    <p style={{fontSize: "15px", width: "18%"}}>End</p>
-                                                    <input style={{
-                                                        padding: "6px",
-                                                        fontSize: "15px",
-                                                        height: "30px",
-                                                        border: "1px solid #ccc",
-                                                        borderRadius: "5px"}} type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
-                                                </div>
+                                                        borderRadius: "5px",
+                                                        height: "45px",
+                                                        width: "100%",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={sortOrder}
+                                                    onChange={(e) => setSortOrder(e.target.value)}
+                                                >
+                                                    <option value="latest">Latest</option>
+                                                    <option value="earliest">Earliest</option>
+                                                </select>
                                             </div>
-                                            <div className="type">
-                                                <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Type</p>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                    <select
-                                                        style={{
-                                                            padding: "6px",
-                                                            fontSize: "15px",
-                                                            border: "1px solid #ccc",
-                                                            borderRadius: "5px",
-                                                            width: "212px",
-                                                            height: "45px",
-                                                            backgroundColor: "white"
-                                                        }}
-                                                        value={filterType}
-                                                        onChange={(e) => setFilterType(e.target.value)}
-                                                    >
-                                                        <option value="">All</option>
-                                                        <option value="Urgent">Urgent</option>
-                                                        <option value="Report">Report</option>
-                                                        <option value="Complaint">Complaint</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div className="status">
-                                                <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Status</p>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                    <select
-                                                        style={{
-                                                            padding: "6px",
-                                                            fontSize: "15px",
-                                                            border: "1px solid #ccc",
-                                                            borderRadius: "5px",
-                                                            width: "212px",
-                                                            height: "45px",
-                                                            backgroundColor: "white"
-                                                        }}
-                                                        value={filterStatus}
-                                                        onChange={(e) => setFilterStatus(e.target.value)}
-                                                    >
-                                                        <option value="">All</option>
-                                                        <option value="solved">Solved</option>
-                                                        <option value="not solved">Not Solved</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div className="buttonContainer">
-
-                                                <button type="submit" css={buttonStyle} onClick={onApplyFilter}>
-                                                    Apply
-                                                </button>
-                                            </div>
-
                                         </div>
-                                        <div className="rightSide">
-                                            <div className="sorting">
-                                                <p style={{ marginBottom: "12px", fontSize: "16px" }}>Sort By</p>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                    <select
-                                                        style={{
-                                                            padding: "6px",
-                                                            fontSize: "15px",
-                                                            border: "1px solid #ccc",
-                                                            borderRadius: "5px",
-                                                            height: "45px",
-                                                            width: "200px",
-                                                            backgroundColor: "white"
-                                                        }}
-                                                        value={sortOrder}
-                                                        onChange={(e) => setSortOrder(e.target.value)}
-                                                    >
-                                                        <option value="latest">Latest</option>
-                                                        <option value="earliest">Earliest</option>
-                                                    </select>
-                                                </div>
+                                        <div className="type">
+                                            <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Type</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "100%",
+                                                        height: "45px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={filterType}
+                                                    onChange={(e) => setFilterType(e.target.value)}
+                                                >
+                                                    <option value="">All</option>
+                                                    <option value="Urgent">Urgent</option>
+                                                    <option value="Report">Report</option>
+                                                    <option value="Complaint">Complaint</option>
+                                                </select>
                                             </div>
-                                            <div className="person" style={{marginTop: "75px"}}>
-                                                <p style={{ marginBottom: "12px", fontSize: "16px" }}>Source</p>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                                    <select
-                                                        style={{
-                                                            padding: "6px",
-                                                            fontSize: "15px",
-                                                            border: "1px solid #ccc",
-                                                            borderRadius: "5px",
-                                                            width: "200px",
-                                                            height: "45px",
-                                                            backgroundColor: "white"
-                                                        }}
-                                                        value={filterPerson}
-                                                        onChange={(e) => setFilterPerson(e.target.value)}
-                                                    >
-                                                        <option value="">All</option>
-                                                        <option value="Student">Student</option>
-                                                        <option value="Enrichment">Enrichment</option>
-                                                        <option value="Company">Company</option>
-                                                        {/* {Object.keys(userEmailsToNames).map((personEmail) => (
-                                                            <option key={personEmail} value={personEmail}>
-                                                                {userEmailsToNames[personEmail]}
-                                                            </option>
-                                                        ))} */}
-                                                    </select>
-                                                </div>
+                                        </div>
+                                        <div className="status">
+                                            <p style={{ marginBottom: "12px", fontSize: "16px", marginTop:"27px" }}>Status</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                                <select
+                                                    style={{
+                                                        padding: "6px",
+                                                        fontSize: "15px",
+                                                        border: "1px solid #ccc",
+                                                        borderRadius: "5px",
+                                                        width: "100%",
+                                                        height: "45px",
+                                                        backgroundColor: "white"
+                                                    }}
+                                                    value={filterStatus}
+                                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                                >
+                                                    <option value="">All</option>
+                                                    <option value="solved">Solved</option>
+                                                    <option value="not solved">Not Solved</option>
+                                                </select>
                                             </div>
-                                            
+                                        </div>
+                                        <div css={buttonContainerStyle}>
+                                            <button type="submit" css={buttonStyle} onClick={onApplyFilter}>
+                                                Apply
+                                            </button>
                                         </div>
                                     </div>
                                     <div style={{color: "red", fontSize: "14px"}}>{dateErrorMessage}</div>
-                                    
                                 </DropdownContent>
                             </div>
                         </div>
@@ -940,13 +877,18 @@ const StudentDetailBox = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="infoAndDate">
+                                            <div className="infoAndDate" style={{display:'flex', justifyContent:'space-between'}}>
                                                 <p style={{
                                                     fontStyle: "italic",
                                                     color: "#51587E",
                                                     fontSize: "14px",
                                                     marginBottom: "5px"
                                                 }}>By {report.person} - {formattedTime}, {formattedDate}</p>
+                                                <p style={{
+                                                    fontStyle: "italic",
+                                                    color: "#51587E",
+                                                    fontSize: "14px",
+                                                }}></p>
                                             </div>
                                             <p className="report-content" style={{color:'#5F6368', fontSize:"16px"}}>{report.report}</p>
                                             {meetingSchedules[report.id] ? (
@@ -958,7 +900,23 @@ const StudentDetailBox = () => {
                                                     </ShowMeetingSchedule>
                                                     {expandedReportId === report.id && (
                                                         <ExpandedCard>
-                                                            <p style={{fontWeight: "500", fontSize: "17px"}}>Meeting Scheduled</p>
+                                                            <div style={{display:'flex', justifyContent:'space-between'}}>
+                                                                <p style={{fontWeight: "500", fontSize: "17px"}}>Meeting Scheduled</p>
+                                                                <div style={{display:'flex', gap:'5px'}}>
+                                                                    <Icon
+                                                                        icon={"material-symbols:edit"}
+                                                                        fontSize={20}
+                                                                        style={{ cursor: 'pointer' }}
+                                                                        // onClick={() => handleEditReport(report.id, report.report, report.type, report.person)}
+                                                                    />
+                                                                    <Icon
+                                                                        icon={"ic:baseline-delete"}
+                                                                        fontSize={20}
+                                                                        style={{ cursor: 'pointer' }}
+                                                                        // onClick={() => handleDeleteClick(report.id)}
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                             <p style={{ color: "#51587E", fontStyle: "italic", fontSize: "14px" }}>
                                                                 By {meetingSchedules[report.id].writer} 
                                                                 {meetingSchedules[report.id].createdAt ? 
@@ -1043,7 +1001,7 @@ const StudentDetailBox = () => {
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={confirmDelete}
-                message="Are you sure you want to delete this report? This action cannot be undone."
+                message="You are about to delete the selected student record"
             />
             <SuccessPopup message='The meeting has been successfully scheduled' isVisible={isVisible} />
         </Main>

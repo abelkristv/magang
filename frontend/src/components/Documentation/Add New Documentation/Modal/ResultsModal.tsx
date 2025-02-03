@@ -252,7 +252,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({
             <div css={modalStyle}>
                 <div css={modalContentStyle} ref={resultsModalRef}>
                     <div className="modalHeader" css={modalHeaderStyle}>
-                        <p className="headerp">List of Discussion Results</p>
+                        <p className="headerp">List of Activity Results</p>
                         <Icon icon="mdi:close" onClick={closeResultsModal} fontSize={25} color="#51587E" css={closeButtonStyle} /> 
                     </div>
                     <div className="inputAndButtonContainer" css={inputAndButtonContainerStyle}>

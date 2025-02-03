@@ -9,13 +9,13 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid credentials');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid credentials');
     }
 
     const token = jwt.sign(

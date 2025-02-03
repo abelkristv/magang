@@ -53,7 +53,6 @@ const ConfirmationModal: FC<ConfirmationModalProps> = ({ isOpen, onClose, onConf
         width: 500px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
         border-radius: 10px;
 
         .headerp {
@@ -74,30 +73,17 @@ const ConfirmationModal: FC<ConfirmationModalProps> = ({ isOpen, onClose, onConf
     `;
 
     const buttonStyle = css`
-        background-color: #ff243d;
+        background-color: #49A8FF;
         color: white;
         padding: 10px 20px;
+        margin-top: 35px;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         font-size: 17px;
         font-weight: 500;
         &:hover {
-            background-color: #ff455a;
-        }
-    `;
-
-    const cancelButtonStyle = css`
-        background-color: #ccc;
-        color: black;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 17px;
-        font-weight: 500;
-        &:hover {
-            background-color: #ddd;
+            background-color: #309CFF;
         }
     `;
 
@@ -110,34 +96,58 @@ const ConfirmationModal: FC<ConfirmationModalProps> = ({ isOpen, onClose, onConf
         border-radius: 10px 10px 0px 0px;
 
         .headerp {
-            margin-left: 6px;
+            margin-left: 8px;
             margin-bottom: 0px;
         }
     `;
 
     const closeButtonStyle = css`
+        background: none;
+        border: none;
         cursor: pointer;
-        margin-right: 8px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #888;
+        margin-right: 5px;
     `;
 
     const messageStyle = css`
         text-align: center;
-        font-size: 16px;
-        padding: 20px;
+        font-size: 17px;
+    `;
+    const message2Style = css`
+        text-align: center;
+        font-size: 14px;
+    `;
+    const messageContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     `;
 
     return (
         <div css={modalStyle}>
             <div ref={modalRef} css={modalContentStyle}>
                 <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp" style={{ fontSize: "19px", fontWeight: "600" }}>Confirmation</p>
-                    <Icon icon="mdi:close" onClick={onClose} fontSize={25} color="#51587E" css={closeButtonStyle} />
+                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Delete Record</p>
+                    <Icon icon="mdi:close" onClick={onClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
-                <p css={messageStyle}>{message}</p>
+                <div css={messageContainerStyle}>
+                    <Icon
+                        icon={"ic:baseline-delete"}
+                        fontSize={40}
+                        style={{
+                            borderRadius:'100%',
+                            border:'1px solid',
+                            padding:'25px',
+                            marginTop: '20px',
+                        }}
+                    />
+                    <p css={messageStyle}>{message}</p>
+                    <p css={message2Style}>Are you sure?</p>
+                </div>
                 <div css={buttonContainerStyle}>
-                    <button css={cancelButtonStyle} onClick={onClose}>
-                        Cancel
-                    </button>
                     <button css={buttonStyle} onClick={onConfirm}>
                         Confirm
                     </button>

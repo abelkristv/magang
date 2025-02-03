@@ -12,6 +12,7 @@ import { fetchRecordsAndDocumentation } from "../controllers/ReportController";
 import notFoundImage from "../assets/not_found.png";
 import { fetchAllCompanies } from "../controllers/CompanyController";
 import { fetchPeriods } from "../controllers/PeriodController";
+import { InfoContainer } from "./StudentDetail/StudentDetailBox.styles";
 
 interface ProfileBoxProps {
     setTodayReportsCount: (count: number) => void;
@@ -39,7 +40,6 @@ interface Record {
 }
 
 interface Documentation {
-    // Define the structure of documentation objects here if needed
 }
 
 const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
@@ -266,8 +266,6 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         box-shadow: 0px 0px 5px 1px #dbdbdb;
         border-radius: 10px;
         width: 100%;
-        min-width: 900px;
-        min-height: 155px;
 
         img {
             min-width: 145px;
@@ -280,13 +278,19 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
 
     const userDescStyle = css`
         display: flex;
-        flex-direction: column;
-        items-align: center;
-        justify-content: center;
-        width: 100%;
+        align-items: center;
+        gap: 75px;
         text-align: left;
-        padding: 15px 15px 15px 0px;
+    `;
+
+    const userDesc2Style = css`\
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 15px 15px 15px;
         box-sizing: border-box;
+        text-align: left;
     `;
 
     const infoContainerStyle = css`
@@ -311,7 +315,6 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     `;
 
     const informationStyle = css`
-        margin-top: 20px;
         color: #51587E;
         display: flex;
 
@@ -319,7 +322,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
             display: flex;
             width: 500px;
             flex-direction: column;
-            gap: 10px;
+            gap: 5px;
         }
     `;
 
@@ -346,7 +349,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         display: flex;
         justify-content: space-between;
         width: 100%;
-        margin-top: 20px;
+        margin-top: 30px;
         .bottomContainer {
             width: 100%;
             .heading {
@@ -376,7 +379,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         box-sizing: border-box;
         overflow: auto;
         scrollbar-width: thin;
-        height: 500px;
+        height: 685px;
 
         .recordCard {
             display: flex;
@@ -386,14 +389,6 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
             background-color: white;
             align-items: center;
             height: 160px;
-
-            img {
-                width: 114px;
-                min-height: 100%;
-                object-fit: cover;
-                border-radius: 5px 0px 0px 5px;
-                margin-right: 15px;
-            }
         }
     `;
 
@@ -447,13 +442,13 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         position: absolute;
         background-color: #EBEBEB;
         top: 120%;
-        left: -10%;
+        left: -30%;
         text-align: start;
         padding: 15px;
         border: 1px solid #ddd;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        width: 100%;
+        width: 120%;
         z-index: 1;
 
         p {
@@ -466,6 +461,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         select {
             width: 100%;
             padding: 10px;
+            margin-bottom: 15px;
             box-sizing: border-box;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -473,45 +469,11 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
             font-size: 15px;
             cursor: pointer;
         }
-
-        button {
-            width: 25%;
-            padding: 10px;
-            border: none;
-            border-radius: 10px;
-            background-color: #000000;
-            color: white;
-            font-size: 17px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 10px;
-            &:hover {
-                background-color: #363636;
-            }
-        }
     `;
 
-    // const formatDate = (timestamp: { seconds: number; nanoseconds: number }) => {
-    //     const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-    //     const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
-    //     const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: '2-digit' };
-
-    //     const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
-    //     const formattedDate = date.toLocaleDateString('en-US', dateOptions);
-
-    //     return { time: formattedTime, date: formattedDate };
-    // };
-
-    const recordCard = css``;
+    // const recordCard = css``;
 
     const cardStyle = css`
-        .leftSide {
-            overflow: hidden;
-        }
-        .rightSide {
-            width: 50%;
-        }
-
         height: 100%;
     `;
 
@@ -541,6 +503,29 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
         }
     `;
 
+    const buttonContainerStyle = css`
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+    `;
+
+    const buttonStyle = css`
+        border: none;
+        background-color: #49A8FF;
+        padding: 10px 20px;
+        color: white;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 17px;
+        margin-top: 30px;
+        width: auto;
+
+        &:hover {
+            cursor: pointer;
+            background-color: #309CFF;
+        }
+    `;
+
     return (
         <main className="mainStyle" css={mainStyle}>
             {isLoading ? (
@@ -562,75 +547,82 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                     <p css={headerTop}>Profile</p>
                     <div className="contentSide" css={contentSide}>
                         <div className="userCard" css={userCardStyle}>
-                            <img src={user?.image_url} alt="" />
-                            <div className="userDesc" css={userDescStyle}>
-                                <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1px" }}>
-                                    {isEditing ? (
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={editableUser?.name}
-                                            onChange={handleChange}
-                                            style={{
-                                                fontWeight: "600",
-                                                fontSize: "18px",
-                                                border: "none",
-                                                width: "258px !important",
-                                                borderBottom: "1px solid gray",
-                                                padding: "0px",
-                                            }}
-                                        />
-                                    ) : (
-                                        <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
-                                    )}
-                                    {isEditing ? (
-                                        <Icon icon={"mingcute:check-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
-                                    ) : (
-                                        <Icon icon={"mingcute:edit-line"} fontSize={30} onClick={handleEditClick} style={{ cursor: 'pointer' }} />
-                                    )}
+                            {/* <img src={user?.image_url} alt="" /> */}
+                            <div className="userDesc" css={userDesc2Style}>
+                                <div css={userDescStyle}>
+                                    <div>
+                                        <div className="nameHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1px" }}>
+                                            {isEditing ? (
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    value={editableUser?.name}
+                                                    onChange={handleChange}
+                                                    style={{
+                                                        fontWeight: "600",
+                                                        fontSize: "18px",
+                                                        border: "none",
+                                                        width: "wrap-content !important",
+                                                        borderBottom: "1px solid gray",
+                                                        padding: "0px",
+                                                    }}
+                                                />
+                                            ) : (
+                                                <p style={{ fontWeight: "600", fontSize: "18px" }}>{user?.name}</p>
+                                            )}
+                                        </div>
+                                        {/* <p style={{ color: "#51587E", fontWeight: "500", fontSize: "16px" }}>{editableUser?.role === "Company" ? "Site Supervisor" : "Enrichment SOCS"}</p> */}
+                                        <p style={{ color: "#51587E", fontWeight: "500", fontSize: "16px" }}>Enrichment SOCS</p>
+                                    </div>
+                                    <div className="information" css={informationStyle}>
+                                        <div className="column">
+                                            <div className="infoContainer" css={infoContainerStyle}>
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "20px" }}>
+                                                    <Icon icon={"ic:outline-email"} fontSize={24} />
+                                                    <p>Email address</p>
+                                                </div>
+                                                {isEditing ? (
+                                                    <input type="text" name="email" value={editableUser?.email} onChange={handleChange} css={editInputStyle} />
+                                                ) : (
+                                                    <p>{editableUser?.email}</p>
+                                                )}
+                                            </div>
+                                            <div className="infoContainer" css={infoContainerStyle}>
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "20px" }}>
+                                                    <Icon icon={"ic:outline-phone"} fontSize={24} />
+                                                    <p>Phone number</p>
+                                                </div>
+                                                {isEditing ? (
+                                                    <input type="text" name="phone_number" value={editableUser?.phone_number} onChange={handleChange} css={editInputStyle} />
+                                                ) : (
+                                                    <p>{editableUser?.phone_number}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* <div className="column" style={{ width: "600px" }}>
+                                            <div className="infoContainer" css={infoContainerStyle}>
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "20px" }}>
+                                                    <Icon icon={"ph:building-bold"} fontSize={24} />
+                                                    <p>Company Name</p>
+                                                </div>
+                                                <p>{editableUser?.company_name}</p>
+                                            </div>
+                                            <div className="infoContainer" css={infoContainerStyle}>
+                                                <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "20px" }}>
+                                                    <Icon icon={"entypo:address"} fontSize={24} />
+                                                    <p>Company Address</p>
+                                                </div>
+                                                <p style={{ width: "130%", textAlign: "justify" }}>{companyAddress}</p>
+                                            </div>
+                                        </div> */}
+                                    </div>
                                 </div>
-                                <p style={{ color: "#51587E", fontWeight: "500", fontSize: "16px" }}>{editableUser?.role === "Company" ? "Site Supervisor" : "Enrichment SOCS"}</p>
-                                <div className="information" css={informationStyle}>
-                                    <div className="column">
-                                        <div className="infoContainer" css={infoContainerStyle}>
-                                            <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "20px" }}>
-                                                <Icon icon={"ic:outline-email"} fontSize={24} />
-                                                <p>Email address</p>
-                                            </div>
-                                            {isEditing ? (
-                                                <input type="text" name="email" value={editableUser?.email} onChange={handleChange} css={editInputStyle} />
-                                            ) : (
-                                                <p>{editableUser?.email}</p>
-                                            )}
-                                        </div>
-                                        <div className="infoContainer" css={infoContainerStyle}>
-                                            <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "20px" }}>
-                                                <Icon icon={"ic:outline-phone"} fontSize={24} />
-                                                <p>Phone number</p>
-                                            </div>
-                                            {isEditing ? (
-                                                <input type="text" name="phone_number" value={editableUser?.phone_number} onChange={handleChange} css={editInputStyle} />
-                                            ) : (
-                                                <p>{editableUser?.phone_number}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="column" style={{ width: "600px" }}>
-                                        <div className="infoContainer" css={infoContainerStyle}>
-                                            <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "center", gap: "20px" }}>
-                                                <Icon icon={"ph:building-bold"} fontSize={24} />
-                                                <p>Company Name</p>
-                                            </div>
-                                            <p>{editableUser?.company_name}</p>
-                                        </div>
-                                        <div className="infoContainer" css={infoContainerStyle}>
-                                            <div className="container" style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "20px" }}>
-                                                <Icon icon={"entypo:address"} fontSize={24} />
-                                                <p>Company Address</p>
-                                            </div>
-                                            <p style={{ width: "130%", textAlign: "justify" }}>{companyAddress}</p>
-                                        </div>
-                                    </div>
+                                <div>
+                                    {isEditing ? (
+                                            <Icon icon={"mingcute:check-line"} fontSize={30} onClick={handleEditClick} style={{ cursor:'pointer' }} />
+                                        ) : (
+                                            <Icon icon={"mingcute:edit-line"} fontSize={30} onClick={handleEditClick} style={{ cursor:'pointer' }} />
+                                        )}
                                 </div>
                             </div>
                         </div>
@@ -642,7 +634,7 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                     <p style={{ fontWeight: "600", fontSize: "19px" }}>Unresolved Urgent Student Records</p>
                                 </div>
                                 <div className="righSide" style={{ display: "flex", gap: "10px", alignItems: "center", position: "relative" }}>
-                                    <p style={{ fontSize: '15px' }}>Filter By : </p>
+                                    <p style={{ fontSize: '15px' }}>Filter by: </p>
                                     <div className="filterMajor" css={dropdownStyle} onClick={toggleDropdown}>
                                         <p>{selectedMajor || "All Majors"}</p>
                                         <Icon icon={"weui:arrow-filled"} rotate={45} fontSize={10} />
@@ -657,14 +649,14 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                 ))}
                                             </select>
 
-                                            {/* Company Filter */}
+                                            {/* Company Filter
                                             <p style={{marginTop:"13px"}}>Company</p>
                                             <select value={selectedCompany} onChange={(e) => handleFilterChange("company", e.target.value)}>
                                                 <option value="">All</option>
                                                 {companies.map((company, index) => (
                                                     <option key={index} value={company}>{`${company}`}</option>
                                                 ))}
-                                            </select>
+                                            </select> */}
 
                                             {/* Period Filter */}
                                             <p>Period</p>
@@ -675,8 +667,11 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                 ))}
                                             </select>
 
-                                            <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", marginTop: "30px" }}>
+                                            {/* <div className="buttonContainer" style={{ display: "flex", justifyContent: "end", marginTop: "30px" }}>
                                                 <button onClick={handleApplyFilters} style={{ backgroundColor: "#49A8FF" }}>Apply</button>
+                                            </div> */}
+                                            <div css={buttonContainerStyle}>
+                                                <button className="button" css={buttonStyle} onClick={handleApplyFilters}>Apply</button>
                                             </div>
                                         </div>
                                     }
@@ -702,18 +697,18 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                     width: "100%",
                                                     padding: "10px",
                                                     boxSizing: "border-box",
-                                                    height: "100%",
                                                     display: "flex",
-                                                    flexDirection: "row",
+                                                    justifyContent: "space-between",
                                                     paddingRight: "15px",
                                                     paddingTop: "10px",
                                                     paddingLeft: "15px",
                                                     gap: "10px"
                                                 }}>
-                                                    <div css={cardStyle} className="leftSide" style={
-                                                        editableUser?.role === "Enrichment" ? { width: "50%", paddingTop: "0px" } :
-                                                            { width: "100%", paddingTop: "0px" }
-                                                    }>
+                                                    <div css={cardStyle} className="leftSide" style={{
+                                                        width: "100%",
+                                                        paddingTop: "0px",
+                                                        borderRight: '1px solid #ACACAC'
+                                                    }}>
                                                         <div className="name-header" style={{ display: "flex", justifyContent: "space-between", flexDirection: "column" }}>
                                                             <p style={{ fontSize: "17.5px", fontWeight: "500" }}>{record.studentName}</p>
                                                             <p style={{ fontSize: "15px", fontWeight: "500", color: "#51587E" }}>{record.studentData.nim}</p>
@@ -725,47 +720,56 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                                             }}>
                                                                 <div style={{ display: 'flex', flexDirection: "column", gap: "5px" }}>
                                                                     <div className="studentInfoContent" style={{
-                                                                        display: "grid",
-                                                                        gridTemplateColumns: "0.063fr 0.31fr 0.3fr",
-                                                                        alignItems: "center"
+                                                                        display: "flex",
+                                                                        alignItems: "start"
                                                                     }}>
-                                                                        <Icon icon={"ph:building-bold"} fontSize={20} color="#51587E" />
-                                                                        <p style={{ fontSize: "15px", color: "#51587E" }}>Organization Name</p>
+                                                                        <div style={{display:'flex', gap:'16px', width:'230px'}}>
+                                                                            <Icon icon={"ph:building-bold"} fontSize={20} color="#51587E" />
+                                                                            <p style={{ fontSize: "15px", color: "#51587E" }}>Organization Name</p>
+                                                                        </div>
                                                                         <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.tempatMagang}</p>
                                                                     </div>
+                                                                    {/* <InfoContainer>
+                                                                        <div style={{ display: "flex", color: "#51587E", alignItems: "start", gap: "16px" }}>
+                                                                            <Icon icon={"ph:building-bold"} fontSize={22} />
+                                                                            <p style={{width:"190px"}}>Organization Name</p>
+                                                                        </div>
+                                                                        <p style={{fontWeight: "500"}}>{record.studentData.tempatMagang}</p>
+                                                                    </InfoContainer> */}
                                                                     <div className="studentInfoContent" style={{
-                                                                        display: "grid",
-                                                                        gridTemplateColumns: "0.063fr 0.31fr 0.3fr",
-                                                                        alignItems: "center"
+                                                                        display: "flex",
+                                                                        alignItems: "start"
                                                                     }}>
-                                                                        <Icon icon={"material-symbols:supervisor-account"} fontSize={20} color="#51587E" />
-                                                                        <p style={{ fontSize: "15px", color: "#51587E" }}>Faculty Supervisor</p>
+                                                                        <div style={{display:'flex', gap:'16px', width:'230px'}}>
+                                                                            <Icon icon={"material-symbols:supervisor-account"} fontSize={20} color="#51587E" />
+                                                                            <p style={{ fontSize: "15px", color: "#51587E" }}>Faculty Supervisor</p>
+                                                                        </div>
                                                                         <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.facultySupervisor}</p>
                                                                     </div>
                                                                     <div className="studentInfoContent" style={{
-                                                                        display: "grid",
-                                                                        gridTemplateColumns: "0.063fr 0.31fr 0.3fr",
-                                                                        alignItems: "center"
+                                                                        display: "flex",
+                                                                        alignItems: "start"
                                                                     }}>
-                                                                        <Icon icon={"ic:outline-people"} fontSize={20} color="#51587E" />
-                                                                        <p style={{ fontSize: "15px", color: "#51587E" }}>Site Supervisor</p>
+                                                                        <div style={{display:'flex', gap:'16px', width:'230px'}}>
+                                                                            <Icon icon={"ic:outline-people"} fontSize={20} color="#51587E" />
+                                                                            <p style={{ fontSize: "15px", color: "#51587E" }}>Site Supervisor</p>
+                                                                        </div>
                                                                         <p style={{ fontSize: "15px", color: "black" }}>{record.studentData.siteSupervisor}</p>
                                                                     </div>
+
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    <div className="rightSide" style={{ position: "relative", width: "70%", paddingLeft: "10px", height: "100%", boxSizing: "border-box" }}>
+                                                    <div className="rightSide" style={{ position: "relative", width: "60%", paddingLeft: "10px", height: "100%", boxSizing: "border-box" }}>
                                                         <div style={{
                                                             marginBottom: "10px",
                                                             marginTop: "3px",
                                                             display: "flex",
                                                             flexDirection: "column",
                                                             height: "100%",
-                                                            paddingLeft: "35px",
-                                                            borderLeft: "1px solid #ACACAC"
-                                                        }} css={recordCard}>
+                                                        }}>
                                                             <div className="record-header" style={{
                                                                 display: "flex",
                                                                 gap: "20px",
