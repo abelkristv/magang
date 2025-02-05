@@ -50,4 +50,42 @@ export class DocumentationController {
       }
     }
   }
+
+  async deleteDocumentation(req: Request, res: Response): Promise<void> {
+    const { documentationId } = req.params;
+    
+    if (!documentationId) {
+      res.status(400).json({ success: false, message: 'Documentation ID is required' });
+      return;
+    }
+    
+    try {
+      const deletedDocumentation = await this.documentationService.deleteDocumentation(documentationId);
+      res.json({ success: true, message: 'Documentation deleted successfully', deletedDocumentation });
+    } catch (error) {
+      console.error('Error deleting documentation:', error);
+      res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'Failed to delete documentation. Please try again.' });
+    }
+  }
+
+  async updateDocumentation(req: Request, res: Response): Promise<void> {
+    try {
+      const documentationId = req.params.documentationId;
+      if (!documentationId) {
+        res.status(400).json({ success: false, message: "Documentation ID is required" });
+        return;
+      }
+      
+      const updatedData = req.body;
+      const payload = { documentationId, ...updatedData };
+      
+      const result = await this.documentationService.updateDocumentationWithDetails(payload);
+      res.json({ success: true, message: "Documentation updated successfully", result });
+    } catch (error) {
+      console.error("Error updating documentation:", error);
+      res.status(500).json({ success: false, message: "Failed to update documentation" });
+    }
+  }
+  
+  
 }

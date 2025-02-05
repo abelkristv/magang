@@ -148,6 +148,31 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         }
     }, [filteredDocumentations]);
 
+    useEffect(() => {
+        // Recalculate docDates from the current documentations state
+        const newDocDates = documentations
+            .map((doc: Documentation) => {
+                let docDate: Date;
+    
+                if (doc.timestamp instanceof Date) {
+                    docDate = doc.timestamp;
+                } else if (typeof doc.timestamp === 'string') {
+                    docDate = new Date(doc.timestamp);
+                } else if (doc.timestamp && typeof (doc.timestamp as any).seconds === 'number') {
+                    const firebaseTimestamp = doc.timestamp as { seconds: number, nanoseconds: number };
+                    docDate = new Date(firebaseTimestamp.seconds * 1000);
+                } else {
+                    console.error('Unknown timestamp format:', doc.timestamp);
+                    return null;
+                }
+                return docDate.toDateString();
+            })
+            .filter(date => date !== null) as string[];
+    
+        setDocDates(newDocDates);
+    }, [documentations]);
+    
+
     const handleButtonClick = (buttonName: string) => {
         setSelectedButton(buttonName);
     };
@@ -957,6 +982,26 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
             setSelectedDate(null); // Handle other cases by setting null
         }
     };
+
+    const handleDeleteDocumentation = async (docId: string) => {
+        if (!window.confirm("Are you sure you want to delete this documentation?")) return;
+    
+        try {
+            await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/${docId}`, { method: 'DELETE' });
+            // Update the state: remove the deleted document from both lists.
+            setDocumentations(prev => prev.filter(doc => doc.id !== docId));
+            setFilteredDocumentations(prev => prev.filter(doc => doc.id !== docId));
+    
+            // Clear the selected documentation if it was the one deleted.
+            if (selectedDocumentation?.id === docId) {
+                setSelectedDocumentation(null);
+            }
+        } catch (error) {
+            console.error("Error deleting documentation:", error);
+        }
+    };
+    
+      
     
     if (userRole === "Company") {
         return (
@@ -1000,13 +1045,27 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                                             icon={"material-symbols:edit"}
                                             fontSize={24}
                                             style={{ cursor: 'pointer' }}
-                                            // onClick={() => handleEditReport(report.id, report.report, report.type, report.person)}
+                                            onClick={() => {
+                                                if (selectedDocumentation?.id) {
+                                                navigate("/enrichment-documentation/workspaces/add-new-documentation", {
+                                                    state: {
+                                                    isEditing: true,
+                                                    documentation: selectedDocumentation
+                                                    }
+                                                });
+                                                }
+                                            }}
                                         />
+
                                         <Icon
                                             icon={"ic:baseline-delete"}
                                             fontSize={24}
                                             style={{ cursor: 'pointer' }}
-                                            // onClick={() => handleDeleteClick(report.id)}
+                                            onClick={() => {
+                                                if (selectedDocumentation?.id) {
+                                                handleDeleteDocumentation(selectedDocumentation.id);
+                                                }
+                                            }}
                                         />
                                     </div>
                                 </div>

@@ -69,6 +69,7 @@ export class DocumentationService {
       writer: user.email,
       timestamp: parsedTime,
     };
+    console.log(documentationData.leader)
   
     const documentation = await this.documentationRepository.createDocumentation(documentationData);
   
@@ -86,6 +87,95 @@ export class DocumentationService {
     return documentation;
   }
 
+  async deleteDocumentation(documentationId: string) {
+    if (!documentationId) {
+      throw new Error('Documentation ID is required');
+    }
+
+    try {
+      const deletedDocumentation = await this.documentationRepository.deleteDocumentation(documentationId);
+      return deletedDocumentation;
+    } catch (error) {
+      throw new Error('Error deleting documentation');
+    }
+  }
+  
+  async updateDocumentationWithDetails(payload: any) {
+    const {
+      documentationId,
+      user,
+      title,
+      invitationNumber,
+      description,
+      leader,
+      location,
+      time,
+      attendees,
+      results,
+      pictures,
+      documentationType,
+      modalDiscussionDetails,
+    } = payload;
+  
+    if (!documentationId) {
+      throw new Error('Documentation ID is required for update');
+    }
+    
+    if (!user?.email) {
+      throw new Error('User is not defined or user email is missing');
+    }
+    
+    const parsedTime = new Date(time).toISOString();
+    
+    const encodedPictures = pictures.map((picture: Picture) => {
+      if (!picture.base64) {
+        throw new Error('Invalid picture data: file is undefined.');
+      }
+      return picture.base64;
+    });
+    
+    // Use plain arrays here:
+    const documentationData = {
+      title,
+      nomorUndangan: invitationNumber,
+      description,
+      leader: leader,
+      place: location,
+      time: parsedTime,
+      attendanceList: attendees, // plain array
+      results: results,          // plain array
+      pictures: encodedPictures, // plain array
+      type: documentationType,
+      writer: user.email,
+      timestamp: parsedTime,
+    };
+
+    console.log(documentationData.leader)
+  
+    let formattedDiscussionDetails: any[] | undefined = undefined;
+    if (modalDiscussionDetails && modalDiscussionDetails.length > 0) {
+      formattedDiscussionDetails = modalDiscussionDetails.map((detail: ModalDiscussionDetail) => ({
+        id: detail.id, // pass through id if exists
+        discussionTitle: detail.discussionTitle,
+        personResponsible: detail.personResponsible,
+        furtherActions: detail.furtherActions,
+        deadline: new Date(detail.deadline).toISOString(),
+      }));
+    }
+    
+    try {
+      const updatedDocumentation = await this.documentationRepository.updateDocumentationWithDetails(
+        documentationId,
+        documentationData,
+        formattedDiscussionDetails
+      );
+      return updatedDocumentation;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error updating documentation');
+    }
+  }
+  
   
   
 }

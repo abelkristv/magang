@@ -87,3 +87,24 @@ export const scheduleMeeting = async (
     }
 };
 
+export const deleteMeetingSchedule = async (meetingScheduleId: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules/${meetingScheduleId}`,
+        { method: 'DELETE' }
+      );
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        const errorMessage = `Failed to delete meeting schedule (Status: ${response.status} ${response.statusText}). Details: ${errorText}`;
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error in deleteMeetingSchedule:", error);
+      throw error;
+    }
+  };
+  

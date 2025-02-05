@@ -51,4 +51,26 @@ export class MeetingScheduleService {
 
     return { newMeeting, updatedSchedules };
   }
+
+  async updateSchedule(meetingId: string, updateData: any) {
+    if (!meetingId) {
+        throw new Error('Meeting schedule ID is required');
+    }
+
+    const updatedMeeting = await this.scheduleRepository.updateMeetingSchedule(meetingId, updateData);
+
+    return { message: 'Meeting schedule updated successfully', updatedMeeting };
+}
+
+
+  async deleteSchedule(meetingScheduleId: string) {
+    if (!meetingScheduleId) {
+      throw new Error('Meeting schedule ID is required');
+    }
+  
+    await this.scheduleRepository.deleteMeetingSchedule(meetingScheduleId);
+  
+    return { message: 'Meeting schedule deleted successfully' };
+  }
+  
 }

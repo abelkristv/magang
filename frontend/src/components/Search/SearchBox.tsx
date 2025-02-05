@@ -533,8 +533,9 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                         sortField={searchState.sortField}
                         sortOrder={searchState.sortOrder}
                         handleSort={handleSort}
-                        onClick={(studentId) => onSelectStudent(studentId)}
+                        onClick={(studentId) => handleStudentSelect(studentId)}
                     />
+
                 )
             ) : (
                 <div css={totalStyle}>

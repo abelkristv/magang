@@ -107,7 +107,7 @@ model MeetingSchedule {
   date            String
   description     String?
   place           String
-  studentReportId String
+  studentReportId String   @unique
   subject         String?
   timeStart       String?
   timeEnd         String?

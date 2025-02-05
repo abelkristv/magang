@@ -10,13 +10,13 @@ import ResultsModal from "./Modal/ResultsModal";
 import PicturesModal from "./Modal/PicturesModal";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { AddButton, Button, ContentContainer, ContentSide, DocumentationMeeting, ErrorText, Header, HeaderGrid, LocationContainer, MainContainer, NavSide, RequiredLabel, ScheduleTopSide, TimeContainer, TitleContainer } from "./AddNewDocumentationBox.styles";
-import { addDocumentation, fetchAllDocumentation } from '../../../controllers/DocumentationController';
+import { addDocumentation, fetchAllDocumentation, updateDocumentation } from '../../../controllers/DocumentationController';
 import Documentation from '../../../model/Documentation';
 import Compressor from 'compressorjs';
 import { fetchDiscussionDetails } from '../../../controllers/DiscussionDetailController';
 import { css } from '@emotion/react';
 import SuccessPopup from '../../Elementary/SuccessPopup';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface DiscussionDetail {
     discussionTitle: string;
@@ -31,6 +31,14 @@ interface Picture {
 }
 
 const AddNewDocumentationBox: React.FC = () => {
+
+    const loc = useLocation();
+
+    const { isEditing: passedIsEditing, documentation } = (loc.state || {}) as {
+        isEditing?: boolean;
+        documentation?: Documentation;
+      };
+
     const [date, _setDate] = useState<Date>(new Date());
     const [selectedButton, _setSelectedButton] = useState<string>('All');
     const [documentations, setDocumentations] = useState<any[]>([]);
@@ -41,32 +49,35 @@ const AddNewDocumentationBox: React.FC = () => {
     const [_userRole, setUserRole] = useState<string | null>(null);
     const [isAttendeeModalOpen, setIsAttendeeModalOpen] = useState<boolean>(false);
     const [isDiscussionModalOpen, setIsDiscussionModalOpen] = useState<boolean>(false);
-    const [modalDiscussionDetails, setModalDiscussionDetails] = useState<DiscussionDetail[]>([]);
-    const [attendees, setAttendees] = useState<string[]>([]);
     const [newAttendee, setNewAttendee] = useState<string>(""); 
-    const [results, setResults] = useState<string[]>([]);
+    const [attendees, setAttendees] = useState<string[]>(documentation?.attendanceList ?? []);
+    const [results, setResults] = useState<string[]>(documentation?.results ?? []);
     const [newResult, setNewResult] = useState<string>(""); 
     const [totalCounter, setTotalCounter] = useState<number>(0); 
-    const [pictures, setPictures] = useState<Picture[]>([]);
+    const [modalDiscussionDetails, setModalDiscussionDetails] = useState<DiscussionDetail[]>(documentation?.discussionDetails ?? []);
+
+    const [pictures, setPictures] = useState<Picture[]>(
+      documentation?.pictures
+        ? documentation.pictures.map((pic: string) => ({ file: new File([], "existing"), url: pic }))
+        : [])
     const [newPicture, setNewPicture] = useState<File | null>(null); 
     const [isPicturesModalOpen, setIsPicturesModalOpen] = useState<boolean>(false);
     const userAuth = useAuth();
     const navigate = useNavigate();
 
-    const [title, setTitle] = useState<string>("");
-    const [invitationNumber, setInvitationNumber] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
-    const [documentationType, setDocumentationType] = useState<string>("Meeting"); 
-    const [meetingLeader, setMeetingLeader] = useState<string>("");
-    const [discussionTitle, setDiscussionTitle] = useState<string>("");
+    const [title, setTitle] = useState<string>(documentation?.title || "");
+    const [invitationNumber, setInvitationNumber] = useState<string>(documentation?.nomor_undangan || "");  const [description, setDescription] = useState<string>(documentation?.description || "");
+  const [documentationType, setDocumentationType] = useState<string>(documentation?.type || "Meeting");
+  const [meetingLeader, setMeetingLeader] = useState<string>(documentation?.leader || "");
+  const [location, setLocation] = useState<string>(documentation?.place || "");
+  const [time, setTime] = useState<string>(
+    documentation?.time ? new Date(documentation.time).toISOString().slice(0, 16) : ""
+  );    const [discussionTitle, setDiscussionTitle] = useState<string>("");
     const [personResponsible, setPersonResponsible] = useState<string>("");
     const [furtherActions, setFurtherActions] = useState<string>("");
     const [deadline, setDeadline] = useState<string>("");
-    const [location, setLocation] = useState<string>("");
-    const [time, setTime] = useState<string>("");
     const [type, setType] = useState<string>("Online");
-    const [isEditing, setIsEditing] = useState<boolean>(false);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(passedIsEditing || false);    const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
     const [user, setUser] = useState<User | undefined>();
 
@@ -92,6 +103,8 @@ const AddNewDocumentationBox: React.FC = () => {
         }
         fetchData()
     }, []);
+
+    console.log(documentation)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -140,6 +153,28 @@ const AddNewDocumentationBox: React.FC = () => {
 
         loadDiscussionDetails();
     }, [selectedDocumentation, activeTab]);
+
+    useEffect(() => {
+        if (isEditing && documentation) {
+          setTitle(documentation.title ?? "");
+          setInvitationNumber(documentation.nomor_undangan ?? "");
+          setDescription(documentation.description ?? "");
+          setDocumentationType(documentation.type ?? "Meeting");
+          setMeetingLeader(documentation.leader ?? "");
+          setLocation(documentation.place ?? "");
+          setTime(documentation.time ? new Date(documentation.time).toISOString().slice(0, 16) : "");
+          // Update other fields similarly...
+          setAttendees(documentation.attendanceList ?? []);
+            setResults(documentation.results ?? []);
+            setModalDiscussionDetails(documentation.discussionDetails ?? []);
+            setPictures(
+              documentation.pictures
+                ? documentation.pictures.map((pic: string) => ({ file: new File([], "existing"), url: pic }))
+                : []
+            );
+        }
+      }, [isEditing, documentation]);
+      
 
     const openAttendeeModal = () => setIsAttendeeModalOpen(true);
     const closeAttendeeModal = () => setIsAttendeeModalOpen(false);
@@ -419,6 +454,154 @@ const AddNewDocumentationBox: React.FC = () => {
         setPictures(newPictures);
     };
 
+    const handleSubmitDocumentation = async () => {
+        if (!validateInputs()) {
+          return;
+        }
+      
+        try {
+          // Function to compress an image if it’s a new file
+          const compressImage = (file: File) => {
+            return new Promise((resolve, reject) => {
+              new Compressor(file, {
+                quality: 0.6, // Adjust quality as needed
+                maxWidth: 1920,
+                maxHeight: 1080,
+                success(result) {
+                  resolve(result);
+                },
+                error(err) {
+                  reject(err);
+                },
+              });
+            });
+          };
+      
+          // Process pictures:
+          // For each picture, if the file is a valid (new) file (i.e. has nonzero size), compress it;
+          // Otherwise, use the existing URL (base64 string) directly.
+          const picturesBase64 = await Promise.all(
+            pictures.map(async (picture) => {
+              // Check if the file is a new file (you might use a property like size)
+              if (picture.file && picture.file.size > 0) {
+                // New file; compress it
+                const compressedFile: any = await compressImage(picture.file);
+                return new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.readAsDataURL(compressedFile);
+                  reader.onload = () => {
+                    if (typeof reader.result === "string") {
+                      resolve(reader.result);
+                    } else {
+                      reject(new Error("Failed to convert picture to base64."));
+                    }
+                  };
+                  reader.onerror = (error) => reject(error);
+                });
+              } else {
+                // Existing picture (loaded from backend): return its URL directly.
+                return picture.url;
+              }
+            })
+          );
+      
+          console.log("Pictures array:", picturesBase64);
+      
+          // Prepare payload (adjust field names as needed):
+          const payload = {
+            user,
+            title,
+            invitationNumber,
+            description,
+            meetingLeader,
+            location,
+            time,
+            attendees,
+            results,
+            pictures: picturesBase64.map((base64, index) => ({
+              fileName: pictures[index].file.name, // This may be a placeholder name for existing files
+              base64,
+            })),
+            documentationType,
+            modalDiscussionDetails,
+          };
+      
+          let result;
+          
+          if (isEditing) {
+            // When editing, call the update API
+            if (!documentation?.id) {
+                alert("Documentation ID is missing.");
+                return;
+              }
+            result = await updateDocumentation(
+                documentation.id,
+              payload.user,
+              payload.title,
+              payload.invitationNumber,
+              payload.description,
+              payload.meetingLeader,
+              payload.location,
+              payload.time,
+              payload.attendees,
+              payload.results,
+              payload.pictures,
+              payload.documentationType,
+              payload.modalDiscussionDetails
+            );
+          } else {
+            // Otherwise, call the add API
+            result = await addDocumentation(
+              payload.user,
+              payload.title,
+              payload.invitationNumber,
+              payload.description,
+              payload.meetingLeader,
+              payload.location,
+              payload.time,
+              payload.attendees,
+              payload.results,
+              payload.pictures,
+              payload.documentationType,
+              payload.modalDiscussionDetails
+            );
+          }
+      
+          if (result.success) {
+            setIsVisible(true);
+            setTimeout(() => {
+              setIsVisible(false);
+            }, 5000);
+      
+            // Reset all form fields after successful submission
+            setTitle("");
+            setInvitationNumber("");
+            setDescription("");
+            setDocumentationType("");
+            setMeetingLeader("");
+            setDiscussionTitle("");
+            setPersonResponsible("");
+            setFurtherActions("");
+            setDeadline("");
+            setLocation("");
+            setTime("");
+            setAttendees([]);
+            setModalDiscussionDetails([]);
+            setTotalCounter(0);
+            setResults([]);
+            setPictures([]);
+            navigate("/enrichment-documentation/workspaces/internal-activity");
+          } else {
+            alert(result.message);
+          }
+        } catch (error) {
+          console.error("Error handling internal activity submission: ", error);
+          alert("Failed to add/update internal activity. Please try again.");
+        }
+      };
+      
+      
+
     const addDocInputText = css`
         padding: 0px 10px;
         font-size: 15px;
@@ -457,11 +640,11 @@ const AddNewDocumentationBox: React.FC = () => {
     return (
         <MainContainer>
             <NavSide>
-                <p>Add Internal Activity</p>
-            </NavSide>
+            <p>{isEditing ? "Update Internal Activity" : "Add Internal Activity"}</p>            </NavSide>
             <ContentContainer>
-                <Header>Add New Internal activity</Header>
-                <ContentSide>
+            <Header>
+          {isEditing ? "Update Internal Activity" : "Add New Internal Activity"}
+        </Header>                <ContentSide>
                     <div className="leftSide">
                         <p style={{ fontSize: "19px" }}>Main</p>
                         <HeaderGrid>
@@ -602,7 +785,12 @@ const AddNewDocumentationBox: React.FC = () => {
                     </div>
                 </ContentSide>
                 <div css={{ textAlign: 'center', padding: "0px 50px 50px 50px"}}>
-                    <AddButton style={{width: "235px", fontSize:"17px", fontWeight:"500", marginTop:"20px"}} onClick={handleAddDocumentation}>Add</AddButton>
+                <AddButton
+                    style={{ width: "235px", fontSize: "17px", fontWeight: "500", marginTop: "20px" }}
+                    onClick={handleSubmitDocumentation}
+                    >
+                    {isEditing ? "Update" : "Add"}
+                </AddButton>
                 </div>
                 
             </ContentContainer>

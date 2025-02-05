@@ -3,6 +3,7 @@ export interface Picture {
   }
   
   export interface ModalDiscussionDetail {
+    id: string;
     discussionTitle: string;
     personResponsible: string;
     furtherActions: string;

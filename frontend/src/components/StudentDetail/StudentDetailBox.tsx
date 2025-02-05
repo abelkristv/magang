@@ -42,11 +42,13 @@ import { Option } from "fp-ts/lib/Option";
 import { fetchStudentById, updateStudentNotes } from "../../controllers/StudentController";
 import { deleteStudentReport, fetchReports, updateStudentReport } from "../../controllers/ReportController";
 import { Report } from "../../model/Report";
-import { fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
+import { deleteMeetingSchedule, fetchMeetingSchedules, scheduleMeeting } from "../../controllers/MeetingScheduleController";
 import SuccessPopup from "../Elementary/SuccessPopup";
 import EditReportModal from "./EditReportModal";
 import { useParams } from "react-router-dom";
 import ConfirmationModal from "./ConfirmationModal";
+import EditMeetingScheduleModal from "./EditMeetingScheduleModal";
+import { id } from "fp-ts/lib/Refinement";
 
 function formatDate(dateString: string): string {
     const [year, month, day] = dateString.split('-');
@@ -82,6 +84,10 @@ const StudentDetailBox = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
     const [editedStatus, setEditedStatus] = useState<string>("");
     const [dateErrorMessage, setDateErrorMessage] = useState<string>("");
+
+    const [isEditMeetingModalOpen, setIsEditMeetingModalOpen] = useState<boolean>(false);
+    const [currentMeeting, setCurrentMeeting] = useState<any>(null);
+
 
     const [isVisible, setIsVisible] = useState(false);
 
@@ -169,6 +175,53 @@ const StudentDetailBox = () => {
     const handleModalClose = () => {
         setIsModalOpen(false);
     };
+
+    const handleSaveMeetingScheduleEdit = async (updatedMeeting: any) => {
+        try {
+          // If there's no id in updatedMeeting, assign the currentMeeting id
+          if (!updatedMeeting.id && currentMeeting?.id) {
+            updatedMeeting.id = currentMeeting.id;
+          }
+      
+          console.log('Updated Meeting Data:', updatedMeeting);
+      
+          const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules/update`,
+            {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedMeeting),
+            }
+          );
+      
+          if (!response.ok) {
+            throw new Error('Failed to update meeting schedule.');
+          }
+      
+          const result = await response.json();
+          console.log('Meeting schedule updated:', result);
+      
+          // Check if the response includes the updated meeting data
+          const updated = result.updatedMeeting || updatedMeeting;
+      
+          // Optionally, if updated.createdAt is a string, wrap it as needed.
+          if (updated.createdAt && typeof updated.createdAt === "string") {
+            updated.createdAt = {
+              toDate: () => new Date(updated.createdAt)
+            };
+          }
+      
+          setMeetingSchedules((prev) => ({
+            ...prev,
+            [updated.id]: updated,
+          }));
+      
+          setIsEditMeetingModalOpen(false);
+        } catch (error) {
+          console.error('Error updating meeting schedule:', error);
+        }
+      };
+      
 
     const handleModalSubmit = async (data: {
         timeStart: string;
@@ -286,6 +339,80 @@ const StudentDetailBox = () => {
         setEditedStatus("")
         setEditedSource("")
     };
+
+    const handleDeleteMeetingScheduleClick = async (reportId: string) => {
+        // Get the meeting schedule corresponding to this report.
+        const schedule = meetingSchedules[reportId];
+        if (!schedule || !schedule.id) {
+          console.error("No meeting schedule found for this report");
+          return;
+        }
+      
+        // Confirm deletion with the user.
+        const confirmDelete = window.confirm("Are you sure you want to delete this meeting schedule?");
+        if (!confirmDelete) return;
+      
+        try {
+          // Delete the meeting schedule using its own id.
+          await deleteMeetingSchedule(schedule.id);
+      
+          // Remove the deleted schedule from the local state.
+          const updatedSchedules = { ...meetingSchedules };
+          delete updatedSchedules[reportId];
+          setMeetingSchedules(updatedSchedules);
+      
+          console.log(student)
+          if (student?.email) {
+            const emailDetails = {
+              to: student.email,
+              subject: "Meeting Schedule Deleted",
+              text: `The meeting scheduled for ${formatDate(schedule.date)} from ${schedule.timeStart} to ${schedule.timeEnd} has been deleted.`,
+            };
+      
+            try {
+              const emailResponse = await fetch(
+                `${import.meta.env.VITE_BACKEND_PREFIX_URL}/send-email`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(emailDetails),
+                }
+              );
+              if (!emailResponse.ok) {
+                console.error("Failed to send deletion email:", emailResponse.statusText);
+              } else {
+                const emailResult = await emailResponse.json();
+                console.log("Deletion email sent:", emailResult);
+              }
+            } catch (emailError) {
+              console.error("Error sending deletion email:", emailError);
+            }
+          }
+      
+          alert("Meeting schedule deleted successfully!");
+        } catch (error) {
+          console.error("Error deleting meeting schedule:", error);
+          alert("Failed to delete meeting schedule. Please try again.");
+        }
+      };
+      
+      const openEditMeetingSchedulePopup = (meetingId: string, meetingDetails: any) => {
+        setCurrentMeeting({
+            id: meetingId,
+            timeStart: meetingDetails.timeStart,
+            timeEnd: meetingDetails.timeEnd,
+            description: meetingDetails.description,
+            place: meetingDetails.place,
+            date: meetingDetails.date,
+            meetingType: meetingDetails.meetingType,
+        });
+        console.log(meetingId)
+        setIsEditMeetingModalOpen(true);
+    };
+    
+    
 
     const exportToExcel = async (startDate: string, endDate: string) => {
         const start = new Date(new Date(startDate).setHours(0, 0, 0, 0));
@@ -907,13 +1034,15 @@ const StudentDetailBox = () => {
                                                                         icon={"material-symbols:edit"}
                                                                         fontSize={20}
                                                                         style={{ cursor: 'pointer' }}
-                                                                        // onClick={() => handleEditReport(report.id, report.report, report.type, report.person)}
+                                                                        onClick={() => openEditMeetingSchedulePopup(report.id, meetingSchedules[report.id])}
                                                                     />
+
+
                                                                     <Icon
                                                                         icon={"ic:baseline-delete"}
                                                                         fontSize={20}
                                                                         style={{ cursor: 'pointer' }}
-                                                                        // onClick={() => handleDeleteClick(report.id)}
+                                                                        onClick={() => handleDeleteMeetingScheduleClick(report.id)}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -992,6 +1121,15 @@ const StudentDetailBox = () => {
                 currentId={editingReportId!}
                 currentSource={editedSource}
             />
+            <EditMeetingScheduleModal
+                isOpen={isEditMeetingModalOpen}
+                onClose={() => setIsEditMeetingModalOpen(false)}
+                onSubmit={handleSaveMeetingScheduleEdit}
+                studentReportId={selectedReportId || ""}
+                setVisible={setIsVisible}
+                currentMeeting={currentMeeting} // <-- Pass the meeting details here
+            />
+
             <ExportModal
                 isOpen={isExportModalOpen}
                 onClose={handleExportModalClose}

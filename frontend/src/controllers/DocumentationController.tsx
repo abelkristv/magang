@@ -1,6 +1,8 @@
 import { Option } from "fp-ts/lib/Option";
 import { option } from "fp-ts";
 import Documentation from "../model/Documentation";
+import User from "../model/User";
+import DiscussionDetail from "../model/DiscussionDetail";
 
 export const addDocumentation = async (
     user: any,
@@ -121,3 +123,52 @@ export const fetchDocumentationsByEmail = async (email: string): Promise<Documen
         return [];
     }
 };
+
+// In DocumentationController.ts
+export const updateDocumentation = async (
+    documentationId: string,
+    user: User | undefined,
+    title: string,
+    invitationNumber: string,
+    description: string,
+    meetingLeader: string,
+    location: string,
+    time: string,
+    attendees: string[],
+    results: string[],
+    pictures: { fileName: string; base64: string }[],
+    documentationType: string,
+    modalDiscussionDetails: DiscussionDetail[]
+  ) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/${documentationId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // if required
+      },
+      body: JSON.stringify({
+        // Include the id again if your backend expects it in the payload too
+        id: documentationId,
+        user,
+        title,
+        nomor_undangan: invitationNumber,
+        description,
+        leader: meetingLeader,
+        place: location,
+        time,
+        attendanceList: attendees,
+        results,
+        pictures,
+        type: documentationType,
+        discussionDetails: modalDiscussionDetails,
+      }),
+    });
+  
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error('Failed to update documentation: ' + errorText);
+    }
+    return await response.json();
+  };
+  

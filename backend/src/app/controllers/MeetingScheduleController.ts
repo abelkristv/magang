@@ -40,4 +40,49 @@ export class MeetingScheduleController {
       }
     }
   }
+
+  async updateMeetingSchedule(req: Request, res: Response): Promise<void> {
+    const { id, description, date, type, timeEnd, timeStart, place } = req.body;
+
+    try {
+        if (!id) {
+            throw new Error('Meeting schedule ID is required');
+        }
+
+        const updatedMeeting = await this.scheduleService.updateSchedule(id, { description, timeStart, timeEnd, date, place, type });
+
+        res.json(updatedMeeting);
+    } catch (error) {
+        console.error('Error updating meeting schedule:', error);
+
+        if (error instanceof Error) {
+            res.status(400).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+}
+
+
+  async deleteMeetingSchedule(req: Request, res: Response): Promise<void> {
+    const { meetingScheduleId } = req.params;
+  
+    try {
+      if (!meetingScheduleId) {
+        throw new Error('Meeting schedule ID is required');
+      }
+  
+      const result = await this.scheduleService.deleteSchedule(meetingScheduleId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error deleting meeting schedule:', error);
+  
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    }
+  }
+  
 }
