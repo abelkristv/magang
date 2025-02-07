@@ -21,6 +21,7 @@ import JSZip from 'jszip';
 import { title } from "process";
 import { start } from "repl";
 import FailedPopup from "../../Elementary/FailedPopup";
+import ConfirmationModal from "../../StudentDetail/ConfirmationModal";
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -39,6 +40,9 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const [exportStartDate, setExportStartDate] = useState<string>('');
     const [exportEndDate, setExportEndDate] = useState<string>('');
     const [exportType, setExportType] = useState<string>('All');
+    const [docToDelete, setDocToDelete] = useState<string | null>(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+
     const [docDates, setDocDates] = useState<string[]>([]);
     const [dateErrorMessage, setDateErrorMessage] = useState<string>("");
     const userAuth = useAuth();
@@ -983,25 +987,31 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         }
     };
 
-    const handleDeleteDocumentation = async (docId: string) => {
-        if (!window.confirm("Are you sure you want to delete this documentation?")) return;
+    const handleDeleteDocumentation = (docId: string) => {
+        setDocToDelete(docId);
+        setIsConfirmModalOpen(true); // Open the confirmation modal
+    };
     
-        try {
-            await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/${docId}`, { method: 'DELETE' });
-            // Update the state: remove the deleted document from both lists.
-            setDocumentations(prev => prev.filter(doc => doc.id !== docId));
-            setFilteredDocumentations(prev => prev.filter(doc => doc.id !== docId));
+    const confirmDelete = async () => {
+        if (docToDelete) {
+            try {
+                await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/documentation/${docToDelete}`, { method: 'DELETE' });
     
-            // Clear the selected documentation if it was the one deleted.
-            if (selectedDocumentation?.id === docId) {
-                setSelectedDocumentation(null);
+                setDocumentations(prev => prev.filter(doc => doc.id !== docToDelete));
+                setFilteredDocumentations(prev => prev.filter(doc => doc.id !== docToDelete));
+    
+                if (selectedDocumentation?.id === docToDelete) {
+                    setSelectedDocumentation(null);
+                }
+            } catch (error) {
+                console.error("Error deleting documentation:", error);
+            } finally {
+                setDocToDelete(null);
+                setIsConfirmModalOpen(false);
             }
-        } catch (error) {
-            console.error("Error deleting documentation:", error);
         }
     };
     
-      
     
     if (userRole === "Company") {
         return (
@@ -1273,6 +1283,14 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 </div>
             )}
                         <FailedPopup isVisible={isVisible} message="There is no message to download" />
+                        <ConfirmationModal
+                            isOpen={isConfirmModalOpen}
+                            onClose={() => setIsConfirmModalOpen(false)}
+                            onConfirm={confirmDelete}
+                            message={docToDelete
+                                ? "You are about to delete the selected documentation."
+                                : ""}
+                        />
 
         </main>
     );

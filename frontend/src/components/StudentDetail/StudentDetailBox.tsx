@@ -280,6 +280,8 @@ const StudentDetailBox = () => {
     };
 
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+    const [meetingToDelete, setMeetingToDelete] = useState<string | null>(null);
+
     const [reportToDelete, setReportToDelete] = useState<string | null>(null);
 
     const handleDeleteClick = (reportId: string) => {
@@ -288,20 +290,42 @@ const StudentDetailBox = () => {
     };
 
     const confirmDelete = async () => {
-        if (!reportToDelete) return;
+        if (reportToDelete) {
+            try {
+                setDeletingReportId(reportToDelete);
+                const updatedReports = await deleteStudentReport(reportToDelete, reports);
+                setReports(updatedReports);
+            } catch (error) {
+                console.error("Error deleting report:", error);
+            } finally {
+                setDeletingReportId(null);
+                setReportToDelete(null);
+                setIsConfirmModalOpen(false);
+            }
+        }
+    
+        if (meetingToDelete) {
+            try {
+                await deleteMeetingSchedule(meetingToDelete);
+    
+                setMeetingSchedules(prev => {
+                    const updatedSchedules = { ...prev };
+                    delete updatedSchedules[meetingToDelete]; // Remove the deleted schedule
+                    return { ...updatedSchedules }; // Spread to trigger re-render
+                });
 
-        try {
-            setDeletingReportId(reportToDelete);
-            const updatedReports = await deleteStudentReport(reportToDelete, reports);
-            setReports(updatedReports);
-        } catch (error) {
-            console.error("Error deleting report:", error);
-        } finally {
-            setDeletingReportId(null);
-            setReportToDelete(null);
-            setIsConfirmModalOpen(false);
+                setIsFetching(true);
+    
+            } catch (error) {
+                console.error("Error deleting meeting schedule:", error);
+                alert("Failed to dele   te meeting schedule. Please try again.");
+            } finally {
+                setMeetingToDelete(null);
+                setIsConfirmModalOpen(false);
+            }
         }
     };
+    
 
     const handleEditReport = (reportId: string, currentContent: string, currentType: string, currentSource: string) => {
         setEditingReportId(reportId);
@@ -340,63 +364,17 @@ const StudentDetailBox = () => {
         setEditedSource("")
     };
 
-    const handleDeleteMeetingScheduleClick = async (reportId: string) => {
-        // Get the meeting schedule corresponding to this report.
+    const handleDeleteMeetingScheduleClick = (reportId: string) => {
         const schedule = meetingSchedules[reportId];
         if (!schedule || !schedule.id) {
-          console.error("No meeting schedule found for this report");
-          return;
+            console.error("No meeting schedule found for this report");
+            return;
         }
-      
-        // Confirm deletion with the user.
-        const confirmDelete = window.confirm("Are you sure you want to delete this meeting schedule?");
-        if (!confirmDelete) return;
-      
-        try {
-          // Delete the meeting schedule using its own id.
-          await deleteMeetingSchedule(schedule.id);
-      
-          // Remove the deleted schedule from the local state.
-          const updatedSchedules = { ...meetingSchedules };
-          delete updatedSchedules[reportId];
-          setMeetingSchedules(updatedSchedules);
-      
-          console.log(student)
-          if (student?.email) {
-            const emailDetails = {
-              to: student.email,
-              subject: "Meeting Schedule Deleted",
-              text: `The meeting scheduled for ${formatDate(schedule.date)} from ${schedule.timeStart} to ${schedule.timeEnd} has been deleted.`,
-            };
-      
-            try {
-              const emailResponse = await fetch(
-                `${import.meta.env.VITE_BACKEND_PREFIX_URL}/send-email`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(emailDetails),
-                }
-              );
-              if (!emailResponse.ok) {
-                console.error("Failed to send deletion email:", emailResponse.statusText);
-              } else {
-                const emailResult = await emailResponse.json();
-                console.log("Deletion email sent:", emailResult);
-              }
-            } catch (emailError) {
-              console.error("Error sending deletion email:", emailError);
-            }
-          }
-      
-          alert("Meeting schedule deleted successfully!");
-        } catch (error) {
-          console.error("Error deleting meeting schedule:", error);
-          alert("Failed to delete meeting schedule. Please try again.");
-        }
-      };
+    
+        setMeetingToDelete(schedule.id); // Store meeting ID for deletion
+        setIsConfirmModalOpen(true); // Open confirmation modal
+    };
+    
       
       const openEditMeetingSchedulePopup = (meetingId: string, meetingDetails: any) => {
         setCurrentMeeting({
@@ -526,6 +504,8 @@ const StudentDetailBox = () => {
         }
         setIsEditingNotes(!isEditingNotes);
     };
+
+    
 
     const onApplyFilter = () => {
         if (filterStartDate > filterEndDate) {
@@ -1139,8 +1119,13 @@ const StudentDetailBox = () => {
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={confirmDelete}
-                message="You are about to delete the selected student record"
+                message={reportToDelete
+                    ? "You are about to delete the selected student record."
+                    : meetingToDelete
+                    ? "You are about to delete the selected meeting schedule."
+                    : ""}
             />
+
             <SuccessPopup message='The meeting has been successfully scheduled' isVisible={isVisible} />
         </Main>
     );
