@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainBox from "../Elementary/MainBox";
 import { Button, Header } from "../Documentation/Add New Documentation/AddNewDocumentationBox.styles";
+import Period from "../../model/Period";
 
 const uploadBoxStyle = css`
     display: flex;
@@ -162,9 +163,11 @@ const browseButtonStyle = css`
 const UploadStudentData = () => {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [periods, setPeriods] = useState([]);
-    const [selectedPeriod, setSelectedPeriod] = useState();
-    const [newPeriod, setNewPeriod] = useState("");
+    const [periods, setPeriods] = useState<Period[]>([]);
+    const [selectedPeriod, setSelectedPeriod] = useState("");
+    const [newPeriod, setNewPeriod] = useState(""); // Start year
+    const [newPeriodTerm, setNewPeriodTerm] = useState("odd"); // Default term
+
     const [isAddingPeriod, setIsAddingPeriod] = useState(false);
     const navigate = useNavigate();
 
@@ -203,22 +206,27 @@ const UploadStudentData = () => {
     };
 
     const handleAddPeriod = async () => {
-        if (!newPeriod.trim()) {
-            alert("Please enter a valid period name.");
+        if (!newPeriod.trim() || isNaN(Number(newPeriod))) {
+            alert("Please enter a valid period year (e.g., 2023).");
             return;
         }
-
+    
+        const yearLastTwoDigits = newPeriod.slice(-2);
+        const semesterSuffix = newPeriodTerm === "odd" ? "10" : "20";
+        const formattedPeriod = `${newPeriodTerm.charAt(0).toUpperCase() + newPeriodTerm.slice(1)} semester ${yearLastTwoDigits}.${semesterSuffix}`;
+    
         try {
             const response = await fetch("http://localhost:3001/api/periods", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: newPeriod }),
+                body: JSON.stringify({ name: formattedPeriod }),
             });
-
+    
             if (response.ok) {
                 const addedPeriod = await response.json();
                 setPeriods((prevPeriods) => [...prevPeriods, addedPeriod]);
                 setNewPeriod("");
+                setNewPeriodTerm("odd"); // Reset selection
                 setIsAddingPeriod(false);
                 alert("New period added successfully!");
             } else {
@@ -229,7 +237,7 @@ const UploadStudentData = () => {
             console.error("Error adding new period:", error);
             alert("An error occurred while adding the period.");
         }
-    };
+    };    
 
     const handleUpload = async () => {
         if (!file) {
@@ -288,10 +296,11 @@ const UploadStudentData = () => {
                                         >
                                             <option value="">Select a Period</option>
                                             {periods.map((period) => (
-                                                <option key={period.id} value={period.name}>
+                                                <option key={String(period.id)} value={String(period.name)}>
                                                     {period.name}
                                                 </option>
                                             ))}
+
                                         </select>
                                         <div css={plusIconContainerStyle}>
                                             <Button onClick={toggleAddPeriod} style={{paddingLeft:'20px', paddingRight:'20px'}}>Add Period</Button>
@@ -302,14 +311,15 @@ const UploadStudentData = () => {
                                             <div css={newPeriodFieldStyle}>
                                                 <p style={{fontWeight:'500', fontSize:'17px'}}>Period Year</p>
                                                 <select
-                                                    // value={selectedPeriod}
-                                                    // onChange={handlePeriodChange}
+                                                    value={newPeriodTerm}
+                                                    onChange={(e) => setNewPeriodTerm(e.target.value)}
                                                     css={selectStyle}
-                                                    style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                                                    style={{ height: "47px", marginBottom: "0px", border: "1px solid #ACACAC" }}
                                                 >
                                                     <option value="odd">Odd</option>
                                                     <option value="even">Even</option>
                                                 </select>
+
                                             </div>
                                             <div css={newPeriodStartYearFieldStyle}>
                                                 <p style={{fontWeight:'500', fontSize:'17px'}}>Period Start Year</p>

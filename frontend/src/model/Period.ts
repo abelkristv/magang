@@ -1,4 +1,5 @@
 interface Period {
+    id: String;
     name: String;
 }
 
