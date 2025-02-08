@@ -51,7 +51,6 @@ export interface PaginatedResponse {
         limit: number;
     };
 }
-
 const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Option<PaginatedResponse>> => {
     try {
         const token = localStorage.getItem('token');
@@ -74,7 +73,7 @@ const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Op
         const data = await response.json();
         console.log("API Response:", data);
 
-        if (!data.students || !data.pagination) {
+        if (!data.students || !data.pagination || typeof data.pagination.totalStudents === "undefined") {
             console.error("Unexpected API response structure:", data);
             return option.none;
         }
@@ -98,13 +97,17 @@ const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Op
 
         return option.some({
             students: studentsData,
-            pagination: data.pagination,
+            pagination: {
+                ...data.pagination,
+                totalStudents: data.pagination.totalStudents, // Ensure totalStudents is returned
+            },
         });
     } catch (error) {
         console.error("Error fetching students from API:", error);
         return option.none;
     }
 };
+
 
 export const fetchStudentById = async (studentId: string): Promise<Option<Student>> => {
     try {

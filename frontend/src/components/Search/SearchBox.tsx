@@ -96,76 +96,36 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     
         const fetchData = async () => {
             setIsLoading(true);
-    
+        
             if (!isSearching) {
                 const fetchedUser: User = await fetchUser(userAuth?.currentUser?.email!)
                     .then((user) => user._tag === "Some" ? user.value : { id: "null" } as User);
-    
+        
                 if (fetchedUser.id === "null") {
                     console.log("User not found");
                 } else {
                     setUser(fetchedUser);
-    
+        
                     const fetchedResponse: PaginatedResponse = await fetchAllStudents(
                         studentResponse.pagination.currentPage,
                         studentResponse.pagination.limit
-                    ).then((students) => students._tag === "Some" ? students.value : [{}] as unknown as PaginatedResponse);
-    
+                    ).then((students) => students._tag === "Some" ? students.value : {} as PaginatedResponse);
+        
+                    console.log("Fetched response:", fetchedResponse);
+        
                     setStudentResponse(fetchedResponse);
-    
-                    const fetchedStudents: Student[] = fetchedResponse.students;
-    
-                    fetchedStudents.forEach(student =>
-                        fetchedUser.role === "Company" ?
-                            students.filter(student => student.tempat_magang === fetchedUser.company_name) :
-                            students
-                    );
-    
-                    if (fetchedStudents[0].iden === "null") {
-                        console.log("Students not found");
-                    } else {
-                        setStudents(fetchedStudents);
-                        setFilteredStudents(fetchedStudents);
-                        const totalComments = await fetchTotalReportsByStudent(fetchedStudents); // Using fetchTotalReports here
-                        setComments(totalComments);
-                    }
-    
-                    const fetchedCompanies: Company[] = await fetchAllCompanies()
-                        .then((companies) => companies._tag === "Some" ? companies.value : [{ id: "null" }] as Company[]);
-    
-                    if (fetchedCompanies[0].id === "null") {
-                        console.log("Company not found");
-                    } else {
-                        setCompanies(fetchedCompanies);
-                    }
-    
-                    const fetchedMajors: Major[] = await fetchAllMajors()
-                        .then((majors) => majors._tag === "Some" ? majors.value : [{ id: "null" }] as Major[]);
-    
-                    if (fetchedMajors[0].id === "null") {
-                        console.log("Majors not found");
-                    } else {
-                        setMajors(fetchedMajors);
-                    }
-    
-                    setFilterOptions(prev => ({
-                        ...prev,
-                        userRole: fetchedUser.role,
-                        companies: fetchedCompanies,
-                        majors: fetchedMajors,
-                    }));
-    
-                    setTempFilterOptions(prev => ({
-                        ...prev,
-                        userRole: fetchedUser.role,
-                        companies: fetchedCompanies,
-                        majors: fetchedMajors,
-                    }));
+                    setStudents(fetchedResponse.students);
+                    setFilteredStudents(fetchedResponse.students);
+        
+                    // Fetch total comments count
+                    const totalComments = await fetchTotalReportsByStudent(fetchedResponse.students);
+                    setComments(totalComments);
                 }
             }
-    
+        
             setIsLoading(false);
         };
+        
     
         fetchPeriodsData();
         fetchData();
@@ -511,7 +471,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 />
             </div>
             <div css={resultsStyle}>
-                Search Results: {filteredStudents.length}
+                Search Results: {studentResponse.pagination.totalStudents}
             </div>
             {filteredStudents.length > 0 ? (
                 searchState.isGridView ? (
