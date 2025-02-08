@@ -12,6 +12,7 @@ import AddNewDocumentationBox from '../components/Documentation/Add New Document
 import { useAuth } from '../helper/AuthProvider';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { fetchUrgentStudentReports } from '../controllers/ReportController';
+import NotFoundPage from './NotFoundPage';
 
 const WorkSpace = () => {
     const [activeTab, setActiveTab] = useState<string>("Home");
@@ -53,6 +54,7 @@ const WorkSpace = () => {
                 <Route path="/add-new-documentation" element={<AddNewDocumentationBox />} />
                 <Route path="/internal-activity" element={<DocumentationBox setGlobalActiveTab={setActiveTab} />} />
                 <Route path="/upload-student-data" element={<UploadStudentData />} />
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </main>
     );
