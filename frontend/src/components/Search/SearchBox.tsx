@@ -37,6 +37,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     const [_periods, setPeriods] = useState<string[]>([]);
     const [comments, setComments] = useState<{ [key: string]: number }>({});
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    
     const [studentResponse, setStudentResponse] = useState<PaginatedResponse>({pagination: {currentPage : 1, limit: 12}} as PaginatedResponse);
     const userAuth = useAuth();
 
@@ -58,16 +59,18 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         selectedPeriod: "",
         selectedCompany: "",
         selectedMajor: "",
+        selectedStatus: "", // New
         periods: [],
         companies: [],
         majors: [],
         userRole: null,
     });
-
+    
     const [tempFilterOptions, setTempFilterOptions] = useState<FilterOptions>({
         selectedPeriod: "",
         selectedCompany: "",
         selectedMajor: "",
+        selectedStatus: "", // New
         periods: [],
         companies: [],
         majors: [],
@@ -244,6 +247,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     
     
     
+    
     const handleSearchWithOptions = async (options: FilterOptions) => {
         let filtered: Student[] = [];
         let paginationData: PaginatedResponse["pagination"] = studentResponse.pagination;
@@ -253,7 +257,8 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 studentResponse.pagination.currentPage,
                 studentResponse.pagination.limit,
                 searchState.searchQuery.trim(),
-                options.selectedPeriod
+                options.selectedPeriod,
+                options.selectedStatus // New
             );
     
             if (response._tag === "Some") {
@@ -273,9 +278,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         if (!searchHistory.includes(searchState.searchQuery) && searchState.searchQuery.trim() !== "") {
             setSearchHistory([searchState.searchQuery, ...searchHistory].slice(0, 5));
         }
-    };
-    
-    
+    };    
 
     const handleSearchFocus = () => {
         setSearchState(prevState => ({
@@ -460,6 +463,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     tempSelectedPeriod={tempFilterOptions.selectedPeriod}
                     tempSelectedCompany={tempFilterOptions.selectedCompany}
                     tempSelectedMajor={tempFilterOptions.selectedMajor}
+                    tempSelectedStatus={tempFilterOptions.selectedStatus} // New
                     periods={filterOptions.periods}
                     companies={filterOptions.companies}
                     majors={filterOptions.majors}
@@ -467,8 +471,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     handleTempPeriodChange={handleTempPeriodChange}
                     handleTempCompanyChange={handleTempCompanyChange}
                     handleTempMajorChange={handleTempMajorChange}
+                    handleTempStatusChange={(event) => setTempFilterOptions(prev => ({
+                        ...prev,
+                        selectedStatus: event.target.value,
+                    }))} // New
                     handleApplyFilters={handleApplyFilters}
                 />
+
             </div>
             <div css={resultsStyle}>
                 Search Results: {studentResponse.pagination.totalStudents}

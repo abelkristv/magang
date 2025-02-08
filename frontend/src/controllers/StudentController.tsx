@@ -237,7 +237,8 @@ const fetchStudentsWithFilters = async (
     page: number = 1,
     limit: number = 9,
     name?: string,
-    period?: string
+    period?: string,
+    status?: string
 ): Promise<Option<PaginatedResponse>> => {
     const token = localStorage.getItem('token');
     try {
@@ -254,12 +255,16 @@ const fetchStudentsWithFilters = async (
             params.append("period", period);
         }
 
+        if (status && (status.toLowerCase() === "active" || status.toLowerCase() === "not active")) {
+            params.append("status", status);
+        }
+
         const response = await fetch(
             `${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/student?${params.toString()}`,
             {
-                method: 'GET',
+                method: "GET",
                 headers: {
-                    'Authorization': `Bearer ${token}`, 
+                    "Authorization": `Bearer ${token}`,
                 },
             }
         );
@@ -284,7 +289,7 @@ const fetchStudentsWithFilters = async (
                 email: student.email,
                 phone: student.phone,
                 image_url: student.imageUrl,
-                status: student.status,
+                status: student.status, // Ensure status is included
                 faculty_supervisor: student.facultySupervisor,
                 site_supervisor: student.siteSupervisor,
                 major: student.major,
@@ -298,6 +303,7 @@ const fetchStudentsWithFilters = async (
         return option.none;
     }
 };
+
 
 
 export { fetchAllStudents, fetchStudentsByName, fetchStudentsWithFilters };

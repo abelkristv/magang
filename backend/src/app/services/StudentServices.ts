@@ -23,26 +23,34 @@ export class StudentService {
     const offset = (page - 1) * limit;
     const searchQuery = query.name || '';
     const period = query.period || '';
+    const status = query.status || ''; // New status filter
     const numericPeriod = period.match(/\d+\.\d+/)?.[0] || '';
 
     const whereClause = {
-      AND: [
-        searchQuery
-          ? {
-              name: {
-                contains: searchQuery,
-                mode: 'insensitive',
-              },
-            }
-          : undefined,
-        numericPeriod
-          ? {
-              period: {
-                equals: numericPeriod,
-              },
-            }
-          : undefined,
-      ].filter(Boolean),
+        AND: [
+            searchQuery
+                ? {
+                    name: {
+                        contains: searchQuery,
+                        mode: 'insensitive',
+                    },
+                }
+                : undefined,
+            numericPeriod
+                ? {
+                    period: {
+                        equals: numericPeriod,
+                    },
+                }
+                : undefined,
+            status && (status === "Active" || status === "Not Active")
+                ? {
+                    status: {
+                        equals: status,
+                    },
+                }
+                : undefined,
+        ].filter(Boolean),
     };
 
     const students = await this.studentRepository.findStudents(offset, limit, whereClause);
@@ -50,15 +58,16 @@ export class StudentService {
     const totalPages = Math.ceil(totalStudents / limit);
 
     return {
-      students,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalStudents,
-        limit,
-      },
+        students,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalStudents,
+            limit,
+        },
     };
   }
+
 
   async updateStudentNotes(id: string, notes: string) {
     if (!id) {

@@ -26,18 +26,17 @@ export class StudentController {
 
   async getStudents(req: Request, res: Response): Promise<void> {
     try {
-      const result = await this.studentService.getPaginatedStudents(req.query);
-      res.json(result);
+        const result = await this.studentService.getPaginatedStudents(req.query);
+        res.json({
+            students: result.students,
+            pagination: result.pagination,
+        });
     } catch (error) {
-      console.error('Error fetching students:', error);
-
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+        console.error("Error fetching students:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
-  }
+}
+
 
   async updateStudentNotes(req: Request, res: Response): Promise<void> {
     const { id } = req.params;

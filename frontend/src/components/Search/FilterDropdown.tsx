@@ -9,6 +9,7 @@ interface FilterDropdownProps {
     tempSelectedPeriod: string;
     tempSelectedCompany: string;
     tempSelectedMajor: string;
+    tempSelectedStatus: string; // New
     periods: string[];
     companies: { company_name: string }[];
     majors: { name: string }[];
@@ -16,8 +17,10 @@ interface FilterDropdownProps {
     handleTempPeriodChange: (event: ChangeEvent<HTMLSelectElement>) => void;
     handleTempCompanyChange: (event: ChangeEvent<HTMLSelectElement>) => void;
     handleTempMajorChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+    handleTempStatusChange: (event: ChangeEvent<HTMLSelectElement>) => void; // New
     handleApplyFilters: () => void;
 }
+
 
 const filterViewStyle = css`
     display: flex;
@@ -102,10 +105,12 @@ const FilterDropdown = ({
     toggleDropdown,
     tempSelectedPeriod,
     tempSelectedMajor,
+    tempSelectedStatus,
     periods,
     majors,
     handleTempPeriodChange,
     handleTempMajorChange,
+    handleTempStatusChange,
     handleApplyFilters,
 }: FilterDropdownProps) => {
     console.log("Periods : ", periods)
@@ -131,6 +136,12 @@ const FilterDropdown = ({
                     {majors.map((major, index) => (
                         <option key={index} value={major.name}>{major.name}</option>
                     ))}
+                </select>
+                <p>Status</p>
+                <select value={tempSelectedStatus} onChange={handleTempStatusChange}>
+                    <option value="">All</option>
+                    <option value="Active">Active</option>
+                    <option value="Not Active">Not Active</option>
                 </select>
                 <div css={buttonContainerStyle}>
                     <button className="button" css={buttonStyle} onClick={handleApplyFilters}>Apply</button>

@@ -4,6 +4,7 @@ export interface FilterOptions {
     selectedPeriod: string;
     selectedCompany: string;
     selectedMajor: string;
+    selectedStatus: string;
     periods: string[];
     companies: Company[];
     majors: Major[];
