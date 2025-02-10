@@ -136,31 +136,21 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                     if (!editableUser.image_url && user.image_url) {
                         editableUser.image_url = user.image_url;
                     }
-    
-                    // Check if the email has changed
-                    if (editableUser.email !== user.email) {
-                        const auth = getAuth(); // Initialize Firebase Auth
-                        const currentUser = auth.currentUser;
-    
-                        if (currentUser) {
-                            // Send email verification to the new email address
-                            await sendEmailVerification(currentUser);
-                            alert('Please verify the new email address. A verification email has been sent.');
-    
-                            return; // Do not proceed with the email update until the email is verified
-                        } else {
-                            throw new Error('User is not authenticated.');
-                        }
-                    }
+
+                    const token = localStorage.getItem('token');
+
+                    console.log("user to be sent : ", editableUser)
     
                     // Send the updated user data to your backend
                     const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/${editableUser.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`, // Ensure token is correctly passed
                         },
                         body: JSON.stringify(editableUser),
                     });
+                    
                     
                     const fetchedUser = await response.json();
                     const updatedUser: User = {
@@ -172,6 +162,8 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                         role: fetchedUser.role,
                         phone_number: fetchedUser.phoneNumber,
                     };
+
+                    console.log("updated user : " , updatedUser)
     
                     // Update the local user state
                     setUser(updatedUser);

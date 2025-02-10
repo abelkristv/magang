@@ -13,7 +13,7 @@ export class UserController {
       companyAddress,
       imageUrl,
       role,
-      phoneNumber,
+      phone_number,
     } = req.body;
 
     try {
@@ -26,7 +26,7 @@ export class UserController {
         companyAddress,
         imageUrl,
         role,
-        phoneNumber,
+        phoneNumber: phone_number,
       });
       res.json(updatedUser);
     } catch (error) {

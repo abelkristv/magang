@@ -59,8 +59,13 @@ export class MeetingScheduleService {
 
     const updatedMeeting = await this.scheduleRepository.updateMeetingSchedule(meetingId, updateData);
 
+    if (!updatedMeeting) {
+        throw new Error('Meeting schedule not found');
+    }
+
     return { message: 'Meeting schedule updated successfully', updatedMeeting };
 }
+
 
 
   async deleteSchedule(meetingScheduleId: string) {

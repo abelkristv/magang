@@ -199,24 +199,17 @@ const StudentDetailBox = () => {
           }
       
           const result = await response.json();
-          console.log('Meeting schedule updated:', result);
+          console.log('Meeting schedule updated:', response);
       
           // Check if the response includes the updated meeting data
           const updated = result.updatedMeeting || updatedMeeting;
       
-          // Optionally, if updated.createdAt is a string, wrap it as needed.
-          if (updated.createdAt && typeof updated.createdAt === "string") {
-            updated.createdAt = {
-              toDate: () => new Date(updated.createdAt)
-            };
-          }
-      
-          setMeetingSchedules((prev) => ({
-            ...prev,
-            [updated.id]: updated,
-          }));
-      
-          setIsEditMeetingModalOpen(false);
+          const updatedSchedules = await fetchMeetingSchedules(
+            reports.map(report => report.id)
+        );
+
+        setMeetingSchedules(updatedSchedules);
+        setIsEditMeetingModalOpen(false);
         } catch (error) {
           console.error('Error updating meeting schedule:', error);
         }

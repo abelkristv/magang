@@ -9,17 +9,31 @@ export class MeetingScheduleRepository {
       where: {
         studentReportId: { in: reportIds },
       },
+      select: {
+        id: true,
+        studentReportId: true,
+        timeStart: true,
+        timeEnd: true,
+        description: true,
+        place: true,
+        date: true,
+        type: true,
+        createdAt: true, // ✅ Ensure createdAt is included
+      },
     });
   }
+  
 
   async updateMeetingSchedule(meetingId: string, updateData: any) {
     console.log("Updating meeting schedule:", meetingId, updateData);
     const updatedRecord = await this.prisma.meetingSchedule.update({
-      where: { studentReportId: meetingId },
+      where: { studentReportId: meetingId }, // ✅ Correct field
       data: updateData,
     });
     console.log("Updated record:", updatedRecord);
+    return updatedRecord; // ✅ Ensure the function returns the updated meeting
   }
+  
   
 
 

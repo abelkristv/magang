@@ -73,7 +73,7 @@ const tableStyle = css`
   }
 
   .name-column {
-    width: 40%; /* Adjust the width as needed */
+    width: 40%;
   }
 
   .nim-column {
@@ -81,8 +81,15 @@ const tableStyle = css`
   }
 `;
 
+const tableContainerStyle = css`
+  max-height: 550px;
+  overflow-y: auto;
+  border: 2px solid #eceaea;
+  border-radius: 15px;
+`;
+
 const arrowStyle = css`
-  margin-left: 5px; /* Add gap between the text and the arrow */
+  margin-left: 5px; 
 `;
 
 const StudentTable: React.FC<StudentTableProps> = ({
@@ -95,84 +102,45 @@ const StudentTable: React.FC<StudentTableProps> = ({
   const navigate = useNavigate();
 
   return (
-    <table css={tableStyle}>
-      <thead>
-        <tr>
-          <th className="no-column">No.</th>
-          <th
-            className="name-column"
-            onClick={() => handleSort("name")}
-          >
-            Name
-            {sortField === "name" && (
-              <span css={arrowStyle}>{sortOrder === "asc" ? "↑" : "↓"}</span>
-            )}
-          </th>
-          <th
-            className="nim-column"
-            onClick={() => handleSort("nim")}
-          >
-            NIM
-            {sortField === "nim" && (
-              <span css={arrowStyle}>{sortOrder === "asc" ? "↑" : "↓"}</span>
-            )}
-          </th>
-          <th>Major</th>
-        </tr>
-      </thead>
-      <tbody>
-        {students.map((student, index) => (
-          <tr
-            key={student.iden}
-            onClick={() =>
-              onClick
-                ? onClick(student.iden)
-                : navigate(`/enrichment-documentation/workspaces/student-detail/${student.iden}`)
-            }
-          >
-            <td
-              className="no-column"
-              style={{
-                borderBottom:
-                  index === students.length - 1 ? "2px solid #f2f2f2" : "none",
-                borderTop: "none",
-              }}
-            >
-              {index + 1}
-            </td>
-            <td
-              className="name-column"
-              style={{
-                borderBottom:
-                  index === students.length - 1 ? "2px solid #f2f2f2" : "none",
-                borderTop: "none",
-              }}
-            >
-              {student.name}
-            </td>
-            <td
-              className="nim-column"
-              style={{
-                borderBottom:
-                  index === students.length - 1 ? "2px solid #f2f2f2" : "none",
-                borderTop: "none",
-              }}
-            >
-              {student.nim}
-            </td>
-            <td
-              style={{
-                borderBottom:
-                  index === students.length - 1 ? "2px solid #f2f2f2" : "none",
-                borderTop: "none",
-              }}
-            >
-              {student.major}
-            </td>
+    <div css={tableContainerStyle}>
+      <table css={tableStyle}>
+        <thead>
+          <tr>
+            <th className="no-column">No.</th>
+            <th className="name-column" onClick={() => handleSort("name")}>
+              Name
+              {sortField === "name" && (
+                <span css={arrowStyle}>{sortOrder === "asc" ? "↑" : "↓"}</span>
+              )}
+            </th>
+            <th className="nim-column" onClick={() => handleSort("nim")}>
+              NIM
+              {sortField === "nim" && (
+                <span css={arrowStyle}>{sortOrder === "asc" ? "↑" : "↓"}</span>
+              )}
+            </th>
+            <th>Major</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {students.map((student, index) => (
+            <tr
+              key={student.iden}
+              onClick={() =>
+                onClick
+                  ? onClick(student.iden)
+                  : navigate(`/enrichment-documentation/workspaces/student-detail/${student.iden}`)
+              }
+            >
+              <td>{index + 1}</td>
+              <td>{student.name}</td>
+              <td>{student.nim}</td>
+              <td>{student.major}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
