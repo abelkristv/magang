@@ -7,7 +7,7 @@ export interface CustomSelectProps {
     options: Student[];
     value: Student | null;
     onChange: (option: Student) => void;
-    filterByCompanyName?: string; // Add the filterByCompanyName prop
+    filterByCompanyName?: string;
     role?: string;
 }
 
@@ -36,7 +36,7 @@ function CustomSelect({ options, value, onChange, filterByCompanyName, role }: C
     const handleOptionClick = (option: Student) => {
         onChange(option);
         setIsOpen(false);
-        setSearchTerm(''); // Reset search term when an option is selected
+        setSearchTerm('');
     };
 
     const dropdownStyle = css`

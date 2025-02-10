@@ -23,7 +23,7 @@ export class StudentService {
     const offset = (page - 1) * limit;
     const searchQuery = query.name || '';
     const period = query.period || '';
-    const status = query.status || ''; // New status filter
+    const status = query.status || '';
     const numericPeriod = period.match(/\d+\.\d+/)?.[0] || '';
 
     const whereClause = {

@@ -15,7 +15,7 @@ export interface SearchState {
     searchQuery: string;
     isDropdownOpen: boolean;
     isGridView: boolean;
-    sortField: keyof Student | null;  // Update this
+    sortField: keyof Student | null;
     sortOrder: "asc" | "desc";
     isSearchHistoryOpen: boolean;
 }

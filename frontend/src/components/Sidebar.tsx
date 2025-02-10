@@ -192,7 +192,7 @@ const Sidebar = ({activeTab, setActiveTab, setSelectedStudentId, todayReportsCou
                 >
                     <Icon icon={"material-symbols:face"} color={activeTab === "Profile" ? "black" : "white"} fontSize={25} />
                     <a href="#" css={linkStyle(activeTab === "Profile")}>Profile</a>
-                    {todayReportsCount > 0 && ( // Display report count if greater than 0
+                    {todayReportsCount > 0 && ( 
                         <div className="notificationContainer" style={{display: "flex", width: "50%", justifyContent: "end", position: "relative", alignItems: "center", paddingRight: '8px'}}>
                             <Icon icon={"clarity:notification-solid"} fontSize={22} color={activeTab === "Profile" ? "51587E" : "white"} />
                             <span style={{ color: 'red', borderRadius: '50%', position: "absolute", top: "-8px", right: "-4px"}}>

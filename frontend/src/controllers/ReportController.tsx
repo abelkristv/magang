@@ -1,5 +1,5 @@
 import { encryptData, SECRET_KEY } from '../helper/sharedKeys';
-import { Report } from '../model/Report'; // Assuming Report interface is in the model folder
+import { Report } from '../model/Report';
 import Student from '../model/Student';
 import User from '../model/User';
 
@@ -54,7 +54,6 @@ export const updateStudentReport = async (
     try {
         const updatedTimestamp = new Date().toISOString();
 
-        // ✅ Encrypt the update payload
         const encryptedPayload = encryptData({
             reportId,
             report: editedContent,
@@ -100,10 +99,10 @@ export const deleteStudentReport = async (
     const token = localStorage.getItem('token');
 
     try {
-        // ✅ Encrypt the delete request payload
+        
         const encryptedPayload = encryptData({ id: reportId }, SECRET_KEY);
 
-        console.log("Encrypted delete payload:", encryptedPayload); // ✅ Debug log
+        console.log("Encrypted delete payload:", encryptedPayload); 
 
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'DELETE',
@@ -111,7 +110,7 @@ export const deleteStudentReport = async (
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, 
             },
-            body: JSON.stringify({ encryptedData: encryptedPayload }), // ✅ Ensure JSON structure
+            body: JSON.stringify({ encryptedData: encryptedPayload }), 
         });
 
         if (!response.ok) throw new Error(`Error deleting report: ${response.statusText}`);
@@ -252,7 +251,6 @@ export const addStudentReport = async (
 ): Promise<void> => {
     if (!description.trim()) throw new Error("Description cannot be empty.");
 
-    // ✅ Encrypt data
     const encryptedPayload = encryptData({
         studentName,
         report: description,

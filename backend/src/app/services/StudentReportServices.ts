@@ -109,7 +109,6 @@ export class StudentReportService {
   async getTotalCommentsByStudents(students: { name: string }[]) {
     const studentNames = students.map(student => student.name);
 
-    // Fetch reports for all students in a single query
     const reports = await this.reportRepository.findReportsByStudentNames(studentNames);
 
     if (reports.length === 0) {

@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { StudentReportService } from '../services/StudentReportServices';
 import { decryptData } from '../../utilities/dhKeys';
-import CryptoJS from 'crypto-js'; // ✅ Import CryptoJS
-import crypto from 'crypto'; // ✅ Use Node.js crypto
+import CryptoJS from 'crypto-js'; 
+import crypto from 'crypto'; 
 
 export class StudentReportController {
   private reportService: StudentReportService = new StudentReportService();
-  private SECRET_KEY = "your-secret-key"; // ✅ Use a secure key
+  private SECRET_KEY = "your-secret-key"; 
 
   async getReports(req: Request, res: Response): Promise<void> {
     const { studentName, filterStartDate, filterEndDate } = req.query;
@@ -28,7 +28,7 @@ export class StudentReportController {
     const { id } = req.params;
     const { encryptedData } = req.body;
 
-    console.log("Received encryptedData:", encryptedData); // ✅ Debug log
+    console.log("Received encryptedData:", encryptedData); 
 
     const encryptedString = typeof encryptedData === "object" && "encryptedData" in encryptedData
         ? encryptedData.encryptedData
@@ -41,18 +41,18 @@ export class StudentReportController {
     }
 
     try {
-        // ✅ Decrypt data
+        
         const decryptedData = decryptData(encryptedString, this.SECRET_KEY);
-        console.log("Decrypted data:", decryptedData); // ✅ Debug log
+        console.log("Decrypted data:", decryptedData); 
 
         if (!decryptedData) {
             throw new Error("Decryption failed or missing data");
         }
 
-        // ✅ Ensure `reportId` is not included in the update query
-        const { reportId, ...updateData } = decryptedData; // Remove reportId before passing to Prisma
+        
+        const { reportId, ...updateData } = decryptedData; 
 
-        console.log("Final Data Sent to Repository:", updateData); // ✅ Debug log
+        console.log("Final Data Sent to Repository:", updateData); 
 
         const updatedReport = await this.reportService.updateReport(id, updateData);
         res.json(updatedReport);
@@ -65,9 +65,9 @@ export class StudentReportController {
   async deleteReport(req: Request, res: Response): Promise<void> {
     const { encryptedData } = req.body;
 
-    console.log("Received encryptedData:", encryptedData); // ✅ Debugging log
+    console.log("Received encryptedData:", encryptedData); 
 
-    // ✅ Extract the encrypted string from object (if it's an object)
+    
     const encryptedString = typeof encryptedData === "object" && "encryptedData" in encryptedData
         ? encryptedData.encryptedData
         : encryptedData;
@@ -79,9 +79,9 @@ export class StudentReportController {
     }
 
     try {
-        // ✅ Attempt to decrypt only the string
+        
         const decryptedData = decryptData(encryptedString, this.SECRET_KEY);
-        console.log("Decrypted data:", decryptedData); // ✅ Debug log
+        console.log("Decrypted data:", decryptedData); 
 
         if (!decryptedData || !decryptedData.id) {
             throw new Error("Decryption failed or missing ID");
@@ -106,7 +106,7 @@ export class StudentReportController {
     }
 
     try {
-      // ✅ Decrypt the request payload
+      
       const decryptedData = decryptData(encryptedData, this.SECRET_KEY);
 
       const newReport = await this.reportService.createReport(decryptedData);

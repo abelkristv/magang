@@ -10,12 +10,10 @@ export class StudentDataService {
   async saveStudentData(studentData: any[], periodYear: string): Promise<void> {
     console.log(`Saving records ${studentData.length} for period ${periodYear}`);
 
-    // Validate that studentData is an array
     if (!Array.isArray(studentData)) {
       throw new Error('Invalid student data: Expected an array');
     }
 
-    // Filter invalid records
     const invalidRecords = studentData.filter((record) => {
       return !record.name || !record.nim || !record.major;
     });

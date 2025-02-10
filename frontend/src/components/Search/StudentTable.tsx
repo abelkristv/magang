@@ -9,7 +9,7 @@ interface StudentTableProps {
   sortField: keyof Student | null;
   sortOrder: "asc" | "desc";
   handleSort: (field: keyof Student) => void;
-  onClick?: (studentId: string) => void; // Optional click handler
+  onClick?: (studentId: string) => void;
 }
 
 const tableStyle = css`
@@ -82,8 +82,9 @@ const tableStyle = css`
 `;
 
 const tableContainerStyle = css`
-  max-height: 550px;
+  max-height: 700px;
   overflow-y: auto;
+  scrollbar-width: thin;
   border: 2px solid #eceaea;
   border-radius: 15px;
 `;

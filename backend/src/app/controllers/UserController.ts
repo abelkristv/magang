@@ -76,7 +76,7 @@ export class UserController {
 
   async getCurrentUser(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id; // `req.user` is properly typed now
+      const userId = req.user?.id;
       if (!userId) {
         res.status(401).json({ message: 'User not authenticated' });
         return;

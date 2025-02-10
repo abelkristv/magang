@@ -1,46 +1,6 @@
-// import { PrismaClient } from '@prisma/client';
 import Student from "../model/Student";
 import { Option } from "fp-ts/lib/Option";
 import { option } from "fp-ts";
-// const prisma = new PrismaClient();
-
-// const fetchStudents = async (companyName: string): Promise<Option<Student[]>> => {
-//     try {
-//         const studentsData = await prisma.student.findMany({
-//             where: {
-//                 tempatMagang: companyName,
-//             },
-//         });
-
-//         if (studentsData.length === 0) {
-//             return option.none;
-//         }
-
-//         const formattedStudentsData = studentsData.map(student => ({
-//             iden: student.id.toString(),  // Convert the ID to a string if necessary
-//             name: student.name,
-//             nim: student.nim,
-//             semester: student.semester,
-//             tempat_magang: student.tempatMagang,
-//             email: student.email,
-//             phone: student.phone,
-//             image_url: student.imageUrl,
-//             status: student.status,
-//             faculty_supervisor: student.facultySupervisor,
-//             site_supervisor: student.siteSupervisor,
-//             major: student.major,
-//             notes: student.notes,
-//             period: student.period,
-//         }));
-
-//         return option.some(formattedStudentsData);
-//     } catch (error) {
-//         console.error('Error fetching students:', error);
-//         return option.none;
-//     } finally {
-//         await prisma.$disconnect();
-//     }
-// };
 
 export interface PaginatedResponse {
     students: Student[];
@@ -99,7 +59,7 @@ const fetchAllStudents = async (page: number = 1, limit: number = 9): Promise<Op
             students: studentsData,
             pagination: {
                 ...data.pagination,
-                totalStudents: data.pagination.totalStudents, // Ensure totalStudents is returned
+                totalStudents: data.pagination.totalStudents,
             },
         });
     } catch (error) {
@@ -289,7 +249,7 @@ const fetchStudentsWithFilters = async (
                 email: student.email,
                 phone: student.phone,
                 image_url: student.imageUrl,
-                status: student.status, // Ensure status is included
+                status: student.status,
                 faculty_supervisor: student.facultySupervisor,
                 site_supervisor: student.siteSupervisor,
                 major: student.major,

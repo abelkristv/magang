@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 
 
 async function main() {
-  // Clear existing data
   await prisma.studentReportComment.deleteMany({});
   await prisma.student.deleteMany({});
   await prisma.major.deleteMany({});
@@ -18,7 +17,6 @@ async function main() {
   await prisma.meetingSchedule.deleteMany({});
   await prisma.discussionDetail.deleteMany({});
 
-  // Seed Students
   await prisma.student.createMany({
     data: [
       {
@@ -104,7 +102,6 @@ async function main() {
     ],
   });
 
-  // Seed Student Reports
   await prisma.studentReport.createMany({
     data: [
       {
@@ -385,10 +382,8 @@ async function main() {
     ],
   });
 
-  // Fetch valid StudentReport IDs
   const validReportIds = (await prisma.studentReport.findMany()).map(report => report.id);
 
-  // Seed Student Report Comments
   const commentsData = [
     { id: '0fbzZDVaieDxc0qNexEl', comment: 'test2', hasRead: true, reportID: 'lho8bfCh95jrHW8zVQDP', writer: 'abel@gmail.com' },
     { id: '3Tf1M8EiQx2m0S11AgJh', comment: 'testtsetset', hasRead: true, reportID: '0mF9ZmtFZ7dZnv5c2WB0', writer: 'abel@gmail.com' },
@@ -410,7 +405,6 @@ async function main() {
     data: validCommentsData,
   });
 
-  // Seed Companies
   await prisma.company.createMany({
     data: [
       {
@@ -444,7 +438,6 @@ async function main() {
     ],
   });
 
-  // Seed Majors
   await prisma.major.createMany({
     data: [
       {
@@ -462,7 +455,6 @@ async function main() {
     ],
   });
 
-  // Seed Periods
   await prisma.period.createMany({
     data: [
       {

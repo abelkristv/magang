@@ -29,7 +29,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
     const [place, setPlace] = useState<string>('');
     const [date, setDate] = useState<string>('');
     const [error, setError] = useState<string>('');
-    const [meetingType, setMeetingType] = useState<string>('online'); // New state for meeting type
+    const [meetingType, setMeetingType] = useState<string>('online'); 
     const modalRef = useRef<HTMLDivElement>(null);
 
     const [dateError, setDateError] = useState<string>('');

@@ -3,7 +3,6 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import User from '../model/User';
 
-// Define the shape of the context value
 interface AuthContextType {
     currentUser: User;
     setCurrentUser: React.Dispatch<React.SetStateAction<User>>;

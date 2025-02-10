@@ -124,7 +124,6 @@ export const fetchDocumentationsByEmail = async (email: string): Promise<Documen
     }
 };
 
-// In DocumentationController.ts
 export const updateDocumentation = async (
     documentationId: string,
     user: User | undefined,
@@ -145,10 +144,9 @@ export const updateDocumentation = async (
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // if required
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        // Include the id again if your backend expects it in the payload too
         id: documentationId,
         user,
         title,

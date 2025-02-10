@@ -17,7 +17,6 @@ export class EmailService {
       const info = await sendEmail(mailOptions);
       return info.response;
     } catch (error) {
-      // Narrowing the type of error
       if (error instanceof Error) {
         throw new Error(`Failed to send email: ${error.message}`);
       }

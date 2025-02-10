@@ -18,7 +18,7 @@ export class MeetingScheduleRepository {
         place: true,
         date: true,
         type: true,
-        createdAt: true, // ✅ Ensure createdAt is included
+        createdAt: true,
       },
     });
   }
@@ -27,11 +27,11 @@ export class MeetingScheduleRepository {
   async updateMeetingSchedule(meetingId: string, updateData: any) {
     console.log("Updating meeting schedule:", meetingId, updateData);
     const updatedRecord = await this.prisma.meetingSchedule.update({
-      where: { studentReportId: meetingId }, // ✅ Correct field
+      where: { studentReportId: meetingId },
       data: updateData,
     });
     console.log("Updated record:", updatedRecord);
-    return updatedRecord; // ✅ Ensure the function returns the updated meeting
+    return updatedRecord;
   }
   
   

@@ -134,7 +134,7 @@ export class DocumentationService {
       return picture.base64;
     });
     
-    // Use plain arrays here:
+    
     const documentationData = {
       title,
       nomorUndangan: invitationNumber,
@@ -142,9 +142,9 @@ export class DocumentationService {
       leader: leader,
       place: location,
       time: parsedTime,
-      attendanceList: attendees, // plain array
-      results: results,          // plain array
-      pictures: encodedPictures, // plain array
+      attendanceList: attendees,
+      results: results,         
+      pictures: encodedPictures,
       type: documentationType,
       writer: user.email,
       timestamp: parsedTime,
@@ -155,7 +155,7 @@ export class DocumentationService {
     let formattedDiscussionDetails: any[] | undefined = undefined;
     if (modalDiscussionDetails && modalDiscussionDetails.length > 0) {
       formattedDiscussionDetails = modalDiscussionDetails.map((detail: ModalDiscussionDetail) => ({
-        id: detail.id, // pass through id if exists
+        id: detail.id, 
         discussionTitle: detail.discussionTitle,
         personResponsible: detail.personResponsible,
         furtherActions: detail.furtherActions,

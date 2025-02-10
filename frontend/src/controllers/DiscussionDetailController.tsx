@@ -47,7 +47,8 @@ export const fetchDiscussionsWithDetails = async (filteredDocs: Documentation[])
 
 
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussions-with-details`, {
+        // const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussions-with-details`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/discussion`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

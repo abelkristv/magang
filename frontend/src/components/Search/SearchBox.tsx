@@ -198,7 +198,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         };
     
         fetchData();
-    }, [userAuth, studentResponse.pagination.currentPage, studentResponse.pagination.limit]);  // 👈 Reacts to limit changes
+    }, [userAuth, studentResponse.pagination.currentPage, studentResponse.pagination.limit]);
     
     
     
@@ -310,7 +310,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 ...prevState,
                 isSearchHistoryOpen: false,
             }));
-        }, 100); // Delay to allow click event to register
+        }, 100);
     };
 
     const handleSearchHistoryClick = (query: string) => {
@@ -374,16 +374,17 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         const paginationStyle = css`
             display: flex;
             justify-content: end;
+            align-items: center;
             margin-top: 20px;
             gap: 5px;
     
             button {
-                padding: 5px 10px;
+                padding: 2px 10px;
                 border: 1px solid #ddd;
                 background-color: #f9f9f9;
                 cursor: pointer;
                 border-radius: 5px;
-                font-size: 14px;
+                font-size: 16px;
     
                 &:hover {
                     background-color: #eaeaea;
@@ -393,6 +394,12 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     background-color: #ccc;
                     cursor: not-allowed;
                 }
+            }
+
+            select {
+                padding: 5px 5px;
+                border-radius: 5px;
+                font-size: 13px;
             }
     
             .active {
@@ -424,18 +431,19 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                         <option key={limit} value={limit}>{limit}</option>
                     ))}
                 </select>
-                <button onClick={() => setStudentResponse(prev => ({
+
+                <button style={{marginLeft:'30px'}} onClick={() => setStudentResponse(prev => ({
                     ...prev,
                     pagination: { ...prev.pagination, currentPage: 1 }
                 }))} disabled={currentPage === 1}>
-                    &laquo;
+                    {`<<`}
                 </button>
     
                 <button onClick={() => setStudentResponse(prev => ({
                     ...prev,
                     pagination: { ...prev.pagination, currentPage: prev.pagination.currentPage - 1 }
                 }))} disabled={currentPage === 1}>
-                    &lsaquo;
+                    {`<`}
                 </button>
     
                 <span>Page:</span>
@@ -455,14 +463,14 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     ...prev,
                     pagination: { ...prev.pagination, currentPage: prev.pagination.currentPage + 1 }
                 }))} disabled={currentPage === totalPages}>
-                    &rsaquo;
+                    {`>`}
                 </button>
     
                 <button onClick={() => setStudentResponse(prev => ({
                     ...prev,
                     pagination: { ...prev.pagination, currentPage: totalPages }
                 }))} disabled={currentPage === totalPages}>
-                    &raquo;
+                    {`>>`}
                 </button>
             </div>
         );

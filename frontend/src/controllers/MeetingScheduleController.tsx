@@ -22,19 +22,17 @@ export const fetchMeetingSchedules = async (reportIds: string[]): Promise<{ [key
 
         const data = await response.json();
 
-        // Map the response data to the schedules object
         for (const reportId of reportIds) {
             if (data[reportId]) {
                 const meetingData = data[reportId];
                 
-                // Convert createdAt to Firebase Timestamp and map fields to match the interface
                 schedules[reportId] = {
                     id: meetingData.id,
                     createdAt: Timestamp.fromDate(new Date(meetingData.createdAt)),
                     date: meetingData.date,
                     description: meetingData.description,
                     place: meetingData.place,
-                    studentReport_id: meetingData.studentReportId, // Map to studentReport_id
+                    studentReport_id: meetingData.studentReportId, 
                     timeEnd: meetingData.timeEnd,
                     timeStart: meetingData.timeStart,
                     type: meetingData.type,
@@ -64,7 +62,6 @@ export const scheduleMeeting = async (
     const token = localStorage.getItem('token');
 
     try {
-        // ✅ Encrypt the meeting schedule data
         const encryptedPayload = encryptData(data, SECRET_KEY);
 
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules/create`, {
@@ -73,7 +70,7 @@ export const scheduleMeeting = async (
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, 
             },
-            body: JSON.stringify({ encryptedData: encryptedPayload }), // ✅ Sending encrypted data
+            body: JSON.stringify({ encryptedData: encryptedPayload }),
         });
 
         if (!response.ok) {

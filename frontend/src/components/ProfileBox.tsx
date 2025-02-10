@@ -54,10 +54,10 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [majors, setMajors] = useState<string[]>([]);
-    const [companies, setCompanies] = useState<string[]>([]); // New state for companies
-    const [periods, setPeriods] = useState<string[]>([]); // New state for periods
+    const [companies, setCompanies] = useState<string[]>([]);
+    const [periods, setPeriods] = useState<string[]>([]);
     const [selectedMajor, setSelectedMajor] = useState<string>("");
-    const [selectedCompany, setSelectedCompany] = useState<string>(""); // New state for selected company
+    const [selectedCompany, setSelectedCompany] = useState<string>("");
     const [selectedPeriod, setSelectedPeriod] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [tempSelectedMajor, setTempSelectedMajor] = useState<string>("");
@@ -95,10 +95,10 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                 (majorsList: any[]) => setMajors(majorsList.map((major) => major.name))
             )(majorResult);
 
-            const companyResult = await fetchAllCompanies().then(company => company._tag == "Some" ? company.value : {} as Company[]); // Fetch companies
+            const companyResult = await fetchAllCompanies().then(company => company._tag == "Some" ? company.value : {} as Company[]);
             setCompanies(companyResult.map((company: Company) => company.company_name));
 
-            const periodResult = await fetchPeriods(); // Fetch periods
+            const periodResult = await fetchPeriods();
             setPeriods(periodResult.map((period: string) => period));
         };
 
@@ -106,7 +106,6 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
     }, []);
     
     useEffect(() => {
-        // console.log("Editable user (updated): ", editableUser); // This will log the updated state
         setIsLoading(false)
     }, [editableUser]);
     
@@ -141,12 +140,12 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
 
                     console.log("user to be sent : ", editableUser)
     
-                    // Send the updated user data to your backend
+                    
                     const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/user/${editableUser.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`, // Ensure token is correctly passed
+                            'Authorization': `Bearer ${token}`, 
                         },
                         body: JSON.stringify(editableUser),
                     });
@@ -165,9 +164,9 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
 
                     console.log("updated user : " , updatedUser)
     
-                    // Update the local user state
+                    
                     setUser(updatedUser);
-                    userAuth?.setCurrentUser(updatedUser); // Update the Firebase Auth context or state if needed
+                    userAuth?.setCurrentUser(updatedUser); 
                     setEditableUser(updatedUser);
                     setIsEditing(false);
                 } catch (error) {

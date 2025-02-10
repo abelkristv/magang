@@ -78,7 +78,7 @@ const plusIconContainerStyle = css`
 
 const newPeriodSectionStyle = css`
     display: flex;
-    align-items: start;
+    align-items: end;
     margin-bottom: 20px;
     gap: 30px;
 `;
@@ -316,7 +316,7 @@ const UploadStudentData = () => {
             } else {
                 const result = await response.json();
                 // alert(`Error: ${result.message}`);
-                setFailedPopUpMessage(result.message);
+                setFailedPopUpMessage('Invalid file');
                 setIsFailedVisible(true);
                 setTimeout(() => {
                     setIsFailedVisible(false);
@@ -393,7 +393,7 @@ const UploadStudentData = () => {
 
                                             <Button
                                                 onClick={handleAddPeriod}
-                                                style={{ marginTop: "40px", fontSize: "17px", fontWeight:"500", padding: "8px 25px 8px 25px", height:"45px", backgroundColor:'#49A8FF', color:'white' }}
+                                                style={{ marginTop: "40px", fontSize: "17px", fontWeight:"500", padding: "9px 25px 9px 25px", height:"45px", backgroundColor:'#49A8FF', color:'white' }}
                                             >
                                                 Add
                                             </Button>

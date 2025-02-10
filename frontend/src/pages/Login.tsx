@@ -93,7 +93,7 @@ const Login = () => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setError(''); // Reset error message before attempting login
+        setError('');
     
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/auth/login`, {
@@ -118,7 +118,6 @@ const Login = () => {
                     setError('Failed to login, unable to set user context');
                 }
             } else {
-                // Handle the error returned from the API
                 setError(data.error || 'Failed to login, check your email and password');
             }
         } catch (error) {

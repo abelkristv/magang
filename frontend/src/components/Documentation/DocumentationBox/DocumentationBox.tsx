@@ -155,7 +155,6 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     }, [filteredDocumentations]);
 
     useEffect(() => {
-        // Recalculate docDates from the current documentations state
         const newDocDates = documentations
             .map((doc: Documentation) => {
                 let docDate: Date;
@@ -357,7 +356,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         data.forEach((doc) => {
             const rowIndex = worksheet.lastRow!.number + 1;
             const attendanceList = doc.attendanceList;
-            const discussionDetails = doc.discussionDetails.split(', '); // Assuming discussionDetails are comma-separated
+            const discussionDetails = doc.discussionDetails.split(', ');
     
             const numRows = Math.max(attendanceList.length, discussionDetails.length, 1);
     
@@ -929,7 +928,6 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         let dotColor = 'gray';
     
         if (view === 'month' && docDates.includes(date.toDateString())) {
-            // find doc for current date
             const docForDate = documentations.find(doc => new Date(doc.timestamp).toDateString() === date.toDateString());
     
             if (docForDate) {
@@ -985,13 +983,13 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                 setSelectedDate(value[0]);
             }
         } else {
-            setSelectedDate(null); // Handle other cases by setting null
+            setSelectedDate(null);
         }
     };
 
     const handleDeleteDocumentation = (docId: string) => {
         setDocToDelete(docId);
-        setIsConfirmModalOpen(true); // Open the confirmation modal
+        setIsConfirmModalOpen(true); 
     };
     
     const confirmDelete = async () => {

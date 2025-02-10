@@ -4,7 +4,7 @@ import { decryptData } from '../../utilities/dhKeys';
 
 export class MeetingScheduleController {
   private scheduleService: MeetingScheduleService = new MeetingScheduleService();
-  private SECRET_KEY = "your-secret-key"; // ✅ Use a secure key
+  private SECRET_KEY = "your-secret-key";
 
   async getMeetingSchedules(req: Request, res: Response): Promise<void> {
     const { reportIds } = req.body;
@@ -26,7 +26,7 @@ export class MeetingScheduleController {
   async createMeetingSchedule(req: Request, res: Response): Promise<void> {
     const { encryptedData } = req.body;
 
-    console.log("Received encryptedData:", encryptedData); // ✅ Debugging log
+    console.log("Received encryptedData:", encryptedData); 
 
     if (!encryptedData) {
         res.status(400).json({ error: "Missing encrypted data" });
@@ -34,20 +34,18 @@ export class MeetingScheduleController {
     }
 
     try {
-        // ✅ Extract encrypted string if it's wrapped in an object
         const encryptedString = typeof encryptedData === "object" && "encryptedData" in encryptedData
             ? encryptedData.encryptedData
             : encryptedData;
 
-        console.log("Extracted encrypted string:", encryptedString); // ✅ Debugging log
+        console.log("Extracted encrypted string:", encryptedString); 
 
         if (!encryptedString || typeof encryptedString !== "string" || encryptedString.trim() === "") {
             throw new Error("Invalid encrypted data format received");
         }
 
-        // ✅ Attempt to decrypt the string
         const decryptedData = decryptData(encryptedString, this.SECRET_KEY);
-        console.log("Decrypted createMeetingSchedule data:", decryptedData); // ✅ Debugging log
+        console.log("Decrypted createMeetingSchedule data:", decryptedData); 
 
         const { newMeeting, updatedSchedules } = await this.scheduleService.createSchedule(decryptedData);
 
@@ -86,7 +84,7 @@ export class MeetingScheduleController {
 
         console.log(result)
 
-        res.json(result);  // ✅ Now always returns { message, updatedMeeting }
+        res.json(result);
     } catch (error) {
         console.error('Error updating meeting schedule:', error);
         res.status(400).json({ error: error instanceof Error ? error.message : 'Internal server error' });

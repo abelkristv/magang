@@ -85,7 +85,7 @@ const AddNewDocumentationBox: React.FC = () => {
 
     const [fileName, setFileName] = useState<string>("");
 
-    // Error states
+    //
     const [titleError, setTitleError] = useState<string>("");
     const [documentationTypeError, setDocumentationTypeError] = useState<string>("");
     const [meetingLeaderError, setMeetingLeaderError] = useState<string>("");
@@ -163,7 +163,7 @@ const AddNewDocumentationBox: React.FC = () => {
           setMeetingLeader(documentation.leader ?? "");
           setLocation(documentation.place ?? "");
           setTime(documentation.time ? new Date(documentation.time).toISOString().slice(0, 16) : "");
-          // Update other fields similarly...
+          
           setAttendees(documentation.attendanceList ?? []);
             setResults(documentation.results ?? []);
             setModalDiscussionDetails(documentation.discussionDetails ?? []);
@@ -263,7 +263,7 @@ const AddNewDocumentationBox: React.FC = () => {
         setTotalCounter(totalCounter - 1);
     };
 
-    // const storage = getStorage();
+    
 
     const validateInputs = () => {
         let valid = true;
@@ -323,14 +323,14 @@ const AddNewDocumentationBox: React.FC = () => {
         }
     
         try {
-            // Convert images to base64 strings
+            
             
             const compressImage = (file: any) => {
                 return new Promise((resolve, reject) => {
                     new Compressor(file, {
-                        quality: 0.6, // Adjust quality to ensure the size is below 1 MB
-                        maxWidth: 1920, // Optionally set max width to reduce size
-                        maxHeight: 1080, // Optionally set max height to reduce size
+                        quality: 0.6, 
+                        maxWidth: 1920, 
+                        maxHeight: 1080, 
                         success(result) {
                             resolve(result);
                         },
@@ -352,12 +352,7 @@ const AddNewDocumentationBox: React.FC = () => {
                             if (typeof reader.result === "string") {
                                 const base64 = reader.result.split(',')[1];
                                 const sizeInBytes = (base64.length * (3/4)) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
-            
-                                // if (sizeInBytes <= 1 * 1024 * 1024) { // Ensure size is less than 1 MB
                                     resolve(reader.result);
-                                // } else {
-                                //     reject(new Error("Compressed image size exceeds 1 MB."));
-                                // }
                             } else {
                                 reject(new Error("Failed to convert picture to base64."));
                             }
@@ -369,7 +364,6 @@ const AddNewDocumentationBox: React.FC = () => {
             
             console.log("Pictures array:", picturesBase64);
     
-            // Call the addDocumentation function that communicates with the backend API
             const result = await addDocumentation(
                 user,
                 title,
@@ -389,13 +383,11 @@ const AddNewDocumentationBox: React.FC = () => {
             );
     
             if (result.success) {
-                // alert(result.message);
                 setIsVisible(true);
                 setTimeout(() => {
                     setIsVisible(false);
                 }, 5000);
                 
-                // Reset all form fields after successful submission
                 setTitle("");
                 setInvitationNumber("");
                 setDescription("");
@@ -460,11 +452,10 @@ const AddNewDocumentationBox: React.FC = () => {
         }
       
         try {
-          // Function to compress an image if it’s a new file
           const compressImage = (file: File) => {
             return new Promise((resolve, reject) => {
               new Compressor(file, {
-                quality: 0.6, // Adjust quality as needed
+                quality: 0.6,
                 maxWidth: 1920,
                 maxHeight: 1080,
                 success(result) {
@@ -542,7 +533,6 @@ const AddNewDocumentationBox: React.FC = () => {
               payload.modalDiscussionDetails
             );
           } else {
-            // Otherwise, call the add API
             result = await addDocumentation(
               payload.user,
               payload.title,

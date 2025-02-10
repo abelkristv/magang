@@ -2,7 +2,6 @@
 import { css } from '@emotion/react';
 import React from 'react';
 
-// Define the prop types
 interface SuccessPopupProps {
     message: string;
     isVisible: boolean;

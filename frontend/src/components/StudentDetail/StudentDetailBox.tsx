@@ -214,7 +214,6 @@ const StudentDetailBox = () => {
 
         console.log(emailDetails);
 
-        // Send the email via the API
         const emailResponse = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/send-email`, {
             method: 'POST',
             headers: {
@@ -384,12 +383,11 @@ const StudentDetailBox = () => {
         const emailDetails = {
             to: student?.email,
             subject: "Meeting Schedule Updated",
-            text: `Your meeting schedule at ${schedule.timeStart} -  ${schedule.timeStart} (${schedule.date}) has been canceled to:`
+            text: `Your meeting schedule at ${schedule.timeStart} -  ${schedule.timeStart} (${schedule.date}) has been canceled`
         };
 
         console.log(emailDetails);
 
-        // Send the email via the API
         const emailResponse = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/send-email`, {
             method: 'POST',
             headers: {

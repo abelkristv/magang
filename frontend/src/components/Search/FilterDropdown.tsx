@@ -9,7 +9,7 @@ interface FilterDropdownProps {
     tempSelectedPeriod: string;
     tempSelectedCompany: string;
     tempSelectedMajor: string;
-    tempSelectedStatus: string; // New
+    tempSelectedStatus: string;
     periods: string[];
     companies: { company_name: string }[];
     majors: { name: string }[];
@@ -17,7 +17,7 @@ interface FilterDropdownProps {
     handleTempPeriodChange: (event: ChangeEvent<HTMLSelectElement>) => void;
     handleTempCompanyChange: (event: ChangeEvent<HTMLSelectElement>) => void;
     handleTempMajorChange: (event: ChangeEvent<HTMLSelectElement>) => void;
-    handleTempStatusChange: (event: ChangeEvent<HTMLSelectElement>) => void; // New
+    handleTempStatusChange: (event: ChangeEvent<HTMLSelectElement>) => void;
     handleApplyFilters: () => void;
 }
 

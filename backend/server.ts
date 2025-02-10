@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
-const xlsx = require('xlsx'); // Add this line to import the 'xlsx' module
+const xlsx = require('xlsx');
 
 import authRoutes from './src/routes/AuthRoutes';
 import userRoutes from './src/routes/UserRoutes';
