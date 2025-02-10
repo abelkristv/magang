@@ -194,22 +194,43 @@ const StudentDetailBox = () => {
           }
       
           const result = await response.json();
-          console.log('Meeting schedule updated:', result);
+          console.log('Meeting schedule updated:', response);
       
           const updated = result.updatedMeeting || updatedMeeting;
       
-          if (updated.createdAt && typeof updated.createdAt === "string") {
-            updated.createdAt = {
-              toDate: () => new Date(updated.createdAt)
-            };
-          }
-      
-          setMeetingSchedules((prev) => ({
-            ...prev,
-            [updated.id]: updated,
-          }));
-      
-          setIsEditMeetingModalOpen(false);
+          const updatedSchedules = await fetchMeetingSchedules(
+            reports.map(report => report.id)
+        );
+
+        const emailDetails = {
+            to: student?.email,
+            subject: "Meeting Schedule Updated",
+            text: `Your meeting schedule has been updated to:
+            Date: ${updatedMeeting.date}
+            Time: ${updatedMeeting.timeStart} - ${updatedMeeting.timeEnd}
+            Place: ${updatedMeeting.place}
+            Description: ${updatedMeeting.description}`
+        };
+
+        console.log(emailDetails);
+
+        // Send the email via the API
+        const emailResponse = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/send-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailDetails),
+        });
+
+        if (!emailResponse.ok) {
+            throw new Error(`Failed to send email: ${emailResponse.statusText}`);
+        }
+
+        const emailResult = await emailResponse.json();
+
+        setMeetingSchedules(updatedSchedules);
+        setIsEditMeetingModalOpen(false);
         } catch (error) {
           console.error('Error updating meeting schedule:', error);
         }
@@ -354,11 +375,31 @@ const StudentDetailBox = () => {
         setEditedSource("")
     };
 
-    const handleDeleteMeetingScheduleClick = (reportId: string) => {
+    const handleDeleteMeetingScheduleClick = async (reportId: string) => {
         const schedule = meetingSchedules[reportId];
         if (!schedule || !schedule.id) {
             console.error("No meeting schedule found for this report");
             return;
+        }
+        const emailDetails = {
+            to: student?.email,
+            subject: "Meeting Schedule Updated",
+            text: `Your meeting schedule at ${schedule.timeStart} -  ${schedule.timeStart} (${schedule.date}) has been canceled to:`
+        };
+
+        console.log(emailDetails);
+
+        // Send the email via the API
+        const emailResponse = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/send-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailDetails),
+        });
+
+        if (!emailResponse.ok) {
+            throw new Error(`Failed to send email: ${emailResponse.statusText}`);
         }
     
         setMeetingToDelete(schedule.id);

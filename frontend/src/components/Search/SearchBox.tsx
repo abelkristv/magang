@@ -182,6 +182,24 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
             setSearchHistory([searchState.searchQuery, ...searchHistory].slice(0, 5));
         }
     };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            const fetchedResponse: PaginatedResponse = await fetchAllStudents(
+                studentResponse.pagination.currentPage,
+                studentResponse.pagination.limit
+            ).then((students) => students._tag === "Some" ? students.value : {} as PaginatedResponse);
+    
+            setStudentResponse(fetchedResponse);
+            setStudents(fetchedResponse.students);
+            setFilteredStudents(fetchedResponse.students);
+            setIsLoading(false);
+        };
+    
+        fetchData();
+    }, [userAuth, studentResponse.pagination.currentPage, studentResponse.pagination.limit]);  // 👈 Reacts to limit changes
+    
     
     
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -355,7 +373,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     
         const paginationStyle = css`
             display: flex;
-            justify-content: center;
+            justify-content: end;
             margin-top: 20px;
             gap: 5px;
     
@@ -393,41 +411,57 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
     
         return (
             <div css={paginationStyle}>
-                <button
-                    onClick={() => handleSearch(1)}
-                    disabled={currentPage === 1}
+                {/* <span>{studentResponse.pagination.totalStudents} Result(s)</span> */}
+                <label> Show: </label>
+                <select
+                    value={studentResponse.pagination.limit}
+                    onChange={(e) => setStudentResponse(prev => ({
+                        ...prev,
+                        pagination: { currentPage: 1, limit: parseInt(e.target.value), totalPages: prev.pagination.totalPages, totalStudents: prev.pagination.totalStudents }
+                    }))}
                 >
+                    {[10, 20, 30, 50].map(limit => (
+                        <option key={limit} value={limit}>{limit}</option>
+                    ))}
+                </select>
+                <button onClick={() => setStudentResponse(prev => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, currentPage: 1 }
+                }))} disabled={currentPage === 1}>
                     &laquo;
                 </button>
     
-                <button
-                    onClick={() => handleSearch(currentPage - 1)}
-                    disabled={currentPage === 1}
-                >
-                    &lt;
+                <button onClick={() => setStudentResponse(prev => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, currentPage: prev.pagination.currentPage - 1 }
+                }))} disabled={currentPage === 1}>
+                    &lsaquo;
                 </button>
     
-                {pageNumbers.map((page) => (
-                    <button
-                        key={page}
-                        onClick={() => handleSearch(page)}
-                        className={page === currentPage ? "active" : ""}
-                    >
-                        {page}
-                    </button>
-                ))}
-    
-                <button
-                    onClick={() => handleSearch(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                <span>Page:</span>
+                <select
+                    value={currentPage}
+                    onChange={(e) => setStudentResponse(prev => ({
+                        ...prev,
+                        pagination: { ...prev.pagination, currentPage: parseInt(e.target.value) }
+                    }))}
                 >
-                    &gt;
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <option key={page} value={page}>{page}</option>
+                    ))}
+                </select>
+    
+                <button onClick={() => setStudentResponse(prev => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, currentPage: prev.pagination.currentPage + 1 }
+                }))} disabled={currentPage === totalPages}>
+                    &rsaquo;
                 </button>
     
-                <button
-                    onClick={() => handleSearch(totalPages)}
-                    disabled={currentPage === totalPages}
-                >
+                <button onClick={() => setStudentResponse(prev => ({
+                    ...prev,
+                    pagination: { ...prev.pagination, currentPage: totalPages }
+                }))} disabled={currentPage === totalPages}>
                     &raquo;
                 </button>
             </div>
