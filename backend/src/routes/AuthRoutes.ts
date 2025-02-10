@@ -3,6 +3,7 @@ import express, { Router } from 'express';
 import cors from 'cors';
 import { AuthController } from '../app/controllers/AuthController';
 
+
 const router: Router = express.Router();
 const authController = new AuthController();
 

@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import MeetingSchedule from "../model/MeetingSchedule";
+import { encryptData, SECRET_KEY } from "../helper/sharedKeys";
 
 export const fetchMeetingSchedules = async (reportIds: string[]): Promise<{ [key: string]: MeetingSchedule }> => {
     const schedules: { [key: string]: MeetingSchedule } = {};
@@ -61,14 +62,18 @@ export const scheduleMeeting = async (
     existingSchedules: { [key: string]: any }
 ): Promise<{ [key: string]: any }> => {
     const token = localStorage.getItem('token');
+
     try {
+        // ✅ Encrypt the meeting schedule data
+        const encryptedPayload = encryptData(data, SECRET_KEY);
+
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/meeting-schedules/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, 
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({ encryptedData: encryptedPayload }), // ✅ Sending encrypted data
         });
 
         if (!response.ok) {
@@ -76,9 +81,6 @@ export const scheduleMeeting = async (
         }
 
         const result = await response.json();
-        // alert(result.message);
-
-        // Fetch the updated schedules
         return result.updatedSchedules;
     } catch (error) {
         console.error('Error scheduling meeting: ', error);
@@ -86,6 +88,7 @@ export const scheduleMeeting = async (
         throw error;
     }
 };
+
 
 export const deleteMeetingSchedule = async (meetingScheduleId: string) => {
     try {

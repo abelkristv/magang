@@ -1,3 +1,4 @@
+import { encryptData, SECRET_KEY } from '../helper/sharedKeys';
 import { Report } from '../model/Report'; // Assuming Report interface is in the model folder
 import Student from '../model/Student';
 import User from '../model/User';
@@ -53,7 +54,15 @@ export const updateStudentReport = async (
     try {
         const updatedTimestamp = new Date().toISOString();
 
-        console.log("report to be updated: ", reportId)
+        // ✅ Encrypt the update payload
+        const encryptedPayload = encryptData({
+            reportId,
+            report: editedContent,
+            type: editedType,
+            status: editedStatus,
+            person: editedSource,
+            timestamp: updatedTimestamp,
+        }, SECRET_KEY);
 
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'PUT',
@@ -61,22 +70,14 @@ export const updateStudentReport = async (
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, 
             },
-            body: JSON.stringify({
-                report: editedContent,
-                type: editedType,
-                status: editedStatus,
-                person: editedSource,
-                timestamp: updatedTimestamp,
-            }),
+            body: JSON.stringify({ encryptedData: encryptedPayload }),
         });
 
-        if (!response.ok) {
-            throw new Error(`Error updating report: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error updating report: ${response.statusText}`);
 
         const updatedReport = await response.json();
 
-        const updatedReports = reports.map(report =>
+        return reports.map(report =>
             report.id === reportId
                 ? {
                     ...report,
@@ -85,9 +86,6 @@ export const updateStudentReport = async (
                 }
                 : report
         );
-
-        // alert("Report updated successfully!");
-        return updatedReports;
     } catch (error) {
         console.error("Error updating report:", error);
         alert("Failed to update report. Please try again.");
@@ -100,19 +98,24 @@ export const deleteStudentReport = async (
     reports: Report[]
 ): Promise<Report[]> => {
     const token = localStorage.getItem('token');
+
     try {
+        // ✅ Encrypt the delete request payload
+        const encryptedPayload = encryptData({ id: reportId }, SECRET_KEY);
+
+        console.log("Encrypted delete payload:", encryptedPayload); // ✅ Debug log
+
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports/${reportId}`, {
             method: 'DELETE',
             headers: {
+                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, 
             },
+            body: JSON.stringify({ encryptedData: encryptedPayload }), // ✅ Ensure JSON structure
         });
 
-        if (!response.ok) {
-            throw new Error(`Error deleting report: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error deleting report: ${response.statusText}`);
 
-        // alert("Report deleted successfully!");
         return reports.filter(report => report.id !== reportId);
     } catch (error) {
         console.error("Error deleting report:", error);
@@ -120,6 +123,7 @@ export const deleteStudentReport = async (
         throw error;
     }
 };
+
 
 
 export const fetchTotalReportsByStudent = async (
@@ -238,49 +242,42 @@ export const fetchRecordsAndDocumentation = async (user: User) => {
     }
 };
 
-
 export const addStudentReport = async (
-    studentName: string, 
-    description: string, 
-    selectedType: string, 
-    selectedPerson: string, 
-    selectedStatus: string,
+    studentName: string,
+    description: string,
+    type: string,
+    person: string,
+    status: string,
     writer: string
 ): Promise<void> => {
-    if (description.trim() === "") {
-        throw new Error("Description cannot be empty.");
-    }
+    if (!description.trim()) throw new Error("Description cannot be empty.");
+
+    // ✅ Encrypt data
+    const encryptedPayload = encryptData({
+        studentName,
+        report: description,
+        type,
+        person,
+        status,
+        writer,
+        timestamp: new Date(),
+    }, SECRET_KEY);
 
     const token = localStorage.getItem('token');
-
-
-    const newRecord = {
-        hasRead: false,
-        type: selectedType,
-        person: selectedPerson,
-        status: selectedStatus,
-        report: description,
-        studentName: studentName,
-        timestamp: new Date(),
-        writer,
-    };
 
     try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/api/reports`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, 
+                'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify(newRecord),
+            body: JSON.stringify(encryptedPayload),
         });
 
-        if (!response.ok) {
-            throw new Error(`Error adding report: ${response.statusText}`);
-        }
-
+        if (!response.ok) throw new Error(`Error adding report: ${response.statusText}`);
     } catch (error) {
-        console.error("Error adding document: ", error);
+        console.error("Error adding report:", error);
         throw error;
     }
 };

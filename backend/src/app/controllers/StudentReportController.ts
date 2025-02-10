@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
 import { StudentReportService } from '../services/StudentReportServices';
+import { decryptData } from '../../utilities/dhKeys';
+import CryptoJS from 'crypto-js'; // ✅ Import CryptoJS
+import crypto from 'crypto'; // ✅ Use Node.js crypto
 
 export class StudentReportController {
   private reportService: StudentReportService = new StudentReportService();
+  private SECRET_KEY = "your-secret-key"; // ✅ Use a secure key
 
   async getReports(req: Request, res: Response): Promise<void> {
     const { studentName, filterStartDate, filterEndDate } = req.query;
@@ -16,56 +20,100 @@ export class StudentReportController {
       res.json(reports);
     } catch (error) {
       console.error('Error fetching reports:', error);
-
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
     }
   }
 
   async updateReport(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const { report, type, status, person, timestamp } = req.body;
+    const { encryptedData } = req.body;
+
+    console.log("Received encryptedData:", encryptedData); // ✅ Debug log
+
+    const encryptedString = typeof encryptedData === "object" && "encryptedData" in encryptedData
+        ? encryptedData.encryptedData
+        : encryptedData;
+
+    if (!encryptedString || typeof encryptedString !== "string" || encryptedString.trim() === "") {
+        console.error("Invalid encrypted data format received");
+        res.status(400).json({ error: "Invalid encrypted data format" });
+        return;
+    }
 
     try {
-      const updatedReport = await this.reportService.updateReport(id, {
-        report,
-        type,
-        status,
-        person,
-        timestamp,
-      });
+        // ✅ Decrypt data
+        const decryptedData = decryptData(encryptedString, this.SECRET_KEY);
+        console.log("Decrypted data:", decryptedData); // ✅ Debug log
 
-      res.json(updatedReport);
+        if (!decryptedData) {
+            throw new Error("Decryption failed or missing data");
+        }
+
+        // ✅ Ensure `reportId` is not included in the update query
+        const { reportId, ...updateData } = decryptedData; // Remove reportId before passing to Prisma
+
+        console.log("Final Data Sent to Repository:", updateData); // ✅ Debug log
+
+        const updatedReport = await this.reportService.updateReport(id, updateData);
+        res.json(updatedReport);
     } catch (error) {
-      console.error('Error updating report:', error);
-
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+        console.error("Error updating report:", error);
+        res.status(500).json({ error: error instanceof Error ? error.message : "Internal server error" });
     }
   }
 
   async deleteReport(req: Request, res: Response): Promise<void> {
-    const { id } = req.params;
+    const { encryptedData } = req.body;
+
+    console.log("Received encryptedData:", encryptedData); // ✅ Debugging log
+
+    // ✅ Extract the encrypted string from object (if it's an object)
+    const encryptedString = typeof encryptedData === "object" && "encryptedData" in encryptedData
+        ? encryptedData.encryptedData
+        : encryptedData;
+
+    if (!encryptedString || typeof encryptedString !== "string" || encryptedString.trim() === "") {
+        console.error("Invalid encrypted data format received");
+        res.status(400).json({ error: "Invalid encrypted data format" });
+        return;
+    }
 
     try {
-      const deletedReport = await this.reportService.deleteReport(id);
-      res.json({ message: 'Report deleted successfully', deletedReport });
-    } catch (error) {
-      console.error('Error deleting report:', error);
+        // ✅ Attempt to decrypt only the string
+        const decryptedData = decryptData(encryptedString, this.SECRET_KEY);
+        console.log("Decrypted data:", decryptedData); // ✅ Debug log
 
-      if (error instanceof Error && error.message === 'Report not found') {
-        res.status(404).json({ error: error.message });
-      } else if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+        if (!decryptedData || !decryptedData.id) {
+            throw new Error("Decryption failed or missing ID");
+        }
+
+        const deletedReport = await this.reportService.deleteReport(decryptedData.id);
+        res.json({ message: "Report deleted successfully", deletedReport });
+    } catch (error) {
+        console.error("Error deleting report:", error);
+        res.status(500).json({ error: error instanceof Error ? error.message : "Internal server error" });
+    }
+  }
+
+
+
+  async createReport(req: Request, res: Response): Promise<void> {
+    const { encryptedData } = req.body;
+
+    if (!encryptedData) {
+      res.status(400).json({ error: "Missing encrypted data" });
+      return;
+    }
+
+    try {
+      // ✅ Decrypt the request payload
+      const decryptedData = decryptData(encryptedData, this.SECRET_KEY);
+
+      const newReport = await this.reportService.createReport(decryptedData);
+      res.status(201).json({ message: 'Report added successfully', newReport });
+    } catch (error) {
+      console.error("Error processing encrypted report:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 
@@ -75,38 +123,7 @@ export class StudentReportController {
       res.json(urgentReports);
     } catch (error) {
       console.error('Error fetching urgent reports:', error);
-
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    }
-  }
-
-  async createReport(req: Request, res: Response): Promise<void> {
-    const { type, person, status, report, studentName, timestamp, writer } = req.body;
-
-    try {
-      const newReport = await this.reportService.createReport({
-        type,
-        person,
-        status,
-        report,
-        studentName,
-        timestamp,
-        writer,
-      });
-
-      res.status(201).json({ message: 'Student report added successfully', newReport });
-    } catch (error) {
-      console.error('Error adding report:', error);
-
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
     }
   }
 
@@ -118,13 +135,7 @@ export class StudentReportController {
       res.json(totalComments);
     } catch (error) {
       console.error('Error fetching total comments:', error);
-
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Internal server error' });
-      }
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
     }
   }
-  
 }
