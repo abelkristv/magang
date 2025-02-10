@@ -22,6 +22,7 @@ import { title } from "process";
 import { start } from "repl";
 import FailedPopup from "../../Elementary/FailedPopup";
 import ConfirmationModal from "../../StudentDetail/ConfirmationModal";
+import SuccessPopup from "../../Elementary/SuccessPopup";
 
 interface DocumentationBoxProps {
     setGlobalActiveTab: (tabName: string) => void;
@@ -48,6 +49,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
     const userAuth = useAuth();
     const modalRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
+    const [isVisible2, setIsVisible2] = useState(false);
     
 
     const [sortField, setSortField] = useState<string | null>(null);
@@ -242,7 +244,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         const zip = new JSZip();
     
         selectedDocumentation.pictures.forEach((imageBase64, index) => {
-            const imgData = imageBase64.split(',')[1]; // Remove the data URI scheme part
+            const imgData = imageBase64.split(',')[1];
             zip.file(`image_${index + 1}.png`, imgData, { base64: true });
         });
     
@@ -253,7 +255,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
 
             const formattedDate = dateObject.toISOString().split('T')[0];
 
-            saveAs(content, `internalactivity_${selectedDocumentation.title}_${formattedDate}.zip`);
+            saveAs(content, `Enrichment_Internal_Activity_${selectedDocumentation.title}_${formattedDate}.zip`);
 
         } catch (error) {
             console.error("Error generating zip file: ", error);
@@ -313,7 +315,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         const evaluationCount = filteredDocs.filter(doc => doc.type === 'Evaluation').length;
     
         const summaryData = [
-            ['Enrichment Activity Internal Activity Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Enrichment Internal Activity Export', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Start Date', exportStartDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['End Date', exportEndDate, '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['Meeting Count', meetingCount, '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -425,7 +427,7 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
         
     
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'internal_activity' + '_' + title + '_' + '.xlsx');
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Enrichment_Internal_Activity' + '_' + title + '_' + '.xlsx');
     
         closeExportModal();
     };
@@ -1282,16 +1284,18 @@ const DocumentationBox: React.FC<DocumentationBoxProps> = ({ setGlobalActiveTab 
                     </div>
                 </div>
             )}
-                        <FailedPopup isVisible={isVisible} message="There is no message to download" />
+                        <FailedPopup isVisible={isVisible} message="There is pictures to download" />
                         <ConfirmationModal
                             isOpen={isConfirmModalOpen}
                             onClose={() => setIsConfirmModalOpen(false)}
                             onConfirm={confirmDelete}
+                            title="Delete Internal Activity"
                             message={docToDelete
-                                ? "You are about to delete the selected documentation."
+                                ? "You are about to delete the selected internal activity"
                                 : ""}
                         />
 
+            <SuccessPopup message='The new internal activity has been successfully added' isVisible={isVisible2} />
         </main>
     );
 }

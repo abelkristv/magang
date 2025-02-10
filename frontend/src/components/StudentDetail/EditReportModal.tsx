@@ -3,6 +3,7 @@
 import { css } from "@emotion/react";
 import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState, FC } from "react";
+import SuccessPopup from "../Elementary/SuccessPopup";
 
 interface EditReportModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
     const [source, setSource] = useState<string>(currentSource);
     const [status, setStatus] = useState<string>("not solved")
     const [error, setError] = useState<string>('');
+    const [isVisible, setIsVisible] = useState(false);
 
     const modalRef = useRef<HTMLDivElement>(null);
 
@@ -54,16 +56,23 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
 
     const handleSubmit = () => {
         if (!content.trim() || !type.trim()) {
-            setError('Content and type are required.');
+            setError('Description is required');
             return;
         }
         onSubmit(currentId, content, type, status, source);
+        setIsVisible(true);
+            setTimeout(() => {
+            setIsVisible(false);
+        }, 5000);
         setContent("")
         setType("")
         setStatus("")
         setSource("")
         onClose();
     };
+
+    
+    
 
     const modalStyle = css`
         position: fixed;
@@ -176,6 +185,7 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
                             style={{ fontSize: "15px", padding: "10px", height: "100px", resize: "none" }}
                             rows={4}
                         />
+                        {error && <p css={errorStyle} style={{fontSize:'13px'}}>{error}</p>}
                     </div>
                     <div className="typeContainer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                         <p>Type</p>
@@ -215,7 +225,6 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
                             <option value="Company">Company</option>
                         </select>
                     </div>
-                    {error && <p css={errorStyle}>{error}</p>}
                     <div style={{ marginTop: "20px", display: "flex", justifyContent: "center" }}>
                         <button css={buttonStyle} onClick={handleSubmit}>
                             Save Changes
@@ -223,6 +232,7 @@ const EditReportModal: FC<EditReportModalProps> = ({ isOpen, onClose, onSubmit, 
                     </div>
                 </div>
             </div>
+            <SuccessPopup message='The student record has been successfully updated' isVisible={isVisible} />
         </div>
     );
 };

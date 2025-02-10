@@ -641,13 +641,13 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ setTodayReportsCount }) => {
                                     </div>
                                     {isDropdownOpen &&
                                         <div className="dropdown-content" css={dropdownContentStyle}>
-                                            <p>Major</p>
+                                            {/* <p>Major</p>
                                             <select value={tempSelectedMajor} onChange={(e) => handleFilterChange("major", e.target.value)}>
                                                 <option value="">All</option>
                                                 {majors.map((major, index) => (
                                                     <option key={index} value={major}>{`${major}`}</option>
                                                 ))}
-                                            </select>
+                                            </select> */}
 
                                             {/* Company Filter
                                             <p style={{marginTop:"13px"}}>Company</p>

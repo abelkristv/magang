@@ -477,14 +477,9 @@ const AddNewDocumentationBox: React.FC = () => {
             });
           };
       
-          // Process pictures:
-          // For each picture, if the file is a valid (new) file (i.e. has nonzero size), compress it;
-          // Otherwise, use the existing URL (base64 string) directly.
           const picturesBase64 = await Promise.all(
             pictures.map(async (picture) => {
-              // Check if the file is a new file (you might use a property like size)
               if (picture.file && picture.file.size > 0) {
-                // New file; compress it
                 const compressedFile: any = await compressImage(picture.file);
                 return new Promise<string>((resolve, reject) => {
                   const reader = new FileReader();
@@ -499,7 +494,6 @@ const AddNewDocumentationBox: React.FC = () => {
                   reader.onerror = (error) => reject(error);
                 });
               } else {
-                // Existing picture (loaded from backend): return its URL directly.
                 return picture.url;
               }
             })
@@ -507,7 +501,6 @@ const AddNewDocumentationBox: React.FC = () => {
       
           console.log("Pictures array:", picturesBase64);
       
-          // Prepare payload (adjust field names as needed):
           const payload = {
             user,
             title,
@@ -519,7 +512,7 @@ const AddNewDocumentationBox: React.FC = () => {
             attendees,
             results,
             pictures: picturesBase64.map((base64, index) => ({
-              fileName: pictures[index].file.name, // This may be a placeholder name for existing files
+              fileName: pictures[index].file.name,
               base64,
             })),
             documentationType,
@@ -529,7 +522,6 @@ const AddNewDocumentationBox: React.FC = () => {
           let result;
           
           if (isEditing) {
-            // When editing, call the update API
             if (!documentation?.id) {
                 alert("Documentation ID is missing.");
                 return;
@@ -573,7 +565,6 @@ const AddNewDocumentationBox: React.FC = () => {
               setIsVisible(false);
             }, 5000);
       
-            // Reset all form fields after successful submission
             setTitle("");
             setInvitationNumber("");
             setDescription("");
@@ -599,7 +590,15 @@ const AddNewDocumentationBox: React.FC = () => {
           alert("Failed to add/update internal activity. Please try again.");
         }
       };
-      
+    
+
+    const handleDocumentationTypeSelect = (event: any) => {
+        setDocumentationType(event.target.value);
+    }
+
+    const handleLocationTypeSelect = (event: any) => {
+        setType(event.target.value);
+    }
       
 
     const addDocInputText = css`
@@ -634,16 +633,26 @@ const AddNewDocumentationBox: React.FC = () => {
         gap: 10px;
     `;
 
-    // success popup
+    const selectStyle = css`
+        padding: 10px;
+        width: 100%;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ACACAC !important;
+        margin-bottom: 20px;
+        background-color: white;
+    `;
+
     const [isVisible, setIsVisible] = useState(false);
 
     return (
         <MainContainer>
             <NavSide>
-            <p>{isEditing ? "Update Internal Activity" : "Add Internal Activity"}</p>            </NavSide>
+                <p>{isEditing ? "Edit Internal Activity" : "Add Internal Activity"}</p>
+            </NavSide>
             <ContentContainer>
             <Header>
-          {isEditing ? "Update Internal Activity" : "Add New Internal Activity"}
+          {isEditing ? "Edit Internal Activity" : "Add New Internal Activity"}
         </Header>                <ContentSide>
                     <div className="leftSide">
                         <p style={{ fontSize: "19px" }}>Main</p>
@@ -661,14 +670,22 @@ const AddNewDocumentationBox: React.FC = () => {
                             <DocumentationMeeting>
                                 <div className="inputDoc">
                                     <RequiredLabel>
-                                        {/* Documentation Type <span>*</span> */}
                                         Documentation Type
                                     </RequiredLabel>
-                                    <DropdownComponent
+                                    {/* <DropdownComponent
                                         selectedValue={documentationType}
                                         setSelectedValue={setDocumentationType}
                                         options={["Meeting", "Evaluation", "Discussion"]}
-                                    />
+                                    /> */}
+                                    <select
+                                        css={selectStyle}
+                                        style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                                        onChange={handleDocumentationTypeSelect}
+                                    >
+                                        <option value="Meeting">Meeting</option>
+                                        <option value="Evaluation">Evaluation</option>
+                                        <option value="Discussion">Discussion</option>
+                                    </select>
                                     {documentationTypeError && <ErrorText>{documentationTypeError}</ErrorText>}
                                 </div>
                                 <div className="inputDoc">
@@ -747,12 +764,18 @@ const AddNewDocumentationBox: React.FC = () => {
                                     <RequiredLabel>
                                         Location Type
                                     </RequiredLabel>
-                                    <DropdownComponent selectedValue={type} setSelectedValue={setType} options={["Online", "Onsite"]}  />
+                                    <select
+                                        css={selectStyle}
+                                        style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                                        onChange={handleLocationTypeSelect}
+                                    >
+                                        <option value="Online">Online</option>
+                                        <option value="Onsite">Onsite</option>
+                                    </select>
                                 </div>
                                 <div className="typeContainer">
                                     <TimeContainer>
                                         <RequiredLabel>
-                                            {/* Time <span>*</span> */}
                                             Time
                                         </RequiredLabel>
                                         <input type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />
@@ -762,7 +785,6 @@ const AddNewDocumentationBox: React.FC = () => {
                             </ScheduleTopSide>
                             <LocationContainer>
                                 <RequiredLabel>
-                                    {/* Location <span>*</span> */}
                                     Place / Link
                                 </RequiredLabel>
                                 <input css={addDocInputText} type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
@@ -789,7 +811,7 @@ const AddNewDocumentationBox: React.FC = () => {
                     style={{ width: "235px", fontSize: "17px", fontWeight: "500", marginTop: "20px" }}
                     onClick={handleSubmitDocumentation}
                     >
-                    {isEditing ? "Update" : "Add"}
+                    {isEditing ? "Save Changes" : "Add"}
                 </AddButton>
                 </div>
                 

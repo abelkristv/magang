@@ -8,10 +8,11 @@ interface ConfirmationModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
+    title: string;
     message: string;
 }
 
-const ConfirmationModal: FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, message }) => {
+const ConfirmationModal: FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, title, message }) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -130,7 +131,7 @@ const ConfirmationModal: FC<ConfirmationModalProps> = ({ isOpen, onClose, onConf
         <div css={modalStyle}>
             <div ref={modalRef} css={modalContentStyle}>
                 <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Delete Record</p>
+                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>{title}</p>
                     <Icon icon="mdi:close" onClick={onClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
                 <div css={messageContainerStyle}>

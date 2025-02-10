@@ -59,7 +59,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         selectedPeriod: "",
         selectedCompany: "",
         selectedMajor: "",
-        selectedStatus: "", // New
+        selectedStatus: "",
         periods: [],
         companies: [],
         majors: [],
@@ -70,7 +70,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
         selectedPeriod: "",
         selectedCompany: "",
         selectedMajor: "",
-        selectedStatus: "", // New
+        selectedStatus: "",
         periods: [],
         companies: [],
         majors: [],
@@ -120,7 +120,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     setStudents(fetchedResponse.students);
                     setFilteredStudents(fetchedResponse.students);
         
-                    // Fetch total comments count
                     const totalComments = await fetchTotalReportsByStudent(fetchedResponse.students);
                     setComments(totalComments);
                 }
@@ -258,7 +257,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                 studentResponse.pagination.limit,
                 searchState.searchQuery.trim(),
                 options.selectedPeriod,
-                options.selectedStatus // New
+                options.selectedStatus
             );
     
             if (response._tag === "Some") {
@@ -463,7 +462,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     tempSelectedPeriod={tempFilterOptions.selectedPeriod}
                     tempSelectedCompany={tempFilterOptions.selectedCompany}
                     tempSelectedMajor={tempFilterOptions.selectedMajor}
-                    tempSelectedStatus={tempFilterOptions.selectedStatus} // New
+                    tempSelectedStatus={tempFilterOptions.selectedStatus}
                     periods={filterOptions.periods}
                     companies={filterOptions.companies}
                     majors={filterOptions.majors}
@@ -474,7 +473,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSelectStudent }) => {
                     handleTempStatusChange={(event) => setTempFilterOptions(prev => ({
                         ...prev,
                         selectedStatus: event.target.value,
-                    }))} // New
+                    }))}
                     handleApplyFilters={handleApplyFilters}
                 />
 

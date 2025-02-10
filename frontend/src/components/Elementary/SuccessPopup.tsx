@@ -13,7 +13,7 @@ const SuccessPopup: React.FC<SuccessPopupProps> = ({ message, isVisible }) => {
         position: fixed;
         top: 22px;
         right: 22px;
-        background-color: #4caf50; /* Green background */
+        background-color: #4caf50;
         color: white;
         padding: 10px 20px;
         border-radius: 5px;

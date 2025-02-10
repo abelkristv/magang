@@ -108,18 +108,15 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
             }
         }
     
-        // Validate description
         if (!description.trim()) {
             setDescriptionError('Description is required.');
             hasError = true;
         }
     
-        // Validate place based on meeting type
         if (!place.trim()) {
             setPlaceError('Place or Zoom Link is required.');
             hasError = true;
         } else if (meetingType === 'online') {
-            // Zoom URL validation
             const zoomUrlRegex = /^https:\/\/(www\.)?zoom\.us\/[a-zA-Z0-9/?=&_.-]+$/;
             if (!zoomUrlRegex.test(place)) {
                 setPlaceError('Please provide a valid Zoom URL.');
@@ -127,7 +124,6 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, onSubmit, studentReportId, set
             }
         }
     
-        // Stop submission if there are errors
         if (hasError) return;
     
         setError('');

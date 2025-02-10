@@ -3,6 +3,7 @@
 import { css } from "@emotion/react";
 import { useEffect, useRef, useState, FC, FormEvent } from "react";
 import SuccessPopup from "../Elementary/SuccessPopup";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 interface ModalProps {
     isOpen: boolean;
@@ -162,9 +163,8 @@ const EditMeetingScheduleModal: FC<ModalProps & { currentMeeting?: any }> = ({
         <div css={modalStyle}>
             <div css={modalContentStyle}>
                 <div className="modalHeader" css={modalHeaderStyle}>
-                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Schedule a meeting</p>
-                    <button onClick={handleButtonClose} css={closeButtonStyle}>X</button>
-
+                    <p className="headerp" style={{fontSize:"19px", fontWeight:"600"}}>Edit Meeting</p>
+                    <Icon icon="mdi:close" onClick={handleButtonClose} fontSize={20} color="#51587E" css={closeButtonStyle} />
                 </div>
                 <div css={formStyle}>
                     <div className="dateContainer" style={{display: "flex", justifyContent:"space-between"}}>

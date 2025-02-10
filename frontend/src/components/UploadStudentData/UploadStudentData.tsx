@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import MainBox from "../Elementary/MainBox";
 import { Button, Header } from "../Documentation/Add New Documentation/AddNewDocumentationBox.styles";
 import Period from "../../model/Period";
+import SuccessPopup from "../Elementary/SuccessPopup";
+import FailedPopup from "../Elementary/FailedPopup";
 
 const uploadBoxStyle = css`
     display: flex;
@@ -63,7 +65,7 @@ const selectStyle = css`
     font-size: 16px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    margin-bottom: 20px;
+    margin-bottom: 7px;
     background-color: white;
 `;
 
@@ -76,7 +78,7 @@ const plusIconContainerStyle = css`
 
 const newPeriodSectionStyle = css`
     display: flex;
-    align-items: end;
+    align-items: start;
     margin-bottom: 20px;
     gap: 30px;
 `;
@@ -160,15 +162,29 @@ const browseButtonStyle = css`
     font-size: 15px;
 `;
 
+const errorStyle = css`
+    color: red;
+    margin-top: 4px;
+    margin-bottom: 10px;
+`;
+
 const UploadStudentData = () => {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [periods, setPeriods] = useState<Period[]>([]);
     const [selectedPeriod, setSelectedPeriod] = useState("");
-    const [newPeriod, setNewPeriod] = useState(""); // Start year
-    const [newPeriodTerm, setNewPeriodTerm] = useState("odd"); // Default term
+    const [newPeriod, setNewPeriod] = useState("");
+    const [newPeriodTerm, setNewPeriodTerm] = useState("odd");
 
     const [isAddingPeriod, setIsAddingPeriod] = useState(false);
+    const [error, setError] = useState<string>("");
+    const [periodError, setPeriodError] = useState<string>("");
+    const [fileError, setFileError] = useState<string>("");
+    const [isSuccess1Visible, setIsSuccess1Visible] = useState(false);
+    const [isSuccess2Visible, setIsSuccess2Visible] = useState(false);
+    const [isFailedVisible, setIsFailedVisible] = useState(false);
+    const [failedPopUpMessage, setFailedPopUpMessage] = useState("");
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -207,8 +223,11 @@ const UploadStudentData = () => {
 
     const handleAddPeriod = async () => {
         if (!newPeriod.trim() || isNaN(Number(newPeriod))) {
-            alert("Please enter a valid period year (e.g., 2023).");
+            setError("Invalid period start year");
             return;
+        }
+        else{
+            setError("");
         }
     
         const yearLastTwoDigits = newPeriod.slice(-2);
@@ -224,31 +243,56 @@ const UploadStudentData = () => {
     
             if (response.ok) {
                 const addedPeriod = await response.json();
+                setIsSuccess1Visible(true);
+                setTimeout(() => {
+                    setIsSuccess1Visible(false);
+                }, 5000);
                 setPeriods((prevPeriods) => [...prevPeriods, addedPeriod]);
                 setNewPeriod("");
-                setNewPeriodTerm("odd"); // Reset selection
+                setNewPeriodTerm("odd");
                 setIsAddingPeriod(false);
-                alert("New period added successfully!");
             } else {
                 const result = await response.json();
-                alert(`Error: ${result.message}`);
+                // alert(`Error: ${result.message}`);
+                setFailedPopUpMessage(`${result.message}`);
+                setIsFailedVisible(true);
+                setTimeout(() => {
+                    setIsFailedVisible(false);
+                    setFailedPopUpMessage('');
+                }, 5000);
             }
         } catch (error) {
             console.error("Error adding new period:", error);
-            alert("An error occurred while adding the period.");
+            // alert("An error occurred while adding the period.");
+            setFailedPopUpMessage('An error occurred while adding the period');
+            setIsFailedVisible(true);
+            setTimeout(() => {
+                setIsFailedVisible(false);
+                setFailedPopUpMessage('');
+            }, 5000);
         }
     };    
 
     const handleUpload = async () => {
-        if (!file) {
-            alert("Please select a file to upload.");
+        if (!selectedPeriod) {
+            setPeriodError("Please select a period");
+            if (!file) {
+                setFileError("Please select a file");
+            }
             return;
+        }
+        else{
+            setPeriodError("");
         }
 
-        if (!selectedPeriod) {
-            alert("Please select a period.");
+        if (!file) {
+            setFileError("Please select a file");
             return;
         }
+        else{
+            setFileError("");
+        }
+
 
         setIsUploading(true);
 
@@ -264,15 +308,29 @@ const UploadStudentData = () => {
             });
 
             if (response.ok) {
-                alert("File uploaded successfully!");
-                navigate("/enrichment-documentation/workspaces/home");
+                setIsSuccess2Visible(true);
+                setTimeout(() => {
+                    setIsSuccess2Visible(false);
+                }, 5000);
+                // navigate("/enrichment-documentation/workspaces/student");
             } else {
                 const result = await response.json();
-                alert(`Error: ${result.message}`);
+                // alert(`Error: ${result.message}`);
+                setFailedPopUpMessage(result.message);
+                setIsFailedVisible(true);
+                setTimeout(() => {
+                    setIsFailedVisible(false);
+                    setFailedPopUpMessage('');
+                }, 5000);
             }
         } catch (error) {
             console.error("Error uploading file:", error);
-            alert("An error occurred during file upload.");
+            setFailedPopUpMessage('An error occurred while uploading the student data');
+            setIsFailedVisible(true);
+            setTimeout(() => {
+                setIsFailedVisible(false);
+                setFailedPopUpMessage('');
+            }, 5000);
         } finally {
             setIsUploading(false);
         }
@@ -300,10 +358,10 @@ const UploadStudentData = () => {
                                                     {period.name}
                                                 </option>
                                             ))}
-
                                         </select>
+                                        {periodError && <p css={errorStyle} style={{fontSize:"14px"}}>{periodError}</p>}
                                         <div css={plusIconContainerStyle}>
-                                            <Button onClick={toggleAddPeriod} style={{paddingLeft:'20px', paddingRight:'20px'}}>Add Period</Button>
+                                            <Button onClick={toggleAddPeriod} style={{paddingLeft:'20px', paddingRight:'20px', marginTop:'20px'}}>Add Period</Button>
                                         </div>
                                     </div>
                                     {isAddingPeriod && (
@@ -329,8 +387,8 @@ const UploadStudentData = () => {
                                                     value={newPeriod}
                                                     onChange={handleNewPeriodChange}
                                                 >
-
                                                 </input>
+                                                {error && <p css={errorStyle} style={{fontSize:"14px"}}>{error}</p>}
                                             </div>
 
                                             <Button
@@ -359,6 +417,7 @@ const UploadStudentData = () => {
                                             )} */}
                                             <div css={browseButtonStyle}>Browse</div>
                                         </div>
+                                        {fileError && <p css={errorStyle} style={{fontSize:"14px"}}>{fileError}</p>}
                                     </div>
 
 
@@ -370,10 +429,12 @@ const UploadStudentData = () => {
                                 >
                                     {isUploading ? "Uploading..." : "Upload"}
                                 </Button>
-
                             </div>
                         </div>
                     </div>
+                    <SuccessPopup message='The new period has been successfully added' isVisible={isSuccess1Visible} />
+                    <SuccessPopup message='The student data file has been successfully uploaded' isVisible={isSuccess2Visible} />
+                    <FailedPopup isVisible={isFailedVisible} message={failedPopUpMessage} />
                 </MainBox>
             </div>
         </div>

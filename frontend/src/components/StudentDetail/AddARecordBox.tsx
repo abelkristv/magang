@@ -26,19 +26,23 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
         setDescription(event.target.value);
     };
 
-    const handleTypeSelect = (type: string) => {
-        setSelectedType(type);
-        setIsTypeDropdownOpen(false);
+    const handleTypeSelect = (event: any) => {
+        setSelectedType(event.target.value);
+        // setSelectedType(type);
+        // setIsTypeDropdownOpen(false);
+        
     };
 
-    const handlePersonSelect = (person: string) => {
-        setSelectedPerson(person);
-        setIsPersonDropdownOpen(false);
+    const handlePersonSelect = (event: any) => {
+        setSelectedPerson(event.target.value);
+        // setSelectedPerson(person);
+        // setIsPersonDropdownOpen(false);
     };
 
-    const handleStatusSelect = (status: string) => {
-        setSelectedStatus(status)
-        setIsStatusDropdownOpen(false)
+    const handleStatusSelect = (event: any) => {
+        setSelectedStatus(event.target.value);
+        // setSelectedStatus(status)
+        // setIsStatusDropdownOpen(false)
     }
     
     const handleAddRecord = async () => {
@@ -251,13 +255,14 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                         </div> */}
 
                         <select
-                                    css={selectStyle}
-                                    style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
-                                >
-                                    <option value="odd">Report</option>
-                                    <option value="even">Complaint</option>
-                                    <option value="even">Urgent</option>
-                                </select>
+                            css={selectStyle}
+                            style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                            onChange={handleTypeSelect}
+                        >
+                            <option value="Report">Report</option>
+                            <option value="Complaint">Complaint</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
                         
                         {/* {isTypeDropdownOpen && (
                             <div css={dropdownContentStyle}>
@@ -276,28 +281,20 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                     </div>
                     <div className="person-dropdown" css={dropdownStyle}>
                     <p style={{marginBottom: "5px", fontSize:"17px"}}>Source</p>
-                        <div css={dropdownButtonStyle} onClick={() => setIsPersonDropdownOpen(!isPersonDropdownOpen)}>
-                            <div style={{fontSize:"15px"}}>{selectedPerson}</div>
-                            <Icon icon={"weui:arrow-filled"} color="black" rotate={45} fontSize={10} />
-                        </div>
-                        {isPersonDropdownOpen && (
-                            <div css={dropdownContentStyle}>
-                                <div css={dropdownItemStyle(selectedPerson === "Student")} onClick={() => handlePersonSelect("Student")}>
-                                    Student
-                                </div>
-                                <div css={dropdownItemStyle(selectedPerson === "Enrichment")} onClick={() => handlePersonSelect("Enrichment")}>
-                                    Enrichment
-                                </div>
-                                <div css={dropdownItemStyle(selectedPerson === "Company")} onClick={() => handlePersonSelect("Company")}>
-                                    Company
-                                </div>
-                            </div>
-                        )}
+                        <select
+                            css={selectStyle}
+                            style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                            onChange={handlePersonSelect}
+                        >
+                            <option value="Student">Student</option>
+                            <option value="Enrichment">Enrichment</option>
+                            <option value="Company">Company</option>
+                        </select>
                     </div>
                 </div>
                 <div className="person-dropdown" css={dropdownStyle}>
                     <p style={{marginBottom: "5px", fontSize:"17px"}}>Status</p>
-                        <div css={dropdownButtonStyle} onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}>
+                        {/* <div css={dropdownButtonStyle} onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}>
                         <div style={{ fontSize: "15px" }}>
                             {selectedStatus
                                 .split(' ')
@@ -305,17 +302,15 @@ const AddRecordBox = ({ studentName, onRecordAdded }: AddRecordBoxProps) => {
                                 .join(' ')}
                         </div>
                             <Icon icon={"weui:arrow-filled"} color="black" rotate={45} fontSize={10} />
-                        </div>
-                        {isStatusDropdownOpen && (
-                            <div css={dropdownContentStyle}>
-                                <div css={dropdownItemStyle(selectedStatus === "solved")} onClick={() => handleStatusSelect("solved")}>
-                                    Solved
-                                </div>
-                                <div css={dropdownItemStyle(selectedStatus === "not solved")} onClick={() => handleStatusSelect("not solved")}>
-                                    Not Solved
-                                </div>
-                            </div>
-                        )}
+                        </div> */}
+                        <select
+                            css={selectStyle}
+                            style={{height:'47px', marginBottom:'0px', border:'1px solid #ACACAC'}}
+                            onChange={handleStatusSelect}
+                        >
+                            <option value="Solved">Solved</option>
+                            <option value="Not Solved">Not Solved</option>
+                        </select>
                     </div>
                 <div css={buttonContainerStyle}>
                     <button className="button" css={buttonStyle} onClick={handleAddRecord}>Add</button>

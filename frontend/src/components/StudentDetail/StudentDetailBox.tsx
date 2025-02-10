@@ -80,7 +80,7 @@ const StudentDetailBox = () => {
     const [editedSource, setEditedSource] = useState<string>("");
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [editedType, setEditedType] = useState<string>("");
-    const [sortOrder, setSortOrder] = useState<string>("latest");  // Default to "latest"
+    const [sortOrder, setSortOrder] = useState<string>("latest");
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
     const [editedStatus, setEditedStatus] = useState<string>("");
     const [dateErrorMessage, setDateErrorMessage] = useState<string>("");
@@ -91,8 +91,6 @@ const StudentDetailBox = () => {
 
     const [isVisible, setIsVisible] = useState(false);
 
-
-    // State variables for editing notes
     const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
     const [editedNotes, setEditedNotes] = useState<string>("");
 
@@ -135,12 +133,10 @@ const StudentDetailBox = () => {
             if (student && student.name) {
                 let reportList = await fetchReports(student.name, filterStartDate, filterEndDate);
                 
-                // Apply type and person filters
                 const filteredByType = filterType ? reportList.filter(report => report.type === filterType) : reportList;
                 const filteredByStatus = filterStatus ? filteredByType.filter(report => report.status === filterStatus) : filteredByType
                 const filteredReports = filterPerson ? filteredByStatus.filter(report => report.person === filterPerson) : filteredByStatus;
     
-                // Sort reports by latest or earliest
                 const sortedReports = filteredReports.sort((a, b) => {
                     const dateA = new Date(a.timestamp);
                     const dateB = new Date(b.timestamp);
@@ -178,7 +174,6 @@ const StudentDetailBox = () => {
 
     const handleSaveMeetingScheduleEdit = async (updatedMeeting: any) => {
         try {
-          // If there's no id in updatedMeeting, assign the currentMeeting id
           if (!updatedMeeting.id && currentMeeting?.id) {
             updatedMeeting.id = currentMeeting.id;
           }
@@ -201,10 +196,8 @@ const StudentDetailBox = () => {
           const result = await response.json();
           console.log('Meeting schedule updated:', result);
       
-          // Check if the response includes the updated meeting data
           const updated = result.updatedMeeting || updatedMeeting;
       
-          // Optionally, if updated.createdAt is a string, wrap it as needed.
           if (updated.createdAt && typeof updated.createdAt === "string") {
             updated.createdAt = {
               toDate: () => new Date(updated.createdAt)
@@ -234,9 +227,7 @@ const StudentDetailBox = () => {
     }) => {
         try {
             const updatedSchedules = await scheduleMeeting(data, meetingSchedules);
-            // setMeetingSchedules(updatedSchedules);
 
-            // Construct email details
             const emailDetails = {
                 to: student?.email,
                 subject: "Meeting Scheduled",
@@ -249,7 +240,6 @@ const StudentDetailBox = () => {
 
             console.log(emailDetails)
 
-            // Send the email via the API
             const response = await fetch(`${import.meta.env.VITE_BACKEND_PREFIX_URL}/send-email`, {
                 method: 'POST',
                 headers: {
@@ -310,8 +300,8 @@ const StudentDetailBox = () => {
     
                 setMeetingSchedules(prev => {
                     const updatedSchedules = { ...prev };
-                    delete updatedSchedules[meetingToDelete]; // Remove the deleted schedule
-                    return { ...updatedSchedules }; // Spread to trigger re-render
+                    delete updatedSchedules[meetingToDelete];
+                    return { ...updatedSchedules }; 
                 });
 
                 setIsFetching(true);
@@ -354,7 +344,7 @@ const StudentDetailBox = () => {
             setReports(updatedReports);
             setEditingReportId(null);
         } catch (error) {
-            // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
+
         } finally {
             setIsUpdating(false);
         }
@@ -371,8 +361,8 @@ const StudentDetailBox = () => {
             return;
         }
     
-        setMeetingToDelete(schedule.id); // Store meeting ID for deletion
-        setIsConfirmModalOpen(true); // Open confirmation modal
+        setMeetingToDelete(schedule.id);
+        setIsConfirmModalOpen(true);
     };
     
       
@@ -410,7 +400,6 @@ const StudentDetailBox = () => {
             ['Report Count', reportCount.toString(), '', '', ''],
         ];
     
-        // Updated headers to include "Type" and "Person"
         const headers = [
             'Writer',
             'Report',
@@ -420,7 +409,6 @@ const StudentDetailBox = () => {
             'Status'
         ];
     
-        // Include type and person in the data map
         const data = filteredReports.map(report => ({
             Writer: report.writer,
             Report: report.report,
@@ -433,10 +421,8 @@ const StudentDetailBox = () => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Reports');
     
-        // Add summary data
         worksheet.addRows(summaryData);
     
-        // Define and style header row
         const headerRow = worksheet.addRow(headers);
         headerRow.eachCell((cell) => {
             cell.font = { bold: true };
@@ -449,7 +435,6 @@ const StudentDetailBox = () => {
             };
         });
     
-        // Add data rows
         data.forEach((rowData) => {
             const row = worksheet.addRow(Object.values(rowData));
             row.eachCell((cell) => {
@@ -462,7 +447,6 @@ const StudentDetailBox = () => {
             });
         });
     
-        // Set column widths for better readability
         worksheet.columns = [
             { key: 'Writer', width: 20 },
             { key: 'Report', width: 30 },
@@ -473,9 +457,8 @@ const StudentDetailBox = () => {
             
         ];
     
-        // Export the file
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'studentrecord_' + student?.nim + "_" +student?.name + "_" +startDate + "_" + endDate + "_" + '.xlsx');
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Student_Record_' + student?.nim + "_" +student?.name + "_" +startDate + "_" + endDate + "_" + '.xlsx');
     };    
     
 
@@ -497,7 +480,6 @@ const StudentDetailBox = () => {
                 const updatedStudent = await updateStudentNotes(studentId!, editedNotes, student);
                 setStudent(updatedStudent);
             } catch (error) {
-                // Error handling is already done in the controller, so this block can remain empty or have additional handling if needed.
             }
         } else if (!isEditingNotes) {
 
@@ -1107,7 +1089,7 @@ const StudentDetailBox = () => {
                 onSubmit={handleSaveMeetingScheduleEdit}
                 studentReportId={selectedReportId || ""}
                 setVisible={setIsVisible}
-                currentMeeting={currentMeeting} // <-- Pass the meeting details here
+                currentMeeting={currentMeeting}
             />
 
             <ExportModal
@@ -1119,10 +1101,15 @@ const StudentDetailBox = () => {
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={confirmDelete}
+                title={reportToDelete
+                    ? "Delete Record"
+                    : meetingToDelete
+                    ? "Cancel Meeting"
+                    : ""}
                 message={reportToDelete
                     ? "You are about to delete the selected student record."
                     : meetingToDelete
-                    ? "You are about to delete the selected meeting schedule."
+                    ? "You are about to cancel the meeting of the selected student record"
                     : ""}
             />
 

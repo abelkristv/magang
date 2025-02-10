@@ -130,7 +130,7 @@ const FilterDropdown = ({
                         <option key={index} value={period}>{period}</option>
                     ))}
                 </select>
-                <p>Major</p>
+                {/* <p>Major</p>
                 <select value={tempSelectedMajor} onChange={handleTempMajorChange}>
                     <option value="">All</option>
                     {majors.map((major, index) => (
@@ -142,7 +142,7 @@ const FilterDropdown = ({
                     <option value="">All</option>
                     <option value="Active">Active</option>
                     <option value="Not Active">Not Active</option>
-                </select>
+                </select> */}
                 <div css={buttonContainerStyle}>
                     <button className="button" css={buttonStyle} onClick={handleApplyFilters}>Apply</button>
                 </div>
